@@ -1,97 +1,93 @@
-/**
- * memwalServer.js — In-memory mock for Sprint 2.
- * Real MemWal SDK integration deferred to Sprint 4.
- * API shape matches real MemWal so the Sprint 4 swap is minimal.
- *
- * Real MemWal API (Sprint 4):
- *   storeMemoryServer → memwal.rememberAndWait(text) → returns blob_id
- *   recallMemoriesServer → memwal.recall(query, limit) → { results: [{ text, score }] }
- */
+import { MemWal } from '@mysten-incubation/memwal';
 
-// In-memory store: namespace → [{ text, timestamp }]
-const memoryStore = new Map();
+const MEMWAL_KEY = process.env.MEMWAL_DELEGATE_KEY;
+const MEMWAL_ACCOUNT_ID = process.env.MEMWAL_ACCOUNT_ID;
+const MEMWAL_URL = process.env.MEMWAL_URL || 'https://relayer.staging.memwal.ai';
 
-function getNamespaceStore(namespace) {
-  if (!memoryStore.has(namespace)) {
-    memoryStore.set(namespace, []);
+const USE_REAL = !!(MEMWAL_KEY && MEMWAL_ACCOUNT_ID);
+
+const clients = new Map();
+const mockStore = new Map();
+
+function getClient(namespace) {
+  if (!USE_REAL) return null;
+  if (!clients.has(namespace)) {
+    clients.set(namespace, MemWal.create({
+      key: MEMWAL_KEY,
+      accountId: MEMWAL_ACCOUNT_ID,
+      serverUrl: MEMWAL_URL,
+      namespace,
+    }));
   }
-  return memoryStore.get(namespace);
+  return clients.get(namespace);
 }
 
-/**
- * Store a memory text in the given namespace.
- * Returns a mock blob_id for API shape compatibility.
- *
- * @param {string} namespace
- * @param {string} text
- * @param {string} delegateKey - unused in mock, reserved for Sprint 4
- * @param {string} accountId - unused in mock, reserved for Sprint 4
- * @returns {Promise<{ blob_id: string }>}
- */
-export async function storeMemoryServer(namespace, text, delegateKey, accountId) {
-  const store = getNamespaceStore(namespace);
+function getMockStore(namespace) {
+  if (!mockStore.has(namespace)) mockStore.set(namespace, []);
+  return mockStore.get(namespace);
+}
+
+function mockRecall(namespace, query, limit) {
+  const store = getMockStore(namespace);
+  if (store.length === 0) return { results: [] };
+  const tokens = query.toLowerCase().split(/\s+/).filter(t => t.length > 2);
+  const scored = store.map(mem => {
+    const lower = mem.text.toLowerCase();
+    let score = 0;
+    for (const t of tokens) { if (lower.includes(t)) score++; }
+    if (Date.now() - mem.timestamp < 300000) score += 0.1;
+    return { text: mem.text, score };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  return { results: scored.slice(0, limit).map(r => ({ text: r.text, score: r.score })) };
+}
+
+export async function storeMemoryServer(namespace, text, _delegateKey, _accountId) {
+  const client = getClient(namespace);
+  if (client) {
+    try {
+      const result = await client.remember(text, namespace);
+      getMockStore(namespace).push({ text, timestamp: Date.now(), blob_id: result.job_id });
+      return { blob_id: result.job_id };
+    } catch (err) {
+      console.warn(`[MemWal] remember failed for ${namespace}, falling back to mock:`, err.message);
+    }
+  }
+  const store = getMockStore(namespace);
   const blob_id = `mock-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   store.push({ text, timestamp: Date.now(), blob_id });
-
-  // Keep max 200 memories per namespace to avoid unbounded growth
-  if (store.length > 200) {
-    store.splice(0, store.length - 200);
-  }
-
+  if (store.length > 200) store.splice(0, store.length - 200);
   return { blob_id };
 }
 
-/**
- * Recall memories from a namespace matching the query.
- * Uses substring matching as a mock for semantic search.
- * Returns in the same shape as the real MemWal recall() response.
- *
- * @param {string} namespace
- * @param {string} query
- * @param {number} limit
- * @param {string} delegateKey - unused in mock
- * @param {string} accountId - unused in mock
- * @returns {Promise<{ results: Array<{ text: string, score: number }> }>}
- */
-export async function recallMemoriesServer(namespace, query, limit = 10, delegateKey, accountId) {
-  const store = getNamespaceStore(namespace);
-  if (store.length === 0) {
-    return { results: [] };
-  }
-
-  const lowerQuery = query.toLowerCase();
-  const queryTokens = lowerQuery.split(/\s+/).filter(t => t.length > 2);
-
-  // Score each memory by how many query tokens it contains
-  const scored = store.map(mem => {
-    const lowerText = mem.text.toLowerCase();
-    let score = 0;
-    for (const token of queryTokens) {
-      if (lowerText.includes(token)) score++;
+export async function recallMemoriesServer(namespace, query, limit = 10, _delegateKey, _accountId) {
+  const client = getClient(namespace);
+  if (client) {
+    try {
+      const result = await client.recall(query, limit, namespace);
+      return {
+        results: (result.results || []).map(r => ({
+          text: r.text,
+          score: r.distance != null ? (1 - r.distance) : 1,
+        })),
+      };
+    } catch (err) {
+      console.warn(`[MemWal] recall failed for ${namespace}, falling back to mock:`, err.message);
     }
-    // Recency boost: memories from last 5 minutes score slightly higher
-    const recencyBoost = (Date.now() - mem.timestamp) < 300000 ? 0.1 : 0;
-    return { text: mem.text, score: score + recencyBoost };
-  });
-
-  // Sort by score descending, then return top limit
-  scored.sort((a, b) => b.score - a.score);
-  const results = scored.slice(0, limit).map(r => ({ text: r.text, score: r.score }));
-
-  return { results };
+  }
+  return mockRecall(namespace, query, limit);
 }
 
-/**
- * Get the number of memories stored in a namespace.
- * Utility for debugging — not part of the real MemWal API.
- */
 export function getMemoryCount(namespace) {
-  return getNamespaceStore(namespace).length;
+  return getMockStore(namespace).length;
 }
 
-/**
- * Clear all memories (for testing purposes).
- */
 export function clearAllMemories() {
-  memoryStore.clear();
+  mockStore.clear();
+}
+
+if (USE_REAL) {
+  console.log('[MemWal] Real SDK active — account:', MEMWAL_ACCOUNT_ID.slice(0, 10) + '...');
+} else {
+  console.log('[MemWal] Mock mode — set MEMWAL_DELEGATE_KEY + MEMWAL_ACCOUNT_ID for real integration');
 }
