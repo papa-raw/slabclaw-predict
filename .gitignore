@@ -8,3 +8,6 @@ build/
 *.log
 .vercel
 contracts/anima_swarm/build/
+_data/
+_harness/
+sdk-tests/

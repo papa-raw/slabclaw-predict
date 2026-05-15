@@ -1,0 +1,11 @@
+{
+  "name": "anima-swarm-server",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.0",
+    "ws": "^8.18.0"
+  }
+}
