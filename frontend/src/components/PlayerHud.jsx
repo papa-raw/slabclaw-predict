@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { getPlayerColor } from '@lib/terrainTypes.js';
 
-const TOTAL_HEXES = 37;
+const TOTAL_HEXES = 91;
 
 export default function PlayerHud({ player, spirits, gameState }) {
   const [showBoard, setShowBoard] = useState(false);
@@ -10,6 +10,8 @@ export default function PlayerHud({ player, spirits, gameState }) {
   const hexesControlled = player.hexesControlled || 0;
   const spiritCount = spirits?.length || 0;
   const territoryPct = TOTAL_HEXES > 0 ? Math.round((hexesControlled / TOTAL_HEXES) * 100) : 0;
+
+  const totalMemories = spirits?.reduce((sum, s) => sum + (s.memoryCount || 0), 0) || 0;
 
   const divinePower = spiritCount > 0
     ? Math.round(spirits.reduce((sum, s) => {
@@ -40,12 +42,15 @@ export default function PlayerHud({ player, spirits, gameState }) {
         </span>
         <div className="w-px h-4 bg-gray-700/50" />
         <div className="flex items-center gap-2.5 text-xs font-mono">
-          <HudStat label="HEX" value={hexesControlled} color="text-amber-400" />
-          <HudStat label="SPR" value={spiritCount} color="text-teal-400" />
+          <HudStat label="HEX" value={hexesControlled} color="text-amber-400" title="Hexes Controlled" />
+          <HudStat label="SPR" value={spiritCount} color="text-teal-400" title="Spirits Alive" />
           <HudStat label="TER" value={`${territoryPct}%`}
-            color={territoryPct >= 50 ? 'text-amber-300' : 'text-gray-400'} />
+            color={territoryPct >= 50 ? 'text-amber-300' : 'text-gray-400'} title="Territory Percentage" />
           <HudStat label="PWR" value={divinePower}
-            color={divinePower >= 70 ? 'text-amber-300' : divinePower >= 40 ? 'text-gray-300' : 'text-gray-500'} />
+            color={divinePower >= 70 ? 'text-amber-300' : divinePower >= 40 ? 'text-gray-300' : 'text-gray-500'}
+            title="Bond Strength (avg)" />
+          <HudStat label="MEM" value={totalMemories}
+            color="text-teal-400" title="Total Memories on MemWal" />
         </div>
         <span className={`text-gray-500 text-[10px] transition-transform duration-200 ${showBoard ? 'rotate-180' : ''}`}>▾</span>
       </div>
@@ -70,9 +75,9 @@ export default function PlayerHud({ player, spirits, gameState }) {
   );
 }
 
-function HudStat({ label, value, color }) {
+function HudStat({ label, value, color, title }) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1" title={title}>
       <span className="text-gray-500 text-[10px]">{label}</span>
       <span className={`${color} tabular-nums`}>{value}</span>
     </div>

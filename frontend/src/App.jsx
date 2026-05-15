@@ -7,16 +7,32 @@ import PlayerHud from './components/PlayerHud.jsx';
 import Lobby from './components/Lobby.jsx';
 import SpiritPanel from './components/SpiritPanel.jsx';
 import EssenceExport from './components/EssenceExport.jsx';
+import OnboardingHints from './components/OnboardingHints.jsx';
 
 export default function App() {
   const account = useCurrentAccount();
   const [gameState, setGameState] = useState(null);
   const [selectedSpirit, setSelectedSpirit] = useState(null);
   const [events, setEvents] = useState([]);
-  // Persisted chat messages per spirit within the session — Map<spiritId, Message[]>
   const [spiritMessages, setSpiritMessages] = useState({});
   const [whisperTrails, setWhisperTrails] = useState([]);
+  const [chainOps, setChainOps] = useState([]);
+  const [chainInfo, setChainInfo] = useState(null);
+  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [rightTab, setRightTab] = useState('spirit');
   const wsRef = useRef(null);
+  const chainOpIdRef = useRef(0);
+
+  useEffect(() => {
+    fetch('/api/game/chain-info').then(r => r.json()).then(setChainInfo).catch(() => {});
+  }, []);
+
+  function addChainOps(ops) {
+    setChainOps(prev => {
+      const tagged = ops.map(op => ({ ...op, id: `op-${++chainOpIdRef.current}` }));
+      return [...prev, ...tagged].slice(-200);
+    });
+  }
 
   // WebSocket connection with reconnection
   useEffect(() => {
@@ -59,11 +75,11 @@ export default function App() {
           });
           if (msg.events?.length) {
             setEvents(prev => [...prev.slice(-50), ...msg.events]);
-            // Handle game_over event from WebSocket
             const gameOverEvt = msg.events.find(e => e.type === 'game_over');
             if (gameOverEvt) {
               setGameState(prev => prev ? { ...prev, status: 'finished', winner: gameOverEvt.winner } : prev);
             }
+            // Chain ops come from real server responses (chat endpoint), not fabricated here
           }
         } else if (msg.type === 'state_change') {
           // Lobby → active (or any status transition) — update without a page reload
@@ -103,9 +119,8 @@ export default function App() {
   const playerId = account?.address || 'player-1';
   const mySpirits = Object.values(gameState.spirits).filter(s => s.playerId === playerId && s.alive);
 
-  // Lobby: waiting for game to start
   if (gameState.status === 'lobby') {
-    return <Lobby playerId={playerId} gameState={gameState} />;
+    return <Lobby playerId={playerId} gameState={gameState} chainInfo={chainInfo} />;
   }
 
   // Game over: show results
@@ -117,7 +132,7 @@ export default function App() {
         id, name: p.name, title: p.deityTitle || '',
         hexes: p.hexesControlled || 0,
         spirits: Object.values(gameState.spirits).filter(s => s.playerId === id && s.alive).length,
-        pct: Math.round(((p.hexesControlled || 0) / 37) * 100),
+        pct: Math.round(((p.hexesControlled || 0) / 91) * 100),
       }))
       .sort((a, b) => b.hexes - a.hexes);
     const totalBattles = (gameState.events || []).filter(e => e.type === 'battle_resolved').length;
@@ -162,9 +177,9 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-deep)' }}>
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: 'var(--bg-deep)' }}>
       {/* Header */}
-      <header className="h-14 bg-gray-900/80 backdrop-blur border-b border-gray-700/50 flex items-center justify-between px-4 relative z-30 overflow-visible">
+      <header className="h-12 bg-gray-900/80 backdrop-blur border-b border-gray-700/50 flex items-center justify-between px-4 relative z-30 overflow-visible">
         <h1 className="font-display text-lg text-amber-500 font-semibold">Anima Swarm</h1>
         <div className="flex items-center gap-4">
           <PlayerHud player={gameState.players[playerId]} spirits={mySpirits} gameState={gameState} />
@@ -172,49 +187,123 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main */}
+      {/* Main: Map left, Panel right */}
       <main className="flex-1 flex overflow-hidden">
-        {/* Hex Map — full width in Sprint 1 */}
-        <div className="flex-1 relative">
+        {/* Hex Map — 70% left */}
+        <div className="flex-1 relative min-w-0">
           <HexMap
             hexes={gameState.map.hexes}
             spirits={gameState.spirits}
             playerId={playerId}
             selectedSpirit={selectedSpirit}
-            onSelectSpirit={setSelectedSpirit}
+            onSelectSpirit={(id) => { setSelectedSpirit(id); if (id) setRightTab('spirit'); }}
             gameState={gameState}
             whisperTrails={whisperTrails}
+            events={events}
           />
         </div>
 
-        {/* Spirit Panel — Sprint 2 */}
-        {selectedSpirit && gameState.spirits[selectedSpirit] && (
-          <div className="w-[400px] border-l border-gray-700/50 bg-gray-900/60 backdrop-blur flex flex-col overflow-hidden animate-slide-in-right">
-            <SpiritPanel
-              spirit={gameState.spirits[selectedSpirit]}
-              gameState={gameState}
-              playerId={playerId}
-              onClose={() => setSelectedSpirit(null)}
-              messages={spiritMessages[selectedSpirit] || []}
-              onMessages={(updater) => setSpiritMessages(prev => ({
-                ...prev,
-                [selectedSpirit]: typeof updater === 'function'
-                  ? updater(prev[selectedSpirit] || [])
-                  : updater,
-              }))}
-              onWhispers={(trails) => setWhisperTrails(trails)}
-            />
+        {/* Right Panel — tabbed: Spirit | Chronicle | Chain */}
+        <div className="w-[360px] border-l border-gray-700/50 bg-gray-900/60 backdrop-blur flex flex-col overflow-hidden">
+          {/* Tabs */}
+          <div className="flex border-b border-gray-700/40 flex-shrink-0">
+            {[
+              { id: 'spirit', label: 'Spirit' },
+              { id: 'chronicle', label: 'Chronicle' },
+              { id: 'chain', label: 'Chain', badge: chainOps.length || null },
+            ].map(tab => (
+              <button key={tab.id} onClick={() => setRightTab(tab.id)}
+                className={`flex-1 py-2 text-[11px] font-mono tracking-wider transition-colors
+                  ${rightTab === tab.id
+                    ? 'text-amber-400 border-b-2 border-amber-400 bg-gray-800/30'
+                    : 'text-gray-500 hover:text-gray-300'}`}>
+                {tab.label}
+                {tab.badge ? (
+                  <span className="ml-1 text-[9px] px-1 py-px rounded-full bg-teal-900/60 text-teal-400 border border-teal-700/30">
+                    {tab.badge}
+                  </span>
+                ) : null}
+              </button>
+            ))}
           </div>
-        )}
+
+          {/* Tab Content */}
+          <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+            {rightTab === 'spirit' && (
+              selectedSpirit && gameState.spirits[selectedSpirit] ? (
+                <SpiritPanel
+                  spirit={gameState.spirits[selectedSpirit]}
+                  gameState={gameState}
+                  playerId={playerId}
+                  onClose={() => setSelectedSpirit(null)}
+                  messages={spiritMessages[selectedSpirit] || []}
+                  onMessages={(updater) => setSpiritMessages(prev => ({
+                    ...prev,
+                    [selectedSpirit]: typeof updater === 'function'
+                      ? updater(prev[selectedSpirit] || [])
+                      : updater,
+                  }))}
+                  onWhispers={(trails) => setWhisperTrails(trails)}
+                  onChainOps={addChainOps}
+                  chainInfo={chainInfo}
+                />
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                  <div className="text-3xl mb-3 opacity-40">⬡</div>
+                  <p className="text-gray-400 text-sm">Select a spirit on the map</p>
+                  <p className="text-gray-600 text-xs mt-1">Click any spirit to view stats and whisper commands</p>
+                  {mySpirits.length > 0 && (
+                    <div className="mt-4 space-y-1">
+                      <div className="text-[10px] text-gray-500 font-mono">YOUR SWARM</div>
+                      {mySpirits.map(s => (
+                        <button key={s.id} onClick={() => { setSelectedSpirit(s.id); }}
+                          className="flex items-center gap-2 text-xs text-gray-400 hover:text-amber-400 transition-colors px-2 py-1 rounded hover:bg-gray-800/40 w-full">
+                          <span className="w-2 h-2 rounded-full bg-amber-500" />
+                          <span>{s.name}</span>
+                          <span className="text-gray-600 text-[10px]">{s.specialization}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            )}
+
+            {rightTab === 'chronicle' && (
+              <CommandBar
+                timers={gameState.activeTimers}
+                events={events}
+                spirits={mySpirits}
+                gameState={gameState}
+                chainOps={chainOps}
+                chainInfo={chainInfo}
+                mode="chronicle"
+              />
+            )}
+
+            {rightTab === 'chain' && (
+              <CommandBar
+                timers={gameState.activeTimers}
+                events={events}
+                spirits={mySpirits}
+                gameState={gameState}
+                chainOps={chainOps}
+                chainInfo={chainInfo}
+                mode="chain"
+              />
+            )}
+          </div>
+        </div>
       </main>
 
-      {/* Command Bar — bottom */}
-      <CommandBar
-        timers={gameState.activeTimers}
-        events={events}
-        spirits={mySpirits}
-        gameState={gameState}
-      />
+      {/* Onboarding */}
+      {showOnboarding && (
+        <OnboardingHints
+          gameState={gameState}
+          selectedSpirit={selectedSpirit}
+          onDismissAll={() => setShowOnboarding(false)}
+        />
+      )}
     </div>
   );
 }

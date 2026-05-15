@@ -1,36 +1,48 @@
 import { callLLM, classifyPersonality } from './llmProxy.js';
-import { recallMemoriesServer } from './memwalServer.js';
-import { neighbors } from '../../lib/hexMath.js';
+import { recallMemoriesServer, storeMemoryServer } from './memwalServer.js';
+import { neighbors, hexId, axialDistance } from '../../lib/hexMath.js';
 import { startTimer } from './timerService.js';
 import { broadcast } from './wsService.js';
 import { checkSpawnReadiness } from './spawningService.js';
 import { getKey } from './keyStore.js';
 
 const DECISION_INTERVAL = 30_000; // 30s between autonomous decisions
+const DIALOG_CHANCE = 0.3; // 30% chance a spirit speaks to nearby spirits each tick
 
-const DECISION_PROMPT = `You are a spirit in a territorial strategy game. Based on your personality, memories, and current situation, decide your next action.
+const DECISION_PROMPT = `You are a spirit in a territorial strategy game. You are part of a SWARM — coordinate with your allies.
 
 YOUR IDENTITY:
 Name: {name}
 Personality: {personality}
-Specialization: {specialization}
+Specialization: {specialization} (warrior: +battle, scout: +speed, gatherer: +memory)
 Bond with deity: {bondAvg}/100
+
+YOUR SWARM:
+Allied spirits nearby: {allyInfo}
+Swarm size: {swarmSize} spirits alive
+Swarm territory: {swarmTerritory} hexes
 
 YOUR SITUATION:
 Current hex: {hexTerrain} (controlled by: {hexController})
 Adjacent hexes: {adjacentInfo}
-Your memory count: {memoryCount}
+Enemies in range: {enemyInfo}
+Memory count: {memoryCount}
 Spawn readiness: {spawnReady}
 Recent whispers from deity: {recentWhispers}
-Recent events: {recentEvents}
+
+SWARM TACTICS:
+- Move TOWARD allies when outnumbered, spread out when dominant
+- Warriors should engage enemies; scouts explore; gatherers collect memories
+- If an ally is in battle nearby, move to support them
+- Claim unclaimed hexes adjacent to your territory for contiguous control
 
 AVAILABLE ACTIONS:
-- MOVE <direction> — relocate to an adjacent hex (30s travel, scout: 15s)
+- MOVE <direction> — relocate to an adjacent hex (15s, scout: 8s)
 - BATTLE — attack an enemy spirit in your hex
-- EXPLORE — reveal info about an adjacent hex (15s)
-- SPAWN — create a child spirit (5 min, needs 10+ memories and 50+ bond)
-- GATHER — absorb accumulated memories from your hex (instant)
-- WAIT — do nothing this cycle
+- EXPLORE — scout an adjacent hex (8s, scout: 4s)
+- SPAWN — create a child spirit (2 min, needs 5+ memories and 35+ bond)
+- GATHER — absorb memories from your hex (instant)
+- WAIT — hold position
 
 Respond with ONLY a JSON object:
 {
@@ -87,15 +99,44 @@ async function decideSpiritAction(spirit, gameState) {
   }
 
   const adjacentInfo = adj.map(a => {
-    const h = Object.values(gameState.map.hexes).find(h => h.q === a.q && h.r === a.r);
+    const aId = hexId(a.q, a.r);
+    const h = gameState.map.hexes[aId];
     if (!h) return null;
     const controlLabel = h.controller === spirit.playerId
       ? 'yours'
       : h.controller
         ? 'enemy'
         : 'unclaimed';
-    return `${h.terrain} (${controlLabel}, ${h.spiritIds.length} spirits)`;
+    const spiritCount = h.spiritIds.filter(id => gameState.spirits[id]?.alive).length;
+    return `${h.terrain} (${controlLabel}, ${spiritCount} spirits)`;
   }).filter(Boolean).join('; ');
+
+  // Swarm awareness: find all allied spirits and their states
+  const allies = Object.values(gameState.spirits).filter(
+    s => s.playerId === spirit.playerId && s.alive && s.id !== spirit.id
+  );
+  const allyInfo = allies.length === 0 ? 'none nearby' : allies.map(a => {
+    const aHex = gameState.map.hexes[a.hexId];
+    const dist = aHex ? axialDistance({ q: hex.q, r: hex.r }, { q: aHex.q, r: aHex.r }) : 99;
+    const action = a.currentAction?.type || 'idle';
+    return `${a.name} (${a.specialization}, ${dist} hexes away, ${action})`;
+  }).join('; ');
+
+  const swarmSize = allies.length + 1;
+  const swarmTerritory = Object.values(gameState.map.hexes).filter(h => h.controller === spirit.playerId).length;
+
+  // Enemies in range (within 2 hexes)
+  const nearbyEnemies = Object.values(gameState.spirits).filter(s => {
+    if (!s.alive || s.playerId === spirit.playerId) return false;
+    const sHex = gameState.map.hexes[s.hexId];
+    if (!sHex) return false;
+    return axialDistance({ q: hex.q, r: hex.r }, { q: sHex.q, r: sHex.r }) <= 2;
+  });
+  const enemyInfo = nearbyEnemies.length === 0 ? 'none' : nearbyEnemies.map(e => {
+    const eHex = gameState.map.hexes[e.hexId];
+    const dist = eHex ? axialDistance({ q: hex.q, r: hex.r }, { q: eHex.q, r: eHex.r }) : 99;
+    return `${e.name} (${dist} hexes, ${gameState.players[e.playerId]?.name || 'enemy'})`;
+  }).join('; ');
 
   const bondAvg = Math.round(
     (spirit.bond.depth + spirit.bond.harmony + spirit.bond.adventure + spirit.bond.loyalty) / 4
@@ -108,13 +149,16 @@ async function decideSpiritAction(spirit, gameState) {
     .replace('{personality}', spirit.personality)
     .replace('{specialization}', spirit.specialization)
     .replace('{bondAvg}', String(bondAvg))
+    .replace('{allyInfo}', allyInfo)
+    .replace('{swarmSize}', String(swarmSize))
+    .replace('{swarmTerritory}', String(swarmTerritory))
     .replace('{hexTerrain}', hex.terrain)
     .replace('{hexController}', hex.controller === spirit.playerId ? 'you' : hex.controller || 'unclaimed')
     .replace('{adjacentInfo}', adjacentInfo || 'unknown')
+    .replace('{enemyInfo}', enemyInfo)
     .replace('{memoryCount}', String(spirit.memoryCount))
     .replace('{spawnReady}', spawnCheck.ready ? 'YES' : `NO (${spawnCheck.reasons.join(', ')})`)
-    .replace('{recentWhispers}', recentMemories.results?.filter(r => r.text.includes('[WHISPER]')).map(r => r.text).join('; ') || 'none')
-    .replace('{recentEvents}', recentMemories.results?.filter(r => !r.text.includes('[WHISPER]')).map(r => r.text).join('; ') || 'none');
+    .replace('{recentWhispers}', recentMemories.results?.filter(r => r.text.includes('[WHISPER]')).map(r => r.text).join('; ') || 'none');
 
   if (!spirit.personalityProfile) {
     spirit.personalityProfile = classifyPersonality(spirit.personality);
@@ -145,7 +189,7 @@ function executeDecision(spirit, decision, gameState, adj) {
   switch (action) {
     case 'move': {
       const validAdj = adj
-        .map(a => Object.values(gameState.map.hexes).find(h => h.q === a.q && h.r === a.r))
+        .map(a => gameState.map.hexes[hexId(a.q, a.r)])
         .filter(h => h && h.terrain !== 'ocean');
 
       if (!validAdj.length) return null;
@@ -241,7 +285,7 @@ function executeDecision(spirit, decision, gameState, adj) {
     case 'explore': {
       // Pick an unclaimed adjacent hex
       const unexplored = adj
-        .map(a => Object.values(gameState.map.hexes).find(h => h.q === a.q && h.r === a.r))
+        .map(a => gameState.map.hexes[hexId(a.q, a.r)])
         .filter(h => h && !h.controller && h.terrain !== 'ocean');
 
       const targetHex = unexplored[0];
@@ -290,9 +334,99 @@ function pickMoveTarget(validAdj, spirit) {
   }
 }
 
+/**
+ * Spirit-to-spirit dialog: spirits on the same or adjacent hexes may speak
+ * to allies (coordination) or taunt enemies (provocation).
+ */
+export function runSpiritDialogs(gameState) {
+  const spirits = Object.values(gameState.spirits).filter(s => s.alive && !s.currentAction);
+  const dialogEvents = [];
+
+  for (const spirit of spirits) {
+    if (Math.random() > DIALOG_CHANCE) continue;
+
+    const hex = gameState.map.hexes[spirit.hexId];
+    if (!hex) continue;
+
+    const adj = neighbors({ q: hex.q, r: hex.r });
+    const nearbyIds = [
+      ...hex.spiritIds,
+      ...adj.flatMap(a => {
+        const h = gameState.map.hexes[hexId(a.q, a.r)];
+        return h ? h.spiritIds : [];
+      }),
+    ];
+
+    const nearby = nearbyIds
+      .filter(id => id !== spirit.id)
+      .map(id => gameState.spirits[id])
+      .filter(s => s?.alive);
+
+    if (nearby.length === 0) continue;
+
+    const target = nearby[Math.floor(Math.random() * nearby.length)];
+    const isEnemy = target.playerId !== spirit.playerId;
+
+    generateSpiritDialog(spirit, target, isEnemy, gameState)
+      .then(event => { if (event) dialogEvents.push(event); })
+      .catch(() => {});
+  }
+
+  return dialogEvents;
+}
+
+async function generateSpiritDialog(source, target, isEnemy, gameState) {
+  const key = getKey(source.id);
+  let recentMemories = { results: [] };
+  try {
+    recentMemories = await recallMemoriesServer(
+      source.memwalNamespace, `${target.name} ${isEnemy ? 'enemy battle' : 'ally swarm'}`, 3, key, source.memwalAccountId
+    );
+  } catch {}
+
+  const memContext = recentMemories.results?.map(r => r.text).join('\n') || '';
+  const dialogType = isEnemy ? 'TAUNT' : 'ALLY_CHAT';
+
+  const systemPrompt = isEnemy
+    ? `You are ${source.name}, a ${source.specialization} spirit. Generate a short taunt or challenge directed at an enemy spirit. Stay in character. 1 sentence max.`
+    : `You are ${source.name}, a ${source.specialization} spirit. Say something to your ally — coordinate, encourage, share intel, or just bond. Stay in character. 1 sentence max.`;
+
+  const userPrompt = `YOUR PERSONALITY: ${source.personality.slice(0, 200)}
+TARGET: ${target.name} (${target.specialization}, ${isEnemy ? 'ENEMY — ' + (gameState.players[target.playerId]?.name || 'unknown deity') : 'ALLY'})
+YOUR MEMORIES: ${memContext || '(none)'}
+Generate your ${isEnemy ? 'taunt' : 'message'}.`;
+
+  const text = await callLLM(systemPrompt, userPrompt, {
+    model: 'claude-haiku-4-5-20251001',
+    maxTokens: 80,
+  });
+
+  await storeMemoryServer(
+    source.memwalNamespace,
+    `[DIALOG ${dialogType}] ${source.name} → ${target.name}: ${text}`,
+    key, source.memwalAccountId
+  );
+
+  source.socialXP = (source.socialXP || 0) + 1;
+
+  const event = {
+    type: 'spirit_dialog',
+    sourceId: source.id,
+    sourceName: source.name,
+    targetId: target.id,
+    targetName: target.name,
+    dialogType,
+    text,
+    timestamp: Date.now(),
+  };
+
+  broadcast(gameState, [event]);
+  return event;
+}
+
 function fallbackMove(spirit, gameState, adj) {
   const validAdj = adj
-    .map(a => Object.values(gameState.map.hexes).find(h => h.q === a.q && h.r === a.r))
+    .map(a => gameState.map.hexes[hexId(a.q, a.r)])
     .filter(h => h && h.terrain !== 'ocean');
 
   if (!validAdj.length) return null;

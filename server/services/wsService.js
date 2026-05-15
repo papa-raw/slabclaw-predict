@@ -30,7 +30,7 @@ function handleMessage(playerId, msg) {
 const PERSIST_TYPES = new Set([
   'battle_started', 'battle_resolved', 'spawn_started', 'spawn_complete',
   'spirit_died', 'territory_claimed', 'game_over',
-  'explore_started', 'whisper_arrived',
+  'explore_started', 'whisper_arrived', 'spirit_dialog',
 ]);
 
 export function broadcast(gameState, events) {

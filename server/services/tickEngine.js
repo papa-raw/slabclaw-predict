@@ -1,6 +1,6 @@
 import { resolveTimers } from './timerService.js';
 import { accumulateMemories } from './memoryGenService.js';
-import { runSpiritDecisions } from './spiritDecisionService.js';
+import { runSpiritDecisions, runSpiritDialogs } from './spiritDecisionService.js';
 import { checkWinCondition } from './winService.js';
 import { broadcast, broadcastStateChange } from './wsService.js';
 import { createInitialGameState } from './gameInit.js';
@@ -61,6 +61,9 @@ async function tick() {
 
   // 3. Spirit decision cycle (fire-and-forget, async)
   runSpiritDecisions(gameState);
+
+  // 3b. Spirit dialog — spirits talk to each other and taunt enemies
+  runSpiritDialogs(gameState);
 
   // 4. Check win condition
   const winner = checkWinCondition(gameState);

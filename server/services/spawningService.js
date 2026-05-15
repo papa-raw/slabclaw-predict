@@ -2,9 +2,9 @@ import { callLLM } from './llmProxy.js';
 import { recallMemoriesServer } from './memwalServer.js';
 import { getKey } from './keyStore.js';
 
-const SPAWN_COOLDOWN_MS = 120_000; // 2 minutes
-const MIN_MEMORIES = 10;
-const MIN_BOND_AVG = 50;
+const SPAWN_COOLDOWN_MS = 60_000; // 1 minute
+const MIN_MEMORIES = 5;
+const MIN_BOND_AVG = 35;
 
 export function checkSpawnReadiness(spirit) {
   const avg = bondAvg(spirit);

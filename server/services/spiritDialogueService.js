@@ -24,12 +24,19 @@ import { getKey } from './keyStore.js';
 export async function chatWithSpirit({ spirit, userMessage, gameState }) {
   const delegateKey = getKey(spirit.id);
   const accountId = spirit.memwalAccountId;
+  const chainOps = [];
+  const ts = Date.now();
 
   // 1. Recall relevant memories to give context
   const memories = await recallMemoriesServer(
     spirit.memwalNamespace, userMessage, 10, delegateKey, accountId
   );
   const memoryContext = memories.results?.map(r => r.text).join('\n') || '';
+  chainOps.push({
+    type: 'memory_recall', service: 'memwal', timestamp: ts,
+    count: memories.results?.length || 0, namespace: spirit.memwalNamespace,
+    spiritName: spirit.name,
+  });
 
   // 2. Build system prompt from personality + bond + memories
   const systemPrompt = buildSpiritPrompt(spirit, memoryContext);
@@ -41,8 +48,19 @@ export async function chatWithSpirit({ spirit, userMessage, gameState }) {
   });
 
   // 4. Store both messages as memories
-  await storeMemoryServer(spirit.memwalNamespace, `[DEITY] ${userMessage}`, delegateKey, accountId);
-  await storeMemoryServer(spirit.memwalNamespace, `[RESPONSE] ${response}`, delegateKey, accountId);
+  const storeDeity = await storeMemoryServer(spirit.memwalNamespace, `[DEITY] ${userMessage}`, delegateKey, accountId);
+  chainOps.push({
+    type: 'memory_store', service: 'memwal', timestamp: Date.now(),
+    blobId: storeDeity.blob_id, namespace: spirit.memwalNamespace,
+    spiritName: spirit.name, label: 'Deity whisper stored',
+  });
+
+  const storeResp = await storeMemoryServer(spirit.memwalNamespace, `[RESPONSE] ${response}`, delegateKey, accountId);
+  chainOps.push({
+    type: 'memory_store', service: 'memwal', timestamp: Date.now(),
+    blobId: storeResp.blob_id, namespace: spirit.memwalNamespace,
+    spiritName: spirit.name, label: 'Spirit response stored',
+  });
   spirit.memoryCount = (spirit.memoryCount || 0) + 2;
 
   // 5. Log to action history
@@ -80,12 +98,17 @@ export async function chatWithSpirit({ spirit, userMessage, gameState }) {
 
   await Promise.all(whisperTargets.map(async (targetSpirit, i) => {
     const whisper = whispers[i];
-    await storeMemoryServer(
+    const wStore = await storeMemoryServer(
       targetSpirit.memwalNamespace,
       `[WHISPER RECEIVED from ${spirit.name}] ${whisper.text}`,
       getKey(targetSpirit.id),
       targetSpirit.memwalAccountId
     );
+    chainOps.push({
+      type: 'whisper_store', service: 'memwal', timestamp: Date.now(),
+      blobId: wStore.blob_id, namespace: targetSpirit.memwalNamespace,
+      spiritName: targetSpirit.name, label: `Whisper relayed to ${targetSpirit.name}`,
+    });
     targetSpirit.whispersReceived = (targetSpirit.whispersReceived || 0) + 1;
     gameState.actionHistory.push({
       type: 'whisper',
@@ -98,7 +121,7 @@ export async function chatWithSpirit({ spirit, userMessage, gameState }) {
 
   spirit.whispersOriginated = (spirit.whispersOriginated || 0) + whispers.length;
 
-  return { response, intent, whispers };
+  return { response, intent, whispers, chainOps };
 }
 
 /**

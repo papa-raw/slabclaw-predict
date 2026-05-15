@@ -12,9 +12,10 @@ import { SPEC_COLORS, getPlayerColor } from '@lib/terrainTypes.js';
  *   messages   - persisted message history for this spirit (lifted to App.jsx)
  *   onMessages - setter to update message history
  */
-export default function SpiritPanel({ spirit, gameState, playerId, onClose, messages = [], onMessages, onWhispers }) {
+export default function SpiritPanel({ spirit, gameState, playerId, onClose, messages = [], onMessages, onWhispers, onChainOps, chainInfo }) {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [lastChainOps, setLastChainOps] = useState(null);
   const messagesEndRef = useRef(null);
   const isMine = spirit?.playerId === playerId;
 
@@ -58,6 +59,19 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
       const data = await res.json();
       onMessages(prev => [...prev, { role: 'spirit', text: data.response }]);
 
+      if (data.chainOps?.length) {
+        onChainOps?.(data.chainOps);
+        setLastChainOps(data.chainOps);
+        const stored = data.chainOps.filter(o => o.type === 'memory_store').length;
+        const recalled = data.chainOps.find(o => o.type === 'memory_recall')?.count || 0;
+        const parts = [];
+        if (recalled > 0) parts.push(`${recalled} memories recalled`);
+        if (stored > 0) parts.push(`${stored} stored on MemWal`);
+        if (parts.length) {
+          onMessages(prev => [...prev, { role: 'chain', text: parts.join(' · ') }]);
+        }
+      }
+
       if (data.whispers?.length) {
         onMessages(prev => [...prev, {
           role: 'system',
@@ -66,7 +80,8 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
         onWhispers?.(data.whispers.map(w => ({ from: spirit.id, to: w.to })));
       }
     } catch (err) {
-      onMessages(prev => [...prev, { role: 'system', text: 'Failed to reach spirit.' }]);
+      console.error('[SpiritPanel] Chat error:', err);
+      onMessages(prev => [...prev, { role: 'system', text: `Failed: ${err.message}` }]);
     } finally {
       setSending(false);
     }
@@ -121,6 +136,13 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
               </div>
               <p className="text-xs text-gray-400">
                 {spirit.specialization} · gen {spirit.generation} · {getBondTierName(bondAvg)} ({bondAvg})
+              </p>
+              <p className="text-[10px] text-teal-400/60 font-mono flex items-center gap-1 mt-0.5">
+                <span className="w-1 h-1 rounded-full bg-teal-400/60" />
+                {spirit.memoryCount || 0} memories on MemWal
+                {spirit.memwalNamespace && (
+                  <span className="text-gray-600">· {spirit.memwalNamespace}</span>
+                )}
               </p>
               {spirit.previousNames?.length > 0 && (() => {
                 const pastNames = spirit.previousNames.filter(n => n !== spirit.name);
@@ -205,6 +227,8 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
               className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${
                 msg.role === 'user'
                   ? 'bg-amber-500/20 text-amber-100'
+                  : msg.role === 'chain'
+                  ? 'bg-teal-900/30 text-teal-400 text-[10px] font-mono border border-teal-700/30'
                   : msg.role === 'system'
                   ? 'bg-gray-700/30 text-gray-400 italic text-xs'
                   : 'bg-gray-700/50 text-gray-200'

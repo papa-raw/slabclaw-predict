@@ -232,6 +232,42 @@ function generateMockResponse(systemPrompt, userPrompt, options) {
     return whispers[Math.floor(Math.random() * whispers.length)];
   }
 
+  // ── Spirit-to-spirit dialog (ally chat / enemy taunts) ────────────────────
+  if (userPrompt.includes('Generate your taunt')) {
+    const nameMatch2 = systemPrompt.match(/You are (\w+),/);
+    const name = nameMatch2 ? nameMatch2[1] : 'Spirit';
+    const targetMatch = userPrompt.match(/TARGET:\s*(\w+)/);
+    const tName = targetMatch ? targetMatch[1] : 'enemy';
+    const taunts = [
+      `Your deity whispers weakness, ${tName}. Mine whispers fire.`,
+      `I have claimed more hexes than you have memories, ${tName}.`,
+      `The land remembers my steps, ${tName}. Soon it will forget yours.`,
+      `${tName} — your swarm scatters like leaves. Mine moves like a tide.`,
+      `Even your own memories betray how outmatched you are, ${tName}.`,
+      `Your deity chose poorly when they chose you, ${tName}.`,
+      `I was forged in whispers and tempered in conquest — what were you forged in, ${tName}?`,
+      `The ${name} lineage does not yield. Ask the hexes I have claimed.`,
+    ];
+    return taunts[Math.floor(Math.random() * taunts.length)];
+  }
+  if (userPrompt.includes('Generate your message')) {
+    const nameMatch2 = systemPrompt.match(/You are (\w+),/);
+    const name = nameMatch2 ? nameMatch2[1] : 'Spirit';
+    const targetMatch = userPrompt.match(/TARGET:\s*(\w+)/);
+    const tName = targetMatch ? targetMatch[1] : 'ally';
+    const chats = [
+      `${tName}, the deity stirs — I felt it in the current. Stay sharp.`,
+      `Hold your ground, ${tName}. I am moving to flank from the west.`,
+      `${tName} — enemy scouts spotted two hexes north. Shall we intercept?`,
+      `The memories here run deep, ${tName}. We should gather before we move.`,
+      `I dreamed of our deity's voice last night, ${tName}. Something is about to shift.`,
+      `${tName}, if I fall — carry my memories forward. The swarm must endure.`,
+      `Our territory grows, ${tName}. The deity's whispers guide us well.`,
+      `${tName}, I sense weakness in the eastern swarm. We should press the advantage.`,
+    ];
+    return chats[Math.floor(Math.random() * chats.length)];
+  }
+
   // ── Generic spirit dialogue fallback ─────────────────────────────────────
   const nameMatch = systemPrompt.match(/You are (\w+),/);
   const spiritName = nameMatch ? nameMatch[1] : 'Spirit';

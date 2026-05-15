@@ -18,8 +18,8 @@ function pickDeityNames() {
   const shuffled = [...DEITY_FIRST].sort(() => Math.random() - 0.5);
   const titles = [...DEITY_TITLE].sort(() => Math.random() - 0.5);
   return {
-    names: ['You', ...shuffled.slice(0, 4)],
-    titles: ['the Awakened', ...titles.slice(0, 4)],
+    names: ['You', ...shuffled.slice(0, 5)],
+    titles: ['the Awakened', ...titles.slice(0, 5)],
   };
 }
 
@@ -32,23 +32,37 @@ export async function createInitialGameState() {
   const spirits = {};
   const usedHexIds = new Set();
 
-  for (let i = 0; i < 5; i++) {
-    const playerId = `player-${i + 1}`;
-    const isHuman = i === 0; // player 1 is human, rest are bots
+  const SWARM_SPECS = [
+    ['warrior', 'scout', 'gatherer'],
+    ['scout', 'gatherer', 'warrior'],
+    ['gatherer', 'warrior', 'scout'],
+    ['warrior', 'scout', 'gatherer'],
+    ['scout', 'warrior', 'gatherer'],
+    ['gatherer', 'scout', 'warrior'],
+  ];
+  const CHILD_NAMES = [
+    ['Ember', 'Flint', 'Ash'],
+    ['Drift', 'Breeze', 'Wisp'],
+    ['Moss', 'Fern', 'Thorn'],
+    ['Shade', 'Dusk', 'Veil'],
+    ['Gale', 'Tempest', 'Zephyr'],
+    ['Coral', 'Reef', 'Surge'],
+  ];
+  const SEED_PROFILES = ['aggressive', 'explorer', 'cautious', 'cautious', 'aggressive', 'explorer'];
 
-    // Find starting hex — fallback to nearest unclaimed if position collides
+  for (let i = 0; i < 6; i++) {
+    const playerId = `player-${i + 1}`;
+    const isHuman = i === 0;
+
     let startHex = Object.values(map.hexes).find(
       h => h.q === startPositions[i].q && h.r === startPositions[i].r && !usedHexIds.has(h.id)
     );
     if (!startHex) {
-      // Pick any unclaimed outer-ring hex as fallback
       startHex = Object.values(map.hexes).find(
-        h => Math.max(Math.abs(h.q), Math.abs(h.r), Math.abs(-h.q - h.r)) >= 2 && !usedHexIds.has(h.id)
+        h => Math.max(Math.abs(h.q), Math.abs(h.r), Math.abs(-h.q - h.r)) >= 3 && !usedHexIds.has(h.id)
       );
     }
     if (startHex) usedHexIds.add(startHex.id);
-
-    const SEED_PROFILES = ['aggressive', 'explorer', 'cautious', 'cautious', 'aggressive'];
 
     players[playerId] = {
       id: playerId,
@@ -56,69 +70,87 @@ export async function createInitialGameState() {
       deityTitle: DEITY_TITLES[i],
       walletAddress: null,
       hexesControlled: 1,
-      spiritCount: 1,
+      spiritCount: 3,
       isBot: !isHuman,
       connected: isHuman,
       lastSeen: Date.now(),
     };
 
-    // Claim starting hex
-    if (startHex) {
-      startHex.controller = playerId;
-    }
+    if (startHex) startHex.controller = playerId;
 
-    // Create seed spirit
-    const seed = SEED_SPIRITS[i];
-    // Sprint 1: use mock delegate key instead of MemWal generateDelegateKey
-    const delegateKey = { privateKey: crypto.randomBytes(32).toString('hex') };
-    const spiritId = `spirit-${playerId}-seed`;
     const namespace = `swarm-${playerId}`;
+    const seed = SEED_SPIRITS[i];
+    const specs = SWARM_SPECS[i];
+    const names = CHILD_NAMES[i];
 
-    // Bots get higher starting bond so they can spawn without human chat
-    const startBond = isHuman
-      ? { depth: 40, harmony: 40, adventure: 30, loyalty: 30 }
-      : { depth: 55, harmony: 55, adventure: 45, loyalty: 45 };
+    for (let s = 0; s < 3; s++) {
+      const delegateKey = { privateKey: crypto.randomBytes(32).toString('hex') };
+      const spiritId = s === 0 ? `spirit-${playerId}-seed` : `spirit-${playerId}-${s}`;
 
-    spirits[spiritId] = {
-      id: spiritId,
-      name: seed.name,
-      personality: seed.personality,
-      _style: seed.style || null,
-      specialization: seed.specialization,
-      generation: 0,
-      parentId: null,
-      hexId: startHex?.id || '1010',
-      playerId,
-      bond: startBond,
-      alive: true,
-      memwalNamespace: namespace,
-      memwalAccountId: '', // populated when MemWal account created (Sprint 4)
-      spawnCount: 0,
-      memoryCount: isHuman ? 0 : 12, // bots start with 12 memories so they can spawn
-      combatXP: 0,
-      explorationXP: 0,
-      socialXP: 0,
-      wisdomXP: 0,
-      personalityProfile: SEED_PROFILES[i],
-      currentAction: null,
-      kills: 0,
-      hexesClaimed: 0,
-      whispersReceived: 0,
-      whispersOriginated: 0,
-      reincarnationCount: 0,
-      previousNames: [],
-      pastLifeMemories: [],
-      memorableActions: [],
-      lastSpawnAt: 0, // enables spawn readiness check immediately
-      _lastDecision: 0, // forces immediate first decision
-    };
+      const startBond = isHuman
+        ? { depth: 40, harmony: 40, adventure: 30, loyalty: 30 }
+        : { depth: 55, harmony: 55, adventure: 45, loyalty: 45 };
 
-    // Store delegate key separately (never serialized with game state)
-    setKey(spiritId, delegateKey.privateKey);
+      // Place additional spirits on adjacent hexes
+      let spiritHex = startHex;
+      if (s > 0 && startHex) {
+        const adjCoords = [
+          { q: startHex.q + 1, r: startHex.r },
+          { q: startHex.q - 1, r: startHex.r },
+          { q: startHex.q, r: startHex.r + 1 },
+          { q: startHex.q, r: startHex.r - 1 },
+        ];
+        for (const ac of adjCoords) {
+          const ah = Object.values(map.hexes).find(h => h.q === ac.q && h.r === ac.r && h.terrain !== 'ocean');
+          if (ah && !usedHexIds.has(ah.id)) {
+            spiritHex = ah;
+            usedHexIds.add(ah.id);
+            ah.controller = playerId;
+            players[playerId].hexesControlled++;
+            break;
+          }
+        }
+      }
 
-    // Add spirit to hex
-    if (startHex) {
-      startHex.spiritIds.push(spiritId);
+      spirits[spiritId] = {
+        id: spiritId,
+        name: names[s],
+        personality: s === 0 ? seed.personality : `A ${specs[s]} spirit of the ${names[s]} lineage. ${specs[s] === 'warrior' ? 'Fierce and protective.' : specs[s] === 'scout' ? 'Quick and curious.' : 'Patient and resourceful.'}`,
+        _style: s === 0 ? (seed.style || null) : null,
+        specialization: specs[s],
+        generation: s === 0 ? 0 : 1,
+        parentId: s === 0 ? null : `spirit-${playerId}-seed`,
+        hexId: spiritHex?.id || '1010',
+        playerId,
+        bond: startBond,
+        alive: true,
+        memwalNamespace: namespace,
+        memwalAccountId: '',
+        spawnCount: 0,
+        memoryCount: isHuman ? 3 : 12,
+        combatXP: 0,
+        explorationXP: 0,
+        socialXP: 0,
+        wisdomXP: 0,
+        personalityProfile: SEED_PROFILES[i],
+        currentAction: null,
+        kills: 0,
+        hexesClaimed: 0,
+        whispersReceived: 0,
+        whispersOriginated: 0,
+        reincarnationCount: 0,
+        previousNames: [],
+        pastLifeMemories: [],
+        memorableActions: [],
+        lastSpawnAt: 0,
+        _lastDecision: s * 5000, // stagger initial decisions
+      };
+
+      setKey(spiritId, delegateKey.privateKey);
+
+      if (spiritHex) {
+        spiritHex.spiritIds.push(spiritId);
+      }
     }
   }
 
