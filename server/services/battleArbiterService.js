@@ -22,7 +22,7 @@ export async function evaluateBattle({ attacker, defender, terrain, gameState })
 
   const result = await callLLM(ARBITER_PROMPT,
     `ATTACKER: ${attacker.name} (${attacker.specialization}, bond ${bondAvg(attacker)})\nMemories: ${atkMem.results?.map(r => r.text).join(' | ') || 'none'}\nInvocation: "${atkInv}"\n\nDEFENDER: ${defender.name} (${defender.specialization}, bond ${bondAvg(defender)})\nMemories: ${defMem.results?.map(r => r.text).join(' | ') || 'none'}\nInvocation: "${defInv}"\n\nTERRAIN: ${terrain}`,
-    { model: 'claude-haiku-4-5-20251001', maxTokens: 800 });
+    { model: 'claude-sonnet-4-20250514', maxTokens: 800 });
 
   let eval_;
   try {

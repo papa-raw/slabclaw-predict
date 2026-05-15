@@ -3,9 +3,12 @@ const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 const WINDFALL_URL = process.env.WINDFALL_URL || 'https://windfallrouter.xyz';
 const WINDFALL_API_KEY = process.env.WINDFALL_API_KEY || '';
 
+const DEFAULT_MODEL = 'deepseek/deepseek-chat-v3-0324';
+const BATTLE_MODEL = 'accounts/fireworks/models/kimi-k2p5';
+
 const MODEL_MAP = {
-  'claude-haiku-4-5-20251001': 'deepseek/deepseek-chat-v3-0324',
-  'claude-sonnet-4-20250514': 'deepseek/deepseek-chat-v3-0324',
+  'claude-haiku-4-5-20251001': DEFAULT_MODEL,
+  'claude-sonnet-4-20250514': BATTLE_MODEL,
 };
 
 let _nameCounter = 0;
