@@ -8,6 +8,8 @@ import essenceRoutes, { setGameStateGetter as setEssenceGetter } from './routes/
 import { initWebSocket } from './services/wsService.js';
 import { initGame, restartGame } from './services/tickEngine.js';
 import { createInitialGameState } from './services/gameInit.js';
+import { getProvider } from './services/llmProxy.js';
+import { getStorageMode } from './services/walrusService.js';
 
 const app = express();
 const server = createServer(app);
@@ -37,4 +39,5 @@ setRestartCallback(async () => {
 
 server.listen(PORT, () => {
   console.log(`[Anima Swarm] Server + WebSocket running on port ${PORT}`);
+  console.log(`[Anima Swarm] LLM provider: ${getProvider()}, Walrus: ${getStorageMode()}`);
 });

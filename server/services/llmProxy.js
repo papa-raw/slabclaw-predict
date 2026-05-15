@@ -1,4 +1,13 @@
+const PROVIDER = process.env.LLM_PROVIDER || 'mock';
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
+const WINDFALL_URL = process.env.WINDFALL_URL || 'https://windfallrouter.xyz';
+const WINDFALL_API_KEY = process.env.WINDFALL_API_KEY || '';
+
+const MODEL_MAP = {
+  'claude-haiku-4-5-20251001': 'deepseek/deepseek-chat-v3-0324',
+  'claude-sonnet-4-20250514': 'deepseek/deepseek-chat-v3-0324',
+};
+
 let _nameCounter = 0;
 
 export async function callLLM(systemPrompt, userPrompt, options = {}) {
@@ -8,12 +17,22 @@ export async function callLLM(systemPrompt, userPrompt, options = {}) {
     messages = null,
   } = options;
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-
-  // Mock mode when no API key is set
-  if (!apiKey) {
-    return generateMockResponse(systemPrompt, userPrompt, options);
+  if (PROVIDER === 'windfall') {
+    return callWindfall(systemPrompt, userPrompt, { model, maxTokens, messages });
   }
+
+  if (PROVIDER === 'anthropic') {
+    return callAnthropic(systemPrompt, userPrompt, { model, maxTokens, messages });
+  }
+
+  return generateMockResponse(systemPrompt, userPrompt, options);
+}
+
+export function getProvider() { return PROVIDER; }
+
+async function callAnthropic(systemPrompt, userPrompt, { model, maxTokens, messages }) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return generateMockResponse(systemPrompt, userPrompt, {});
 
   const response = await fetch(ANTHROPIC_API_URL, {
     method: 'POST',
@@ -32,11 +51,45 @@ export async function callLLM(systemPrompt, userPrompt, options = {}) {
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`LLM API error: ${response.status} - ${error}`);
+    throw new Error(`Anthropic API error: ${response.status} - ${error}`);
   }
 
   const data = await response.json();
   return data.content[0].text;
+}
+
+async function callWindfall(systemPrompt, userPrompt, { model, maxTokens, messages }) {
+  const openaiModel = MODEL_MAP[model] || model;
+
+  const openaiMessages = [
+    { role: 'system', content: systemPrompt },
+    ...(messages || [{ role: 'user', content: userPrompt }]),
+  ];
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (WINDFALL_API_KEY) {
+    headers['Authorization'] = `Bearer ${WINDFALL_API_KEY}`;
+  }
+
+  const response = await fetch(`${WINDFALL_URL}/v1/chat/completions`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: openaiModel,
+      max_tokens: maxTokens,
+      messages: openaiMessages,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    console.error(`[llm:windfall] API error ${response.status}: ${error}`);
+    console.warn('[llm:windfall] Falling back to mock');
+    return generateMockResponse(systemPrompt, userPrompt, {});
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
 }
 
 // Deterministic mock responses when no API key is configured
