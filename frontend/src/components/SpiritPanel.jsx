@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { SPEC_COLORS, getPlayerColor } from '@lib/terrainTypes.js';
+import { getAvatarUrl } from '@lib/avatarUrl.js';
+import LineageSection from './LineageSection.jsx';
 
 /**
  * SpiritPanel — Spirit detail sidebar with chat interface.
@@ -77,7 +79,7 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
           role: 'system',
           text: `Whispers propagated to ${data.whispers.length} spirit${data.whispers.length > 1 ? 's' : ''}`,
         }]);
-        onWhispers?.(data.whispers.map(w => ({ from: spirit.id, to: w.to })));
+        onWhispers?.(data.whispers.map(w => ({ from: spirit.id, to: w.to, text: w.text })));
       }
     } catch (err) {
       console.error('[SpiritPanel] Chat error:', err);
@@ -117,12 +119,21 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             {/* Spirit Avatar */}
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-              style={{ background: spiritColor }}
-            >
-              {spirit.name[0]}
-            </div>
+            {spirit.avatarBlobId ? (
+              <img
+                src={getAvatarUrl(spirit.avatarBlobId)}
+                alt={spirit.name}
+                className="w-10 h-10 rounded-full object-cover flex-shrink-0 border-2"
+                style={{ borderColor: spiritColor }}
+              />
+            ) : (
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                style={{ background: spiritColor }}
+              >
+                {spirit.name[0]}
+              </div>
+            )}
             <div>
               <div className="flex items-center gap-2 leading-tight">
                 <h2 className="font-display text-base font-semibold text-white">
@@ -137,13 +148,29 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
               <p className="text-xs text-gray-400">
                 {spirit.specialization} · gen {spirit.generation} · {getBondTierName(bondAvg)} ({bondAvg})
               </p>
-              <p className="text-[10px] text-teal-400/60 font-mono flex items-center gap-1 mt-0.5">
-                <span className="w-1 h-1 rounded-full bg-teal-400/60" />
-                {spirit.memoryCount || 0} memories on MemWal
-                {spirit.memwalNamespace && (
-                  <span className="text-gray-600">· {spirit.memwalNamespace}</span>
-                )}
-              </p>
+              {spirit.memwalAccountId ? (
+                <a
+                  href={`https://suiscan.xyz/testnet/object/${spirit.memwalAccountId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] text-teal-400/60 font-mono flex items-center gap-1 mt-0.5 hover:text-teal-300 transition-colors cursor-pointer"
+                >
+                  <span className="w-1 h-1 rounded-full bg-teal-400/60" />
+                  {spirit.memoryCount || 0} memories on MemWal
+                  {spirit.memwalNamespace && (
+                    <span className="text-gray-600">· {spirit.memwalNamespace}</span>
+                  )}
+                  <span className="text-teal-500/40 ml-0.5">↗</span>
+                </a>
+              ) : (
+                <p className="text-[10px] text-teal-400/60 font-mono flex items-center gap-1 mt-0.5">
+                  <span className="w-1 h-1 rounded-full bg-teal-400/60" />
+                  {spirit.memoryCount || 0} memories on MemWal
+                  {spirit.memwalNamespace && (
+                    <span className="text-gray-600">· {spirit.memwalNamespace}</span>
+                  )}
+                </p>
+              )}
               {spirit.previousNames?.length > 0 && (() => {
                 const pastNames = spirit.previousNames.filter(n => n !== spirit.name);
                 return pastNames.length > 0 ? (
@@ -200,6 +227,9 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
           ))}
         </div>
 
+        {/* Lineage / Past Lives */}
+        <LineageSection spirit={spirit} />
+
         {/* Current Action */}
         {spirit.currentAction && (
           <div className="px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded text-xs text-amber-400 flex items-center gap-1.5">
@@ -238,6 +268,16 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
             </div>
           </div>
         ))}
+        {sending && (
+          <div className="flex justify-start">
+            <div className="bg-gray-700/50 rounded-2xl px-4 py-3 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+              <span className="text-[10px] text-gray-500 ml-2 font-mono">{spirit.name} is thinking...</span>
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 

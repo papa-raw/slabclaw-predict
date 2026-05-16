@@ -502,6 +502,7 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
   const [hoveredSpirit, setHoveredSpirit] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [activeTrails, setActiveTrails] = useState([]);
+  const [speechBubbles, setSpeechBubbles] = useState({});
   const [pulsingSpirits, setPulsingSpirits] = useState(new Set());
   const [dyingSpirits, setDyingSpirits] = useState(new Set());
   const [moveTrails, setMoveTrails] = useState([]);
@@ -535,6 +536,27 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
         setDyingSpirits(p => { const n = new Set(p); newlyDead.forEach(id => n.delete(id)); return n; });
       }, 1200);
     }
+
+    // Generate speech bubbles from action state changes
+    for (const [id, spirit] of Object.entries(spirits)) {
+      if (!spirit.alive) continue;
+      const prevAction = prev[id]?.currentAction?.type;
+      const curAction = spirit.currentAction?.type;
+      if (curAction && curAction !== prevAction) {
+        const labels = {
+          moving: 'Moving...',
+          exploring: 'Exploring!',
+          battling: 'To battle!',
+          spawning: 'Creating new life...',
+        };
+        const text = labels[curAction];
+        if (text) {
+          setSpeechBubbles(p => ({ ...p, [id]: { text, ts: Date.now() } }));
+          setTimeout(() => setSpeechBubbles(p => { const n = { ...p }; if (n[id]?.text === text) delete n[id]; return n; }), 4000);
+        }
+      }
+    }
+
     prevSpiritsRef.current = spirits;
   }, [spirits]);
 
@@ -542,10 +564,10 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
     if (!events.length) return;
     const now = Date.now();
     for (const evt of events) {
-      const eid = `${evt.type}-${evt.timestamp || ''}-${evt.hexId || evt.spiritId || ''}`;
+      const eid = `${evt.type}-${evt.timestamp || ''}-${evt.hexId || evt.spiritId || evt.sourceId || evt.from || ''}-${evt.targetId || evt.to || ''}`;
       if (processedEventsRef.current.has(eid)) continue;
       processedEventsRef.current.add(eid);
-      if (evt.timestamp && now - evt.timestamp > 5000) continue;
+      if (evt.timestamp && now - evt.timestamp > 8000) continue;
 
       if (evt.type === 'movement_complete' && evt.fromHex && evt.toHex) {
         const fh = hexes[evt.fromHex];
@@ -590,6 +612,23 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
           setClaimFlashes(prev => [...prev, { id: eid, pos: p, color: pc }]);
           setTimeout(() => setClaimFlashes(prev => prev.filter(e => e.id !== eid)), 1000);
         }
+      }
+
+      if ((evt.type === 'whisper_arrived' || evt.type === 'spirit_dialog') && (evt.from || evt.sourceId) && (evt.to || evt.targetId)) {
+        const fromId = evt.from || evt.sourceId;
+        const toId = evt.to || evt.targetId;
+        const trail = { from: fromId, to: toId, text: evt.text || '~', id: eid };
+        setActiveTrails(prev => [...prev, trail]);
+        setPulsingSpirits(prev => new Set([...prev, toId]));
+        setTimeout(() => {
+          setActiveTrails(prev => prev.filter(t => t.id !== eid));
+          setPulsingSpirits(prev => { const n = new Set(prev); n.delete(toId); return n; });
+        }, 3500);
+
+        // Also show speech bubble above the source spirit
+        const bubbleText = evt.text ? (evt.text.length > 35 ? evt.text.slice(0, 35) + '...' : evt.text) : '...';
+        setSpeechBubbles(prev => ({ ...prev, [fromId]: { text: bubbleText, ts: Date.now() } }));
+        setTimeout(() => setSpeechBubbles(prev => { const n = { ...prev }; if (n[fromId]?.ts <= Date.now()) delete n[fromId]; return n; }), 5000);
       }
     }
     if (processedEventsRef.current.size > 500) {
@@ -670,14 +709,19 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
 
   const handlePointerDown = useCallback((e) => {
     if (e.button !== 0) return;
-    dragRef.current = { startX: e.clientX, startY: e.clientY, startPan: { ...pan }, dragged: false };
-    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = { startX: e.clientX, startY: e.clientY, startPan: { ...pan }, dragged: false, pointerId: e.pointerId, target: e.currentTarget };
   }, [pan]);
 
   const handlePointerMove = useCallback((e) => {
     if (!dragRef.current) return;
     const dist = Math.abs(e.clientX - dragRef.current.startX) + Math.abs(e.clientY - dragRef.current.startY);
-    if (dist > 4) dragRef.current.dragged = true;
+    if (dist > 4) {
+      if (!dragRef.current.dragged) {
+        dragRef.current.dragged = true;
+        dragRef.current.target?.setPointerCapture(dragRef.current.pointerId);
+      }
+    }
+    if (!dragRef.current.dragged) return;
     const svg = svgRef.current;
     if (!svg) return;
     const rect = svg.getBoundingClientRect();
@@ -688,7 +732,12 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
     setPan({ x: dragRef.current.startPan.x - dx, y: dragRef.current.startPan.y - dy });
   }, [zoom, baseW, baseH]);
 
-  const handlePointerUp = useCallback(() => { dragRef.current = null; }, []);
+  const handlePointerUp = useCallback((e) => {
+    if (dragRef.current?.dragged) {
+      e.currentTarget.releasePointerCapture?.(dragRef.current.pointerId);
+    }
+    dragRef.current = null;
+  }, []);
 
   const vbW = baseW / zoom;
   const vbH = baseH / zoom;
@@ -887,6 +936,37 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
           });
         })}
 
+        {/* Speech bubbles above spirits */}
+        {Object.entries(speechBubbles).map(([spiritId, bubble]) => {
+          const spirit = spirits[spiritId];
+          if (!spirit?.alive) return null;
+          const hex = hexes[spirit.hexId];
+          if (!hex) return null;
+          const hexSpiritsHere = hex.spiritIds?.filter(id => spirits[id]?.alive) || [];
+          const idx = hexSpiritsHere.indexOf(spiritId);
+          const angle = (2 * Math.PI * Math.max(0, idx)) / Math.max(hexSpiritsHere.length, 1);
+          const spread = hexSpiritsHere.length === 1 ? 0 : HEX_SIZE * 0.3;
+          const p = hexToPixel({ q: hex.q, r: hex.r }, HEX_SIZE);
+          const sx = p.x + spread * Math.cos(angle);
+          const sy = p.y + spread * Math.sin(angle) - 30;
+          const textLen = bubble.text.length;
+          const boxW = Math.min(textLen * 5 + 16, 140);
+          const boxH = 18;
+          return (
+            <g key={`bubble-${spiritId}`} style={{ opacity: 1, transition: 'opacity 0.3s' }}>
+              <rect x={sx - boxW / 2} y={sy - boxH + 2} width={boxW} height={boxH} rx={5}
+                fill="rgba(12,16,24,0.92)" stroke="rgba(240,208,128,0.5)" strokeWidth={1} />
+              <polygon points={`${sx - 4},${sy + 4} ${sx},${sy + 9} ${sx + 4},${sy + 4}`}
+                fill="rgba(12,16,24,0.92)" stroke="rgba(240,208,128,0.5)" strokeWidth={1} />
+              <rect x={sx - 5} y={sy + 3} width={10} height={2.5} fill="rgba(12,16,24,0.92)" />
+              <text x={sx} y={sy - 3} textAnchor="middle" fontSize="8"
+                fill="#f0d890" fontFamily="'Inter', sans-serif" fontWeight="500">
+                {bubble.text}
+              </text>
+            </g>
+          );
+        })}
+
         {activeTrails.map(trail => {
           const from = spirits[trail.from];
           const to = spirits[trail.to];
@@ -896,18 +976,32 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
           if (!fh || !th) return null;
           const p1 = hexToPixel({ q: fh.q, r: fh.r }, HEX_SIZE);
           const p2 = hexToPixel({ q: th.q, r: th.r }, HEX_SIZE);
+          const dx = p2.x - p1.x;
+          const dy = p2.y - p1.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const arcHeight = Math.max(25, dist * 0.3);
           const mx = (p1.x + p2.x) / 2;
-          const my = (p1.y + p2.y) / 2 - 12;
+          const my = (p1.y + p2.y) / 2 - arcHeight;
+          const pathId = `trail-${trail.id}`;
+          const whisperText = trail.text ? (trail.text.length > 20 ? trail.text.slice(0, 20) + '...' : trail.text) : '~';
           return (
-            <path
-              key={trail.id}
-              d={`M${p1.x},${p1.y} Q${mx},${my} ${p2.x},${p2.y}`}
-              fill="none" stroke="#e0b040" strokeWidth={1.2}
-              strokeDasharray="3 3" opacity={0.5}
-            >
-              <animate attributeName="opacity" values="0.6;0.2;0" dur="2s" fill="freeze" />
-              <animate attributeName="stroke-dashoffset" values="0;-12" dur="0.6s" repeatCount="3" />
-            </path>
+            <g key={trail.id}>
+              <defs>
+                <path id={pathId} d={`M${p1.x},${p1.y} Q${mx},${my} ${p2.x},${p2.y}`} />
+              </defs>
+              <use href={`#${pathId}`} fill="none" stroke="#e0b040" strokeWidth={1.5}
+                strokeDasharray="4 4" opacity={0.6}>
+                <animate attributeName="opacity" values="0.7;0.3;0" dur="3s" fill="freeze" />
+                <animate attributeName="stroke-dashoffset" values="0;-16" dur="0.8s" repeatCount="4" />
+              </use>
+              <text fontSize="8" fill="#ffe0a0" fontFamily="'Inter', sans-serif" fontWeight="500">
+                <animate attributeName="opacity" values="0;1;1;0" dur="3s" fill="freeze" />
+                <textPath href={`#${pathId}`} startOffset="5%">
+                  <animate attributeName="startOffset" values="5%;75%" dur="2.5s" fill="freeze" />
+                  {whisperText}
+                </textPath>
+              </text>
+            </g>
           );
         })}
 
@@ -1112,6 +1206,91 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
           {Math.round(zoom * 100)}%
         </div>
       )}
+
+      {/* Minimap */}
+      <Minimap hexArray={hexArray} spirits={spirits} playerId={playerId} gameState={gameState} />
+
+      {/* Tick timer */}
+      <TickTimer />
+    </div>
+  );
+}
+
+function Minimap({ hexArray, spirits, playerId, gameState }) {
+  const size = 3;
+  const points = useMemo(() => {
+    return hexArray.map(hex => {
+      const x = size * (Math.sqrt(3) * hex.q + Math.sqrt(3) / 2 * hex.r);
+      const y = size * (3 / 2 * hex.r);
+      return { x, y, controller: hex.controller, id: hex.id, spiritIds: hex.spiritIds };
+    });
+  }, [hexArray]);
+
+  const bounds = useMemo(() => {
+    const xs = points.map(p => p.x);
+    const ys = points.map(p => p.y);
+    return {
+      minX: Math.min(...xs) - size * 2,
+      maxX: Math.max(...xs) + size * 2,
+      minY: Math.min(...ys) - size * 2,
+      maxY: Math.max(...ys) + size * 2,
+    };
+  }, [points]);
+
+  const w = bounds.maxX - bounds.minX;
+  const h = bounds.maxY - bounds.minY;
+
+  return (
+    <div className="absolute bottom-3 right-3 z-10 rounded-lg overflow-hidden border border-gray-700/50 bg-gray-900/80 backdrop-blur-sm"
+      style={{ width: 120, height: 100 }}>
+      <svg viewBox={`${bounds.minX} ${bounds.minY} ${w} ${h}`} className="w-full h-full">
+        {points.map(p => {
+          const color = p.controller
+            ? (getPlayerColor(p.controller, gameState) || '#4a5568')
+            : '#1a202c';
+          return (
+            <circle key={p.id} cx={p.x} cy={p.y} r={size * 0.75}
+              fill={color} opacity={p.controller ? 0.8 : 0.3} />
+          );
+        })}
+        {Object.values(spirits).filter(s => s.alive).map(s => {
+          const hex = hexArray.find(h => h.id === s.hexId);
+          if (!hex) return null;
+          const x = size * (Math.sqrt(3) * hex.q + Math.sqrt(3) / 2 * hex.r);
+          const y = size * (3 / 2 * hex.r);
+          const isMine = s.playerId === playerId;
+          return (
+            <circle key={s.id} cx={x} cy={y} r={isMine ? 1.8 : 1.2}
+              fill={isMine ? '#f59e0b' : '#ef4444'} opacity={0.9} />
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+function TickTimer() {
+  const [elapsed, setElapsed] = useState(0);
+  const DECISION_INTERVAL = 30;
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setElapsed(prev => (prev + 1) % DECISION_INTERVAL);
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const remaining = DECISION_INTERVAL - elapsed;
+  const pct = (elapsed / DECISION_INTERVAL) * 100;
+
+  return (
+    <div className="absolute top-3 left-3 z-10 flex items-center gap-2 bg-gray-900/80 backdrop-blur-sm rounded px-2 py-1.5 border border-gray-700/50">
+      <span className="text-[9px] font-mono text-gray-500">NEXT CYCLE</span>
+      <div className="w-20 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+        <div className="h-full bg-amber-500/60 rounded-full transition-all duration-1000 ease-linear"
+          style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-[9px] font-mono text-gray-400">{remaining}s</span>
     </div>
   );
 }

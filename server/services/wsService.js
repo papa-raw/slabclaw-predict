@@ -29,7 +29,7 @@ function handleMessage(playerId, msg) {
 const PERSIST_TYPES = new Set([
   'battle_started', 'battle_resolved', 'spawn_started', 'spawn_complete',
   'spirit_died', 'territory_claimed', 'game_over',
-  'explore_started', 'whisper_arrived', 'spirit_dialog',
+  'explore_started', 'whisper_arrived', 'spirit_dialog', 'avatar_ready',
 ]);
 
 export function broadcast(gameState, events) {
@@ -79,7 +79,7 @@ export function sanitizeForClient(gameState) {
   const { spirits, ...rest } = gameState;
   const clientSpirits = {};
   for (const [id, s] of Object.entries(spirits)) {
-    const { delegateKey, memwalAccountId, _lastDecision, _style, ...safe } = s;
+    const { delegateKey, _lastDecision, _deityOrder, _style, ...safe } = s;
     clientSpirits[id] = safe;
   }
   return { ...rest, spirits: clientSpirits };

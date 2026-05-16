@@ -45,6 +45,8 @@ export async function chatWithSpirit({ spirit, userMessage, gameState }) {
   const response = await callLLM(systemPrompt, userMessage, {
     model: 'claude-haiku-4-5-20251001',
     maxTokens: 300,
+    _priority: 'high',
+    _retries: 2,
   });
 
   // 4. Store both messages as memories (non-blocking)

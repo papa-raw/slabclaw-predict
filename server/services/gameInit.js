@@ -1,6 +1,7 @@
 import { createHexGrid, getStartingPositions } from '../../lib/hexGrid.js';
 import { SEED_SPIRITS } from '../../lib/seedSpirits.js';
 import { setKey } from './keyStore.js';
+import { getCachedAvatarBlobId } from './avatarService.js';
 import crypto from 'crypto';
 
 const DEITY_FIRST = [
@@ -144,6 +145,7 @@ export async function createInitialGameState() {
         memorableActions: [],
         lastSpawnAt: 0,
         _lastDecision: s * 5000, // stagger initial decisions
+        avatarBlobId: getCachedAvatarBlobId(names[s]) || null,
       };
 
       setKey(spiritId, delegateKey.privateKey);

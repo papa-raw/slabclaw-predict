@@ -8,6 +8,7 @@ import Lobby from './components/Lobby.jsx';
 import SpiritPanel from './components/SpiritPanel.jsx';
 import EssenceExport from './components/EssenceExport.jsx';
 import OnboardingHints from './components/OnboardingHints.jsx';
+import { getAvatarUrl } from '@lib/avatarUrl.js';
 
 function getSessionPlayerId() {
   let id = sessionStorage.getItem('anima-player-id');
@@ -267,7 +268,14 @@ export default function App() {
                       {mySpirits.map(s => (
                         <button key={s.id} onClick={() => { setSelectedSpirit(s.id); }}
                           className="flex items-center gap-2 text-xs text-gray-400 hover:text-amber-400 transition-colors px-2 py-1 rounded hover:bg-gray-800/40 w-full">
-                          <span className="w-2 h-2 rounded-full bg-amber-500" />
+                          {s.avatarBlobId ? (
+                            <img src={getAvatarUrl(s.avatarBlobId)} alt={s.name}
+                              className="w-5 h-5 rounded-full object-cover flex-shrink-0 border border-amber-500/40" />
+                          ) : (
+                            <span className="w-5 h-5 rounded-full bg-amber-500/30 border border-amber-500/40 flex items-center justify-center text-[8px] text-amber-400 flex-shrink-0">
+                              {s.name[0]}
+                            </span>
+                          )}
                           <span>{s.name}</span>
                           <span className="text-gray-600 text-[10px]">{s.specialization}</span>
                         </button>

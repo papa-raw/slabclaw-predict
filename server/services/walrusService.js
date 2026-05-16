@@ -171,6 +171,68 @@ async function _readEssenceTestnet(blobId) {
   }
 }
 
+/**
+ * Store a raw binary blob on Walrus (or mock store).
+ * @param {Buffer} buffer — raw bytes
+ * @param {string} contentType — MIME type (e.g. 'image/webp')
+ * @returns {Promise<string>} blobId
+ */
+export async function storeBlob(buffer, contentType = 'application/octet-stream') {
+  if (isTestnet) {
+    return await _storeBlobTestnet(buffer, contentType);
+  }
+  return _storeBlobMock(buffer, contentType);
+}
+
+function _storeBlobMock(buffer, contentType) {
+  const blobId = `mock-blob-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  mockBlobStore.set(blobId, buffer.toString('base64'));
+  _persistBlobs();
+  console.log(`[walrus:mock] Stored binary blob ${blobId} (${buffer.length} bytes, ${contentType})`);
+  return blobId;
+}
+
+async function _storeBlobTestnet(buffer, contentType) {
+  const url = `${WALRUS_PUBLISHER}/v1/blobs?epochs=${WALRUS_EPOCHS}`;
+
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': contentType },
+    body: buffer,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Publisher returned ${res.status}: ${await res.text()}`);
+  }
+
+  const result = await res.json();
+  let blobId;
+  if (result.newlyCreated) {
+    blobId = result.newlyCreated.blobObject.blobId;
+    console.log(`[walrus:testnet] Stored binary blob ${blobId} (${buffer.length} bytes, ${contentType})`);
+  } else if (result.alreadyCertified) {
+    blobId = result.alreadyCertified.blobId;
+  } else {
+    throw new Error('Unexpected publisher response');
+  }
+
+  return blobId;
+}
+
+/**
+ * Get the public aggregator URL for a blob (for frontend to fetch directly).
+ */
+export function getAggregatorUrl(blobId) {
+  if (blobId?.startsWith('mock-blob-')) {
+    return `/api/blob/${blobId}`;
+  }
+  return `${WALRUS_AGGREGATOR}/v1/blobs/${blobId}`;
+}
+
+export function getMockBlobRaw(blobId) {
+  return mockBlobStore.get(blobId);
+}
+
 export function listMockBlobs() {
   return Array.from(mockBlobStore.keys());
 }

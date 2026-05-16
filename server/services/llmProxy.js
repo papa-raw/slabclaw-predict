@@ -11,22 +11,57 @@ const MODEL_MAP = {
   'claude-sonnet-4-20250514': BATTLE_MODEL,
 };
 
+// Rate limit tracking
+let callsThisMinute = 0;
+let minuteStart = Date.now();
+const RATE_LIMIT = 50; // stay under 60/min with margin
+
+function checkRateLimit() {
+  const now = Date.now();
+  if (now - minuteStart > 60_000) {
+    callsThisMinute = 0;
+    minuteStart = now;
+  }
+  return callsThisMinute < RATE_LIMIT;
+}
+
 export async function callLLM(systemPrompt, userPrompt, options = {}) {
   const {
     model = 'claude-haiku-4-5-20251001',
     maxTokens = 1500,
     messages = null,
+    _retries = 2,
+    _priority = 'normal', // 'high' for user chat, 'normal' for autonomous
   } = options;
 
-  if (PROVIDER === 'windfall') {
-    return callWindfall(systemPrompt, userPrompt, { model, maxTokens, messages });
+  // Skip low-priority calls when near rate limit
+  if (_priority !== 'high' && !checkRateLimit()) {
+    throw new Error('Rate limit approaching — skipping background call');
   }
 
-  if (PROVIDER === 'anthropic') {
-    return callAnthropic(systemPrompt, userPrompt, { model, maxTokens, messages });
-  }
+  callsThisMinute++;
 
-  throw new Error(`Unknown LLM_PROVIDER: "${PROVIDER}". Set LLM_PROVIDER to "windfall" or "anthropic".`);
+  const callFn = PROVIDER === 'windfall'
+    ? () => callWindfall(systemPrompt, userPrompt, { model, maxTokens, messages })
+    : PROVIDER === 'anthropic'
+      ? () => callAnthropic(systemPrompt, userPrompt, { model, maxTokens, messages })
+      : null;
+
+  if (!callFn) throw new Error(`Unknown LLM_PROVIDER: "${PROVIDER}"`);
+
+  for (let attempt = 0; attempt <= _retries; attempt++) {
+    try {
+      return await callFn();
+    } catch (err) {
+      if (err.message?.includes('429') && attempt < _retries) {
+        const delay = 3000 * (attempt + 1);
+        console.log(`[llm] Rate limited, retrying in ${delay}ms (attempt ${attempt + 1}/${_retries})`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
 }
 
 export function getProvider() { return PROVIDER; }

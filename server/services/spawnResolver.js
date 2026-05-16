@@ -3,6 +3,7 @@ import { getKey, setKey } from './keyStore.js';
 import { storeMemoryServer, recallMemoriesServer } from './memwalServer.js';
 import { callLLM, classifyPersonality } from './llmProxy.js';
 import { mintSpirit } from './suiService.js';
+import { generateAvatarBackground } from './avatarService.js';
 
 export async function resolveSpawn(gameState, timer) {
   const { parentId } = timer.data;
@@ -95,9 +96,11 @@ export async function resolveSpawn(gameState, timer) {
     lastSpawnAt: 0,
     currentAction: null,
     _lastDecision: 0,
+    avatarBlobId: null,
   };
 
   gameState.spirits[childId] = child;
+  generateAvatarBackground(child, gameState);
   const hex = gameState.map.hexes[parent.hexId];
   if (hex) hex.spiritIds.push(childId);
   if (gameState.players[parent.playerId]) {

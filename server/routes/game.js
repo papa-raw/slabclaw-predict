@@ -2,8 +2,10 @@ import { Router } from 'express';
 import { sanitizeForClient, broadcastStateChange } from '../services/wsService.js';
 import { chatWithSpirit } from '../services/spiritDialogueService.js';
 import { applyBondAction } from '../services/bondService.js';
+import { applyDeityIntent } from '../services/spiritDecisionService.js';
 import { readEssence, getStorageMode } from '../services/walrusService.js';
 import { applyEssence } from '../services/essenceService.js';
+import { generateAvatarBackground } from '../services/avatarService.js';
 
 const PACKAGE_ID = process.env.PACKAGE_ID || '0xb0f9ba3da143c92225ada477204a57fd61bae3f2c5c70e8593ce29eac309da21';
 const ADMIN_CAP = process.env.ADMIN_CAP_ID || '0x87faef3092e7568ecac9c9e2475828ed521bace50f3747e87abb07dc585a6f88';
@@ -72,6 +74,12 @@ router.post('/ready', async (req, res) => {
   if (connectedCount >= 1 && state.status === 'lobby') {
     state.status = 'active';
     state.startedAt = Date.now();
+    // Generate avatars for spirits that don't have one (new souls only — imported keep theirs)
+    for (const spirit of Object.values(state.spirits)) {
+      if (!spirit.avatarBlobId) {
+        generateAvatarBackground(spirit, state);
+      }
+    }
     // Push state_change to all WS clients so lobby transitions seamlessly
     broadcastStateChange(state);
   }
@@ -99,6 +107,15 @@ router.post('/chat', async (req, res) => {
     const result = await chatWithSpirit({ spirit, userMessage: message, gameState: state });
     applyBondAction(spirit, 'chat');
     console.log(`[chat] ${spirit.name} responded, ${result.whispers?.length || 0} whispers propagated`);
+
+    // Act on deity intent immediately if the spirit is idle
+    if (result.intent?.intent && result.intent.intent !== 'unclear') {
+      const actionEvent = applyDeityIntent(spirit, result.intent, state);
+      if (actionEvent) {
+        console.log(`[chat] ${spirit.name} acting on deity intent: ${result.intent.intent} → ${actionEvent.type}`);
+      }
+    }
+
     res.json({
       response: result.response,
       intent: result.intent,

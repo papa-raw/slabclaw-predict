@@ -53,8 +53,13 @@ export function getCurrentGameState() {
 async function tick() {
   if (!gameState || gameState.status !== 'active') return;
 
-  // 1. Resolve completed timers (movements arrive, battles finish, spawns complete)
-  const events = await resolveTimers(gameState);
+  let events = [];
+  try {
+    // 1. Resolve completed timers (movements arrive, battles finish, spawns complete)
+    events = await resolveTimers(gameState);
+  } catch (err) {
+    console.error('[tick] Timer resolution error (non-fatal):', err.message);
+  }
 
   // 2. Accumulate memories in controlled hexes
   accumulateMemories(gameState);
@@ -74,6 +79,5 @@ async function tick() {
   }
 
   // 5. Broadcast state delta to all connected clients
-  // Always broadcast so clients stay in sync
   broadcast(gameState, events);
 }

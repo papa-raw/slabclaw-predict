@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import WalletConnect from './WalletConnect.jsx';
 import EssenceImport from './EssenceImport.jsx';
+import { getAvatarUrl } from '@lib/avatarUrl.js';
 
 function truncId(id) {
   if (!id || id.length <= 16) return id || '';
@@ -32,14 +33,14 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
   const playerCount = Object.values(gameState.players).filter(p => p.connected).length;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0e17]">
-      <div className="max-w-lg w-full space-y-8 text-center p-8">
-        <div>
-          <h1 className="text-4xl font-display text-amber-500 font-bold mb-2">Anima Swarm</h1>
-          <p className="text-gray-400 text-sm">Command AI spirits through whispers — memories persist on Walrus</p>
+    <div className="h-screen flex flex-col bg-[#0a0e17] overflow-hidden">
+      <div className="flex-1 flex flex-col max-w-lg w-full mx-auto px-6 py-4 overflow-y-auto">
+        <div className="text-center mb-3">
+          <h1 className="text-3xl font-display text-amber-500 font-bold">Anima Swarm</h1>
+          <p className="text-gray-400 text-xs mt-1">Command AI spirits through whispers — memories persist on Walrus</p>
         </div>
 
-        <div className="bg-gray-800/60 rounded-lg p-6 border border-gray-700/50 space-y-4">
+        <div className="bg-gray-800/60 rounded-lg p-3 border border-gray-700/50 space-y-2 mb-3">
           <div className="flex items-center justify-between">
             <span className="text-gray-400 text-sm">Connected</span>
             <div className="flex items-center gap-2">
@@ -50,7 +51,7 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
           <WalletConnect />
         </div>
 
-        <div className={`bg-gray-800/40 rounded-lg p-4 border text-left space-y-2 transition-colors ${
+        <div className={`bg-gray-800/40 rounded-lg p-3 border text-left space-y-1 mb-3 transition-colors ${
           confirmedBlobId ? 'border-purple-700/50' : 'border-gray-700/30'
         }`}>
           <div className="flex items-center justify-between">
@@ -64,14 +65,18 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
           {Object.values(gameState.spirits)
             .filter(s => s.playerId === playerId)
             .map(s => {
-              // After essence confirm, mark the seed spirit as "Reborn"
               const isReborn = confirmedBlobId && s.generation === 0;
-              // Find previous names from preview, excluding current name
               const rawPrev = essencePreview?.candidates?.[0]?.pastLifeNames || [];
               const prevNames = rawPrev.filter(n => n !== s.name);
+              const candidate = essencePreview?.candidates?.find(c => c.pastLifeNames?.includes(s.name) || c.name === prevNames[0]);
+              const avatarUrl = s.avatarBlobId ? getAvatarUrl(s.avatarBlobId) : (candidate?.avatarBlobId ? getAvatarUrl(candidate.avatarBlobId) : null);
               return (
                 <div key={s.id} className="flex items-center gap-2 text-sm">
-                  <div className={`w-2 h-2 rounded-full ${isReborn ? 'bg-purple-400' : 'bg-amber-500'}`} />
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={s.name} className="w-5 h-5 rounded-full object-cover border border-purple-700/40" />
+                  ) : (
+                    <div className={`w-2 h-2 rounded-full ${isReborn ? 'bg-purple-400' : 'bg-amber-500'}`} />
+                  )}
                   <span className={`font-header ${isReborn ? 'text-purple-200' : 'text-gray-300'}`}>{s.name}</span>
                   <span className="text-gray-600 text-xs">{s.specialization}</span>
                   {isReborn && (
@@ -87,16 +92,17 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
             })}
         </div>
 
-        <EssenceImport onEssenceConfirmed={handleEssenceConfirmed} confirmedBlobId={confirmedBlobId} />
+        <div className="mb-3">
+          <EssenceImport onEssenceConfirmed={handleEssenceConfirmed} confirmedBlobId={confirmedBlobId} />
+        </div>
 
-        {/* On-chain infrastructure */}
         {chainInfo && (
-          <div className="bg-gray-800/30 rounded-lg p-4 border border-teal-800/30 text-left space-y-2">
+          <div className="bg-gray-800/30 rounded-lg px-3 py-2 border border-teal-800/30 text-left mb-3">
             <div className="flex items-center gap-2 mb-1">
               <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
               <span className="text-[10px] text-gray-500 uppercase tracking-wider font-mono">On-Chain Infrastructure</span>
             </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-[10px]">
               <div className="flex items-center gap-1">
                 <span className="text-gray-500">Package</span>
                 <a href={`${chainInfo.explorers?.sui || 'https://suiscan.xyz/testnet/object/'}${chainInfo.contracts.package.id}`} target="_blank" rel="noopener noreferrer"
@@ -118,12 +124,11 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
                 </span>
               </div>
             </div>
-            <div className="text-[9px] text-gray-600 mt-1">
-              Move contracts: spirit.move · territory.move · battle.move · spawn.move
-            </div>
           </div>
         )}
+      </div>
 
+      <div className="shrink-0 max-w-lg w-full mx-auto px-6 pb-4">
         <button
           onClick={handleReady}
           disabled={ready}

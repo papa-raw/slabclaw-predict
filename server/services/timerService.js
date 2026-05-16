@@ -25,8 +25,14 @@ export async function resolveTimers(gameState) {
 
   const events = [];
   for (const timer of completed) {
-    const event = await resolveTimer(timer, gameState);
-    if (event) events.push(event);
+    try {
+      const event = await resolveTimer(timer, gameState);
+      if (event) events.push(event);
+    } catch (err) {
+      console.error(`[timer] Failed to resolve ${timer.type} for ${timer.spiritId}:`, err.message);
+      const spirit = gameState.spirits[timer.spiritId];
+      if (spirit) spirit.currentAction = null;
+    }
   }
   return events;
 }
@@ -104,14 +110,14 @@ async function resolveTimer(timer, gameState) {
     }
 
     case 'whisper_propagation': {
-      // Deliver a whisper to the target spirit
       const targetSpirit = gameState.spirits[timer.data.targetSpiritId];
       if (targetSpirit) {
         targetSpirit.whispersReceived = (targetSpirit.whispersReceived || 0) + 1;
       }
       return {
         type: 'whisper_arrived',
-        spiritId: timer.data.targetSpiritId,
+        from: timer.spiritId,
+        to: timer.data.targetSpiritId,
         text: timer.data.whisperText,
       };
     }

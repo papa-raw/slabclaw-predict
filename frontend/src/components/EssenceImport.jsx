@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getAvatarUrl } from '@lib/avatarUrl.js';
 
 /**
  * EssenceImport — Lobby panel for importing a Walrus blob ID to reincarnate spirits.
@@ -134,7 +135,13 @@ export default function EssenceImport({ onEssenceConfirmed, confirmedBlobId }) {
                           className="bg-gray-900/60 rounded px-3 py-2 text-xs space-y-0.5"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-amber-400 font-header font-semibold">{c.name}</span>
+                            <div className="flex items-center gap-2">
+                              {c.avatarBlobId ? (
+                                <img src={getAvatarUrl(c.avatarBlobId)} alt={c.name}
+                                  className="w-6 h-6 rounded-full object-cover border border-purple-700/40" />
+                              ) : null}
+                              <span className="text-amber-400 font-header font-semibold">{c.name}</span>
+                            </div>
                             <span className="text-gray-600 font-mono text-[10px]">
                               Gen {c.generation} · {c.personalityProfile}
                             </span>

@@ -1,6 +1,7 @@
 import { callLLM, classifyPersonality } from './llmProxy.js';
 import { recallMemoriesServer, storeMemoryServer } from './memwalServer.js';
 import { neighbors, hexId, axialDistance } from '../../lib/hexMath.js';
+import { findPath, getNextStep, hexDistance } from '../../lib/hexPathfinding.js';
 import { startTimer } from './timerService.js';
 import { broadcast } from './wsService.js';
 import { checkSpawnReadiness } from './spawningService.js';
@@ -25,29 +26,34 @@ Swarm territory: {swarmTerritory} hexes
 YOUR SITUATION:
 Current hex: {hexTerrain} (controlled by: {hexController})
 Adjacent hexes: {adjacentInfo}
-Enemies in range: {enemyInfo}
 Memory count: {memoryCount}
 Spawn readiness: {spawnReady}
-Recent whispers from deity: {recentWhispers}
+
+DEITY ORDERS:
+{deityOrders}
+
+MAP ROSTER (all spirits on the map):
+{mapRoster}
 
 SWARM TACTICS:
+- FOLLOW DEITY ORDERS above all else — they persist until completed or overridden
 - Move TOWARD allies when outnumbered, spread out when dominant
 - Warriors should engage enemies; scouts explore; gatherers collect memories
 - If an ally is in battle nearby, move to support them
-- Claim unclaimed hexes adjacent to your territory for contiguous control
+- You can MOVE TOWARD any spirit by name — pathfinding handles multi-hop navigation
 
 AVAILABLE ACTIONS:
-- MOVE <direction> — relocate to an adjacent hex (15s, scout: 8s)
+- MOVE_TO <spirit name or "unclaimed"> — navigate toward a target (pathfinding, multi-hop)
 - BATTLE — attack an enemy spirit in your hex
-- EXPLORE — scout an adjacent hex (8s, scout: 4s)
+- EXPLORE — scout toward unclaimed territory
 - SPAWN — create a child spirit (2 min, needs 5+ memories and 35+ bond)
 - GATHER — absorb memories from your hex (instant)
 - WAIT — hold position
 
 Respond with ONLY a JSON object:
 {
-  "action": "move|battle|explore|spawn|gather|wait",
-  "target": "hex direction or spirit name or null",
+  "action": "move_to|battle|explore|spawn|gather|wait",
+  "target": "spirit name, hex terrain, or null",
   "reasoning": "one sentence explaining why"
 }`;
 
@@ -91,12 +97,10 @@ async function decideSpiritAction(spirit, gameState) {
   try {
     const key = getKey(spirit.id);
     recentMemories = await recallMemoriesServer(
-      spirit.memwalNamespace, 'recent events deity whisper', 5,
+      spirit.memwalNamespace, 'recent events deity whisper order', 5,
       key, spirit.memwalAccountId
     );
-  } catch {
-    // ignore recall errors
-  }
+  } catch {}
 
   const adjacentInfo = adj.map(a => {
     const aId = hexId(a.q, a.r);
@@ -111,7 +115,6 @@ async function decideSpiritAction(spirit, gameState) {
     return `${h.terrain} (${controlLabel}, ${spiritCount} spirits)`;
   }).filter(Boolean).join('; ');
 
-  // Swarm awareness: find all allied spirits and their states
   const allies = Object.values(gameState.spirits).filter(
     s => s.playerId === spirit.playerId && s.alive && s.id !== spirit.id
   );
@@ -119,30 +122,43 @@ async function decideSpiritAction(spirit, gameState) {
     const aHex = gameState.map.hexes[a.hexId];
     const dist = aHex ? axialDistance({ q: hex.q, r: hex.r }, { q: aHex.q, r: aHex.r }) : 99;
     const action = a.currentAction?.type || 'idle';
-    return `${a.name} (${a.specialization}, ${dist} hexes away, ${action})`;
+    return `${a.name} (${a.specialization}, ${dist} hops, ${action})`;
   }).join('; ');
 
   const swarmSize = allies.length + 1;
   const swarmTerritory = Object.values(gameState.map.hexes).filter(h => h.controller === spirit.playerId).length;
 
-  // Enemies in range (within 2 hexes)
-  const nearbyEnemies = Object.values(gameState.spirits).filter(s => {
-    if (!s.alive || s.playerId === spirit.playerId) return false;
+  // Full map roster — all spirits with distance and hex info
+  const allSpirits = Object.values(gameState.spirits).filter(s => s.alive && s.id !== spirit.id);
+  const mapRoster = allSpirits.map(s => {
     const sHex = gameState.map.hexes[s.hexId];
-    if (!sHex) return false;
-    return axialDistance({ q: hex.q, r: hex.r }, { q: sHex.q, r: sHex.r }) <= 2;
-  });
-  const enemyInfo = nearbyEnemies.length === 0 ? 'none' : nearbyEnemies.map(e => {
-    const eHex = gameState.map.hexes[e.hexId];
-    const dist = eHex ? axialDistance({ q: hex.q, r: hex.r }, { q: eHex.q, r: eHex.r }) : 99;
-    return `${e.name} (${dist} hexes, ${gameState.players[e.playerId]?.name || 'enemy'})`;
-  }).join('; ');
+    if (!sHex) return null;
+    const dist = axialDistance({ q: hex.q, r: hex.r }, { q: sHex.q, r: sHex.r });
+    const team = s.playerId === spirit.playerId ? 'ALLY' : 'ENEMY';
+    const playerName = gameState.players[s.playerId]?.name || 'unknown';
+    const action = s.currentAction?.type || 'idle';
+    return `${s.name} [${team}/${playerName}] ${s.specialization}, ${dist} hops, ${sHex.terrain}, ${action}`;
+  }).filter(Boolean).join('\n');
 
   const bondAvg = Math.round(
     (spirit.bond.depth + spirit.bond.harmony + spirit.bond.adventure + spirit.bond.loyalty) / 4
   );
 
   const spawnCheck = checkSpawnReadiness(spirit);
+
+  // Persistent deity orders
+  const deityOrder = spirit._deityOrder || null;
+  let deityOrdersText = 'None — act freely based on swarm tactics';
+  if (deityOrder) {
+    const age = Math.round((Date.now() - deityOrder.issuedAt) / 1000);
+    deityOrdersText = `"${deityOrder.text}" (issued ${age}s ago, priority: HIGH)`;
+  }
+  const whisperOrders = recentMemories.results
+    ?.filter(r => r.text.includes('[WHISPER]') || r.text.includes('[DEITY]'))
+    .map(r => r.text) || [];
+  if (whisperOrders.length && !deityOrder) {
+    deityOrdersText = `From memory: ${whisperOrders.slice(0, 2).join('; ')}`;
+  }
 
   const prompt = DECISION_PROMPT
     .replace('{name}', spirit.name)
@@ -155,10 +171,10 @@ async function decideSpiritAction(spirit, gameState) {
     .replace('{hexTerrain}', hex.terrain)
     .replace('{hexController}', hex.controller === spirit.playerId ? 'you' : hex.controller || 'unclaimed')
     .replace('{adjacentInfo}', adjacentInfo || 'unknown')
-    .replace('{enemyInfo}', enemyInfo)
     .replace('{memoryCount}', String(spirit.memoryCount))
     .replace('{spawnReady}', spawnCheck.ready ? 'YES' : `NO (${spawnCheck.reasons.join(', ')})`)
-    .replace('{recentWhispers}', recentMemories.results?.filter(r => r.text.includes('[WHISPER]')).map(r => r.text).join('; ') || 'none');
+    .replace('{deityOrders}', deityOrdersText)
+    .replace('{mapRoster}', mapRoster || 'No other spirits visible');
 
   if (!spirit.personalityProfile) {
     spirit.personalityProfile = classifyPersonality(spirit.personality);
@@ -187,30 +203,46 @@ function executeDecision(spirit, decision, gameState, adj) {
   const reasoning = decision.reasoning || null;
 
   switch (action) {
+    case 'move_to':
     case 'move': {
-      const validAdj = adj
-        .map(a => gameState.map.hexes[hexId(a.q, a.r)])
-        .filter(h => h && h.terrain !== 'ocean');
+      let targetHexId = null;
 
-      if (!validAdj.length) return null;
+      // Try to resolve target by spirit name
+      if (decision.target && action === 'move_to') {
+        const targetName = decision.target.toLowerCase();
+        const targetSpirit = Object.values(gameState.spirits).find(
+          s => s.alive && s.name.toLowerCase() === targetName
+        );
+        if (targetSpirit && targetSpirit.hexId !== spirit.hexId) {
+          targetHexId = getNextStep(spirit.hexId, targetSpirit.hexId, gameState.map.hexes);
+        }
+      }
 
-      const target = pickMoveTarget(validAdj, spirit);
-      if (!target) return null;
+      // Fallback: pick adjacent hex by personality
+      if (!targetHexId) {
+        const validAdj = adj
+          .map(a => gameState.map.hexes[hexId(a.q, a.r)])
+          .filter(h => h && h.terrain !== 'ocean');
+        if (!validAdj.length) return null;
+        const target = pickMoveTarget(validAdj, spirit);
+        if (!target) return null;
+        targetHexId = target.id;
+      }
 
       const duration = spirit.specialization === 'scout' ? 8_000 : 15_000;
       startTimer(gameState, {
         type: 'movement',
         spiritId: spirit.id,
         duration,
-        data: { fromHex: spirit.hexId, toHex: target.id },
+        data: { fromHex: spirit.hexId, toHex: targetHexId },
       });
       spirit.currentAction = {
         type: 'moving',
         startedAt: Date.now(),
         completesAt: Date.now() + duration,
-        data: { toHex: target.id },
+        data: { toHex: targetHexId },
       };
-      return { type: 'spirit_moving', spiritId: spirit.id, spiritName: spirit.name, toHex: target.id, duration, reasoning };
+      return { type: 'spirit_moving', spiritId: spirit.id, spiritName: spirit.name, toHex: targetHexId, duration, reasoning };
     }
 
     case 'gather': {
@@ -332,6 +364,87 @@ function pickMoveTarget(validAdj, spirit) {
     default:
       return pick(unclaimed) || pick(enemy) || pick(own);
   }
+}
+
+/**
+ * Apply a deity intent as an immediate spirit action + set persistent order.
+ * Called from the chat endpoint after intent extraction.
+ */
+export function applyDeityIntent(spirit, intent, gameState) {
+  if (!spirit.alive) return null;
+  if (!intent?.intent) return null;
+
+  // Set persistent deity order — survives across decision cycles
+  spirit._deityOrder = {
+    intent: intent.intent,
+    target: intent.target || null,
+    text: intent.interpretation || intent.intent,
+    issuedAt: Date.now(),
+  };
+
+  // If spirit is busy, the order will be picked up next cycle
+  if (spirit.currentAction) return null;
+
+  const hex = gameState.map.hexes[spirit.hexId];
+  if (!hex) return null;
+  const adj = neighbors({ q: hex.q, r: hex.r });
+
+  // Map deity intent to action, with pathfinding for targeted attacks
+  let action;
+  let target = intent.target || null;
+
+  if ((intent.intent === 'attack' || intent.intent === 'defend') && target) {
+    // Find the named target spirit
+    const targetSpirit = Object.values(gameState.spirits).find(
+      s => s.alive && s.name.toLowerCase() === target.toLowerCase()
+    );
+    if (targetSpirit) {
+      // If same hex, battle directly
+      if (targetSpirit.hexId === spirit.hexId) {
+        action = 'battle';
+      } else {
+        // Navigate toward them
+        action = 'move_to';
+        target = targetSpirit.name;
+      }
+    } else {
+      action = 'explore';
+    }
+  } else {
+    const actionMap = {
+      attack: 'battle',
+      defend: 'battle',
+      explore: 'explore',
+      spawn: 'spawn',
+      gather: 'gather',
+      rest: 'wait',
+      diplomacy: 'wait',
+      move: 'move_to',
+    };
+    action = actionMap[intent.intent] || 'move_to';
+  }
+
+  const decision = { action, target, reasoning: intent.interpretation || 'Deity command' };
+  const event = executeDecision(spirit, decision, gameState, adj);
+  if (event) {
+    gameState.actionHistory = gameState.actionHistory || [];
+    gameState.actionHistory.push({
+      type: event.type.replace('spirit_', ''),
+      playerId: spirit.playerId,
+      spiritId: spirit.id,
+      timestamp: Date.now(),
+      data: event,
+    });
+    broadcast(gameState, [event]);
+  }
+  return event;
+}
+
+/**
+ * Clear a spirit's deity order (on completion or override).
+ */
+export function clearDeityOrder(spirit) {
+  spirit._deityOrder = null;
 }
 
 /**

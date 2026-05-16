@@ -75,6 +75,7 @@ export function computeEssence(gameState, playerId, previousEssences = []) {
     previousNames: s.previousNames || [],
     specialization: s.specialization || '',
     parentId: s.parentId || null,
+    avatarBlobId: s.avatarBlobId || null,
   }));
 
   // ── Core memories (top 10 from event log relevant to this player) ─────────
@@ -216,6 +217,11 @@ export function applyEssence(gameState, essenceData, playerId) {
   ];
   seedSpirit.memorableActions = seedSpirit.memorableActions || [];
 
+  // Inherit avatar from previous life (soul-bound — stable unless essence changes)
+  if (bestLegacy.avatarBlobId) {
+    seedSpirit.avatarBlobId = bestLegacy.avatarBlobId;
+  }
+
   // Track that this essence was applied
   gameState._appliedEssenceBlobId = essenceData.blobId || null;
   gameState._essenceChain = [
@@ -253,6 +259,7 @@ export function buildReincarnationPreview(essenceData) {
       hexesClaimed: s.hexesClaimed || 0,
       alive: s.alive !== false,
       reincarnationCount: s.reincarnationCount || 0,
+      avatarBlobId: s.avatarBlobId || null,
     };
   });
 
