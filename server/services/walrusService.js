@@ -138,8 +138,7 @@ async function _storeEssenceTestnet(essenceJson) {
 
     return blobId;
   } catch (err) {
-    console.error('[walrus:testnet] Store failed, falling back to mock:', err.message);
-    return _storeEssenceMock(essenceJson);
+    throw new Error(`[walrus:testnet] Store failed: ${err.message}`);
   }
 }
 

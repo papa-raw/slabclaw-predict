@@ -3,6 +3,7 @@ import { storeMemoryServer } from './memwalServer.js';
 import { applyBondAction } from './bondService.js';
 import { claimHex, findRetreatHex } from './territoryService.js';
 import { evaluateBattle } from './battleArbiterService.js';
+import { recordBattle } from './suiService.js';
 
 export async function resolveBattle(gameState, timer) {
   const { attackerId, defenderId, hexId } = timer.data;
@@ -16,22 +17,7 @@ export async function resolveBattle(gameState, timer) {
   const hex = gameState.map.hexes[hexId];
   const terrain = hex?.terrain || 'unknown';
 
-  let evaluation;
-  try {
-    evaluation = await evaluateBattle({ attacker, defender, terrain, gameState });
-  } catch {
-    // Fallback random result
-    const coin = Math.random() > 0.5;
-    evaluation = {
-      winner: coin ? 'attacker' : 'defender',
-      loser: coin ? 'defender' : 'attacker',
-      narrative: 'The spirits clashed in a fierce contest.',
-      scores: {
-        attacker: { totalScore: 10 + Math.floor(Math.random() * 10) },
-        defender: { totalScore: 10 + Math.floor(Math.random() * 10) },
-      },
-    };
-  }
+  const evaluation = await evaluateBattle({ attacker, defender, terrain, gameState });
 
   const winnerSpirit = evaluation.winner === 'attacker' ? attacker : defender;
   const loserSpirit = evaluation.winner === 'attacker' ? defender : attacker;
@@ -106,11 +92,15 @@ export async function resolveBattle(gameState, timer) {
   winnerSpirit.memorableActions.push(`Defeated ${loserSpirit.name} in the ${terrain}`);
   if (winnerSpirit.memorableActions.length > 10) winnerSpirit.memorableActions = winnerSpirit.memorableActions.slice(-10);
 
-  // Store battle memories (fire-and-forget)
+  // Store battle memories + record on chain (fire-and-forget)
   const battleLog = `[BATTLE] ${attacker.name} vs ${defender.name} at hex ${hexId} (${terrain}). ${winnerSpirit.name} wins. Loser ${loserOutcome}.`;
+  const battleMargin = Math.abs(
+    (evaluation.scores?.attacker?.totalScore || 0) - (evaluation.scores?.defender?.totalScore || 0)
+  );
   Promise.allSettled([
     storeMemoryServer(attacker.memwalNamespace, battleLog, getKey(attacker.id), attacker.memwalAccountId),
     storeMemoryServer(defender.memwalNamespace, battleLog, getKey(defender.id), defender.memwalAccountId),
+    recordBattle(attacker.id, defender.id, winnerSpirit.id, battleMargin, terrain),
   ]);
   attacker.memoryCount = (attacker.memoryCount || 0) + 1;
   defender.memoryCount = (defender.memoryCount || 0) + 1;

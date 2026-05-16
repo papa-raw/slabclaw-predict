@@ -7,7 +7,7 @@ const MEMWAL_URL = process.env.MEMWAL_URL || 'https://relayer.staging.memwal.ai'
 const USE_REAL = !!(MEMWAL_KEY && MEMWAL_ACCOUNT_ID);
 
 const clients = new Map();
-const mockStore = new Map();
+const localCache = new Map();
 
 function getClient(namespace) {
   if (!USE_REAL) return null;
@@ -22,13 +22,13 @@ function getClient(namespace) {
   return clients.get(namespace);
 }
 
-function getMockStore(namespace) {
-  if (!mockStore.has(namespace)) mockStore.set(namespace, []);
-  return mockStore.get(namespace);
+function getLocalCache(namespace) {
+  if (!localCache.has(namespace)) localCache.set(namespace, []);
+  return localCache.get(namespace);
 }
 
-function mockRecall(namespace, query, limit) {
-  const store = getMockStore(namespace);
+function localRecall(namespace, query, limit) {
+  const store = getLocalCache(namespace);
   if (store.length === 0) return { results: [] };
   const tokens = query.toLowerCase().split(/\s+/).filter(t => t.length > 2);
   const scored = store.map(mem => {
@@ -45,16 +45,12 @@ function mockRecall(namespace, query, limit) {
 export async function storeMemoryServer(namespace, text, _delegateKey, _accountId) {
   const client = getClient(namespace);
   if (client) {
-    try {
-      const result = await client.remember(text, namespace);
-      getMockStore(namespace).push({ text, timestamp: Date.now(), blob_id: result.job_id });
-      return { blob_id: result.job_id };
-    } catch (err) {
-      console.warn(`[MemWal] remember failed for ${namespace}, falling back to mock:`, err.message);
-    }
+    const result = await client.remember(text, namespace);
+    getLocalCache(namespace).push({ text, timestamp: Date.now(), blob_id: result.job_id });
+    return { blob_id: result.job_id };
   }
-  const store = getMockStore(namespace);
-  const blob_id = `mock-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const store = getLocalCache(namespace);
+  const blob_id = `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   store.push({ text, timestamp: Date.now(), blob_id });
   if (store.length > 200) store.splice(0, store.length - 200);
   return { blob_id };
@@ -63,31 +59,27 @@ export async function storeMemoryServer(namespace, text, _delegateKey, _accountI
 export async function recallMemoriesServer(namespace, query, limit = 10, _delegateKey, _accountId) {
   const client = getClient(namespace);
   if (client) {
-    try {
-      const result = await client.recall(query, limit, namespace);
-      return {
-        results: (result.results || []).map(r => ({
-          text: r.text,
-          score: r.distance != null ? (1 - r.distance) : 1,
-        })),
-      };
-    } catch (err) {
-      console.warn(`[MemWal] recall failed for ${namespace}, falling back to mock:`, err.message);
-    }
+    const result = await client.recall(query, limit, namespace);
+    return {
+      results: (result.results || []).map(r => ({
+        text: r.text,
+        score: r.distance != null ? (1 - r.distance) : 1,
+      })),
+    };
   }
-  return mockRecall(namespace, query, limit);
+  return localRecall(namespace, query, limit);
 }
 
 export function getMemoryCount(namespace) {
-  return getMockStore(namespace).length;
+  return getLocalCache(namespace).length;
 }
 
 export function clearAllMemories() {
-  mockStore.clear();
+  localCache.clear();
 }
 
 if (USE_REAL) {
   console.log('[MemWal] Real SDK active — account:', MEMWAL_ACCOUNT_ID.slice(0, 10) + '...');
 } else {
-  console.log('[MemWal] Mock mode — set MEMWAL_DELEGATE_KEY + MEMWAL_ACCOUNT_ID for real integration');
+  console.log('[MemWal] Local cache only — set MEMWAL_DELEGATE_KEY + MEMWAL_ACCOUNT_ID for Walrus-backed memory');
 }

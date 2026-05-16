@@ -18,8 +18,6 @@ const TERRAIN = {
   coastal:   { base: '#164838', light: '#1e5848', dark: '#0e3828', feature: '#308870' },
 };
 
-const PLAYER_COLORS = ['#dc3545', '#3b82f6', '#22c55e', '#a855f7', '#f59e0b', '#06b6d4'];
-
 function createRng(seed) {
   let s = Math.abs(seed * 2654435761 | 0) || 1;
   return () => { s = (s * 16807 + 12345) % 2147483647; return (s & 0x7fffffff) / 2147483647; };

@@ -80,7 +80,7 @@ export default function EssenceImport({ onEssenceConfirmed, confirmedBlobId }) {
                   value={blobInput}
                   onChange={e => setBlobInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="mock-blob-… or walrus blob ID"
+                  placeholder="Enter Walrus blob ID"
                   className="flex-1 bg-gray-900 border border-gray-700/60 rounded px-3 py-2
                              text-xs font-mono text-gray-300 placeholder-gray-600
                              focus:outline-none focus:border-amber-700/60"

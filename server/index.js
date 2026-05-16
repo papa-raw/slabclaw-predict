@@ -15,7 +15,9 @@ const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || true,
+}));
 app.use(express.json());
 
 app.use('/api/tick', tickRoutes);
@@ -38,6 +40,10 @@ setRestartCallback(async () => {
 });
 
 server.listen(PORT, () => {
-  console.log(`[Anima Swarm] Server + WebSocket running on port ${PORT}`);
-  console.log(`[Anima Swarm] LLM provider: ${getProvider()}, Walrus: ${getStorageMode()}`);
+  console.log(`\n[Anima Swarm] Server + WebSocket running on port ${PORT}`);
+  console.log(`  LLM:    ${getProvider()}`);
+  console.log(`  Walrus: ${getStorageMode()}`);
+  console.log(`  MemWal: ${process.env.MEMWAL_DELEGATE_KEY ? 'live' : 'local cache'}`);
+  console.log(`  Sui:    ${process.env.PACKAGE_ID ? 'real (testnet)' : 'mock (no PACKAGE_ID)'}`);
+  console.log(`  CORS:   ${process.env.CORS_ORIGIN || 'open (dev)'}\n`);
 });

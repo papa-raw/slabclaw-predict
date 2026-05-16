@@ -27,10 +27,10 @@ export async function chatWithSpirit({ spirit, userMessage, gameState }) {
   const chainOps = [];
   const ts = Date.now();
 
-  // 1. Recall relevant memories to give context
+  // 1. Recall relevant memories to give context (non-blocking — degrade gracefully)
   const memories = await recallMemoriesServer(
     spirit.memwalNamespace, userMessage, 10, delegateKey, accountId
-  );
+  ).catch(err => { console.warn(`[dialog] recall failed for ${spirit.name}:`, err.message); return { results: [] }; });
   const memoryContext = memories.results?.map(r => r.text).join('\n') || '';
   chainOps.push({
     type: 'memory_recall', service: 'memwal', timestamp: ts,
@@ -47,21 +47,21 @@ export async function chatWithSpirit({ spirit, userMessage, gameState }) {
     maxTokens: 300,
   });
 
-  // 4. Store both messages as memories
-  const storeDeity = await storeMemoryServer(spirit.memwalNamespace, `[DEITY] ${userMessage}`, delegateKey, accountId);
-  chainOps.push({
-    type: 'memory_store', service: 'memwal', timestamp: Date.now(),
-    blobId: storeDeity.blob_id, namespace: spirit.memwalNamespace,
-    spiritName: spirit.name, label: 'Deity whisper stored',
-  });
-
-  const storeResp = await storeMemoryServer(spirit.memwalNamespace, `[RESPONSE] ${response}`, delegateKey, accountId);
-  chainOps.push({
-    type: 'memory_store', service: 'memwal', timestamp: Date.now(),
-    blobId: storeResp.blob_id, namespace: spirit.memwalNamespace,
-    spiritName: spirit.name, label: 'Spirit response stored',
-  });
-  spirit.memoryCount = (spirit.memoryCount || 0) + 2;
+  // 4. Store both messages as memories (non-blocking)
+  const storeResults = await Promise.allSettled([
+    storeMemoryServer(spirit.memwalNamespace, `[DEITY] ${userMessage}`, delegateKey, accountId),
+    storeMemoryServer(spirit.memwalNamespace, `[RESPONSE] ${response}`, delegateKey, accountId),
+  ]);
+  for (const [i, r] of storeResults.entries()) {
+    if (r.status === 'fulfilled') {
+      chainOps.push({
+        type: 'memory_store', service: 'memwal', timestamp: Date.now(),
+        blobId: r.value.blob_id, namespace: spirit.memwalNamespace,
+        spiritName: spirit.name, label: i === 0 ? 'Deity whisper stored' : 'Spirit response stored',
+      });
+      spirit.memoryCount = (spirit.memoryCount || 0) + 1;
+    }
+  }
 
   // 5. Log to action history
   gameState.actionHistory.push({
@@ -96,7 +96,7 @@ export async function chatWithSpirit({ spirit, userMessage, gameState }) {
     })
   ));
 
-  await Promise.all(whisperTargets.map(async (targetSpirit, i) => {
+  await Promise.allSettled(whisperTargets.map(async (targetSpirit, i) => {
     const whisper = whispers[i];
     const wStore = await storeMemoryServer(
       targetSpirit.memwalNamespace,

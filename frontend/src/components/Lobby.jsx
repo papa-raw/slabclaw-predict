@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import WalletConnect from './WalletConnect.jsx';
 import EssenceImport from './EssenceImport.jsx';
 
-const SUI_EXPLORER = 'https://suiscan.xyz/testnet/object/';
-
 function truncId(id) {
   if (!id || id.length <= 16) return id || '';
   return `${id.slice(0, 8)}...${id.slice(-6)}`;
@@ -45,7 +43,7 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
           <div className="flex items-center justify-between">
             <span className="text-gray-400 text-sm">Connected</span>
             <div className="flex items-center gap-2">
-              <span className="text-amber-400 font-mono">{playerCount}/5</span>
+              <span className="text-amber-400 font-mono">{playerCount}/{Object.keys(gameState.players).length}</span>
               <span className="text-gray-600 text-[10px] font-mono">AI fills remaining</span>
             </div>
           </div>
@@ -101,12 +99,12 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
               <div className="flex items-center gap-1">
                 <span className="text-gray-500">Package</span>
-                <a href={`${SUI_EXPLORER}${chainInfo.contracts.package.id}`} target="_blank" rel="noopener noreferrer"
+                <a href={`${chainInfo.explorers?.sui || 'https://suiscan.xyz/testnet/object/'}${chainInfo.contracts.package.id}`} target="_blank" rel="noopener noreferrer"
                   className="font-mono text-blue-400 hover:text-blue-300 underline">{truncId(chainInfo.contracts.package.id)}</a>
               </div>
               <div className="flex items-center gap-1">
                 <span className="text-gray-500">MemWal</span>
-                <a href={`${SUI_EXPLORER}${chainInfo.memwal.registry.id}`} target="_blank" rel="noopener noreferrer"
+                <a href={`${chainInfo.explorers?.sui || 'https://suiscan.xyz/testnet/object/'}${chainInfo.memwal.registry.id}`} target="_blank" rel="noopener noreferrer"
                   className="font-mono text-teal-400 hover:text-teal-300 underline">{truncId(chainInfo.memwal.registry.id)}</a>
               </div>
               <div className="flex items-center gap-1">

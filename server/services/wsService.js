@@ -23,8 +23,7 @@ export function initWebSocket(server) {
 }
 
 function handleMessage(playerId, msg) {
-  // Client messages: { type: 'chat', spiritId, text } or { type: 'request_state' }
-  // Handled by importing gameState and relevant services
+  console.log(`[ws] Client message from ${playerId}: ${msg.type || 'unknown'}`);
 }
 
 const PERSIST_TYPES = new Set([

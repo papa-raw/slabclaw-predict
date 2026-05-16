@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { getKey, setKey } from './keyStore.js';
 import { storeMemoryServer, recallMemoriesServer } from './memwalServer.js';
 import { callLLM, classifyPersonality } from './llmProxy.js';
+import { mintSpirit } from './suiService.js';
 
 export async function resolveSpawn(gameState, timer) {
   const { parentId } = timer.data;
@@ -45,10 +46,9 @@ export async function resolveSpawn(gameState, timer) {
   );
   const childName = childNameRaw.trim().split(/\s+/)[0] || `Child-${parent.name}`;
 
-  // Mock delegate key — no real MemWal (Sprint 4)
   const childDelegateKey = crypto.randomBytes(32).toString('hex');
   const childNs = `spirit-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const childAcctId = ''; // populated in Sprint 4
+  const childAcctId = process.env.MEMWAL_ACCOUNT_ID || '';
 
   const childId = `spirit-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   setKey(childId, childDelegateKey);
@@ -111,9 +111,11 @@ export async function resolveSpawn(gameState, timer) {
   if (parent.memorableActions.length > 10) parent.memorableActions = parent.memorableActions.slice(-10);
 
   const log = `[SPAWN] ${parent.name} spawned ${childName} (gen ${child.generation}) at hex ${parent.hexId}. ${inherited.length} memories inherited.`;
+  const personalityHash = crypto.createHash('sha256').update(childPersonality).digest('hex');
   Promise.allSettled([
     storeMemoryServer(parent.memwalNamespace, log, parentKey, parent.memwalAccountId),
     storeMemoryServer(childNs, log, childDelegateKey, childAcctId),
+    mintSpirit(childName, personalityHash, child.generation, parent.id),
   ]);
   parent.memoryCount = (parent.memoryCount || 0) + 1;
 

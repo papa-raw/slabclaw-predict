@@ -5,10 +5,10 @@ import { applyBondAction } from '../services/bondService.js';
 import { readEssence, getStorageMode } from '../services/walrusService.js';
 import { applyEssence } from '../services/essenceService.js';
 
-const PACKAGE_ID = '0xb0f9ba3da143c92225ada477204a57fd61bae3f2c5c70e8593ce29eac309da21';
-const ADMIN_CAP = '0x87faef3092e7568ecac9c9e2475828ed521bace50f3747e87abb07dc585a6f88';
-const MEMWAL_PKG = '0xcf6ad755a1cdff7217865c796778fabe5aa399cb0cf2eba986f4b582047229c6';
-const MEMWAL_REGISTRY = '0xe80f2feec1c139616a86c9f71210152e2a7ca552b20841f2e192f99f75864437';
+const PACKAGE_ID = process.env.PACKAGE_ID || '0xb0f9ba3da143c92225ada477204a57fd61bae3f2c5c70e8593ce29eac309da21';
+const ADMIN_CAP = process.env.ADMIN_CAP_ID || '0x87faef3092e7568ecac9c9e2475828ed521bace50f3747e87abb07dc585a6f88';
+const MEMWAL_PKG = process.env.MEMWAL_PACKAGE_ID || '0xcf6ad755a1cdff7217865c796778fabe5aa399cb0cf2eba986f4b582047229c6';
+const MEMWAL_REGISTRY = process.env.MEMWAL_REGISTRY_ID || '0xe80f2feec1c139616a86c9f71210152e2a7ca552b20841f2e192f99f75864437';
 
 const router = Router();
 

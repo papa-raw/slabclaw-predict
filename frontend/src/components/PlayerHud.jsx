@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { getPlayerColor } from '@lib/terrainTypes.js';
 
-const TOTAL_HEXES = 91;
-
 export default function PlayerHud({ player, spirits, gameState }) {
   const [showBoard, setShowBoard] = useState(false);
   if (!player) return null;
 
+  const totalHexes = gameState?.map?.hexes ? Object.keys(gameState.map.hexes).length : 91;
   const hexesControlled = player.hexesControlled || 0;
   const spiritCount = spirits?.length || 0;
-  const territoryPct = TOTAL_HEXES > 0 ? Math.round((hexesControlled / TOTAL_HEXES) * 100) : 0;
+  const territoryPct = totalHexes > 0 ? Math.round((hexesControlled / totalHexes) * 100) : 0;
 
   const totalMemories = spirits?.reduce((sum, s) => sum + (s.memoryCount || 0), 0) || 0;
 
@@ -26,7 +25,7 @@ export default function PlayerHud({ player, spirits, gameState }) {
     return {
       id, name: p.name, deityTitle: p.deityTitle || '',
       hexes: pHexes, spirits: pSpirits.length,
-      pct: Math.round((pHexes / TOTAL_HEXES) * 100),
+      pct: Math.round((pHexes / totalHexes) * 100),
       eliminated: pSpirits.length === 0,
     };
   }).sort((a, b) => b.hexes - a.hexes) : [];

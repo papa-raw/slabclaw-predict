@@ -25,11 +25,15 @@ export async function evaluateBattle({ attacker, defender, terrain, gameState })
     { model: 'claude-sonnet-4-20250514', maxTokens: 800 });
 
   let eval_;
+  const m = result.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error('Battle arbiter LLM returned no JSON');
   try {
-    const m = result.match(/\{[\s\S]*\}/);
-    eval_ = m ? JSON.parse(m[0]) : fallback();
-  } catch {
-    eval_ = fallback();
+    eval_ = JSON.parse(m[0]);
+  } catch (parseErr) {
+    throw new Error(`Battle arbiter LLM returned invalid JSON: ${parseErr.message}`);
+  }
+  if (!eval_.winner || !eval_.attacker || !eval_.defender) {
+    throw new Error('Battle arbiter LLM returned incomplete evaluation');
   }
 
   const winner = eval_.winner === 'draw'
@@ -59,14 +63,3 @@ function bondAvg(s) {
   return Math.round((b.depth + b.harmony + b.adventure + b.loyalty) / 4);
 }
 
-function fallback() {
-  const a = 10 + Math.floor(Math.random() * 10);
-  const d = 10 + Math.floor(Math.random() * 10);
-  return {
-    attacker: { totalScore: a },
-    defender: { totalScore: d },
-    winner: a > d ? 'attacker' : a < d ? 'defender' : 'draw',
-    margin: Math.abs(a - d) < 3 ? 'razor-thin' : 'close',
-    narrative: 'The spirits clashed in a contest of will and memory.',
-  };
-}

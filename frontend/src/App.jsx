@@ -9,6 +9,15 @@ import SpiritPanel from './components/SpiritPanel.jsx';
 import EssenceExport from './components/EssenceExport.jsx';
 import OnboardingHints from './components/OnboardingHints.jsx';
 
+function getSessionPlayerId() {
+  let id = sessionStorage.getItem('anima-player-id');
+  if (!id) {
+    id = 'player-1';
+    sessionStorage.setItem('anima-player-id', id);
+  }
+  return id;
+}
+
 export default function App() {
   const account = useCurrentAccount();
   const [gameState, setGameState] = useState(null);
@@ -36,7 +45,7 @@ export default function App() {
 
   // WebSocket connection with reconnection
   useEffect(() => {
-    const playerId = account?.address || 'player-1';
+    const playerId = account?.address || getSessionPlayerId();
     let ws = null;
     let retryCount = 0;
     let retryTimer = null;
@@ -116,7 +125,7 @@ export default function App() {
     );
   }
 
-  const playerId = account?.address || 'player-1';
+  const playerId = account?.address || getSessionPlayerId();
   const mySpirits = Object.values(gameState.spirits).filter(s => s.playerId === playerId && s.alive);
 
   if (gameState.status === 'lobby') {
@@ -132,7 +141,7 @@ export default function App() {
         id, name: p.name, title: p.deityTitle || '',
         hexes: p.hexesControlled || 0,
         spirits: Object.values(gameState.spirits).filter(s => s.playerId === id && s.alive).length,
-        pct: Math.round(((p.hexesControlled || 0) / 91) * 100),
+        pct: Math.round(((p.hexesControlled || 0) / (Object.keys(gameState.map?.hexes || {}).length || 91)) * 100),
       }))
       .sort((a, b) => b.hexes - a.hexes);
     const totalBattles = (gameState.events || []).filter(e => e.type === 'battle_resolved').length;

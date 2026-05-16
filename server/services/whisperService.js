@@ -38,10 +38,9 @@ export async function propagateWhisperServer({
   sourcePersonality, targetPersonality, sourceBond,
   swarmNamespace, delegateKey, accountId,
 }) {
-  // Recall recent swarm memories to give context
   const recentMemories = await recallMemoriesServer(
     swarmNamespace, deityMessage, 3, delegateKey, accountId
-  );
+  ).catch(() => ({ results: [] }));
   const memoryContext = recentMemories.results?.map(r => r.text).join('\n') || '';
 
   const whisperText = await callLLM(
@@ -50,13 +49,13 @@ export async function propagateWhisperServer({
     { model: 'claude-haiku-4-5-20251001', maxTokens: 150 }
   );
 
-  // Store the whisper in shared swarm memory
-  await storeMemoryServer(
+  // Store the whisper in shared swarm memory (non-blocking)
+  storeMemoryServer(
     swarmNamespace,
     `[WHISPER] ${sourceSpiritId} → ${targetSpiritId}: ${whisperText}`,
     delegateKey,
     accountId
-  );
+  ).catch(err => console.warn(`[whisper] store failed:`, err.message));
 
   return { from: sourceSpiritId, to: targetSpiritId, text: whisperText, bondFidelity: sourceBond };
 }

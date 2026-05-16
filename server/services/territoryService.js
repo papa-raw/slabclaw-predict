@@ -61,7 +61,3 @@ export function findRetreatHex(spirit, gameState) {
   }
   return null; // surrounded — spirit dies
 }
-
-export function getMovementDuration(spirit) {
-  return spirit.specialization === 'scout' ? 15_000 : 30_000;
-}

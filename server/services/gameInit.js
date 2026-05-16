@@ -125,7 +125,7 @@ export async function createInitialGameState() {
         bond: startBond,
         alive: true,
         memwalNamespace: namespace,
-        memwalAccountId: '',
+        memwalAccountId: process.env.MEMWAL_ACCOUNT_ID || '',
         spawnCount: 0,
         memoryCount: isHuman ? 3 : 12,
         combatXP: 0,
