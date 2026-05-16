@@ -92,7 +92,7 @@ export async function resolveBattle(gameState, timer) {
   winnerSpirit.memorableActions.push(`Defeated ${loserSpirit.name} in the ${terrain}`);
   if (winnerSpirit.memorableActions.length > 10) winnerSpirit.memorableActions = winnerSpirit.memorableActions.slice(-10);
 
-  // Store battle memories + record on chain (fire-and-forget)
+  // Store battle memories + record on chain
   const battleLog = `[BATTLE] ${attacker.name} vs ${defender.name} at hex ${hexId} (${terrain}). ${winnerSpirit.name} wins. Loser ${loserOutcome}.`;
   const battleMargin = Math.abs(
     (evaluation.scores?.attacker?.totalScore || 0) - (evaluation.scores?.defender?.totalScore || 0)
@@ -100,7 +100,17 @@ export async function resolveBattle(gameState, timer) {
   Promise.allSettled([
     storeMemoryServer(attacker.memwalNamespace, battleLog, getKey(attacker.id), attacker.memwalAccountId),
     storeMemoryServer(defender.memwalNamespace, battleLog, getKey(defender.id), defender.memwalAccountId),
-    recordBattle(attacker.id, defender.id, winnerSpirit.id, battleMargin, terrain),
+    recordBattle(attacker.id, defender.id, winnerSpirit.id, battleMargin, terrain)
+      .then(objectId => {
+        if (objectId) {
+          gameState.events = gameState.events || [];
+          gameState.events.push({
+            type: 'chain_op', opType: 'battle_record', suiObjectId: objectId,
+            label: `Battle: ${attacker.name} vs ${defender.name}`,
+            timestamp: Date.now(),
+          });
+        }
+      }),
   ]);
   attacker.memoryCount = (attacker.memoryCount || 0) + 1;
   defender.memoryCount = (defender.memoryCount || 0) + 1;

@@ -115,7 +115,17 @@ export async function resolveSpawn(gameState, timer) {
   Promise.allSettled([
     storeMemoryServer(parent.memwalNamespace, log, parentKey, parent.memwalAccountId),
     storeMemoryServer(childNs, log, childDelegateKey, childAcctId),
-    mintSpirit(childName, personalityHash, child.generation, parent.id),
+    mintSpirit(childName, personalityHash, child.generation, parent.id)
+      .then(objectId => {
+        if (objectId) {
+          gameState.events = gameState.events || [];
+          gameState.events.push({
+            type: 'chain_op', opType: 'spawn_record', suiObjectId: objectId,
+            label: `Minted: ${childName} (gen ${child.generation})`,
+            timestamp: Date.now(),
+          });
+        }
+      }),
   ]);
   parent.memoryCount = (parent.memoryCount || 0) + 1;
 

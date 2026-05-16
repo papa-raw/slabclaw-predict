@@ -7,6 +7,7 @@ const EVENT_PRIORITY = {
   spirit_died: 7,
   battle_started: 6,
   spawn_started: 5,
+  chain_op: 4,
   spirit_dialog: 4,
   spirit_gathered: 4,
   territory_claimed: 3,
@@ -173,8 +174,9 @@ export default function CommandBar({ timers, events, spirits, gameState, chainOp
 
 function ChainOpEntry({ op }) {
   const cfg = OP_CONFIG[op.type] || { icon: '•', color: '#9ca3af', label: op.type, svc: '?' };
-  const blobLink = op.blobId && !op.blobId.startsWith('mock-')
-    ? `${WALRUS_SCAN}${op.blobId}` : null;
+  const isWalrusBlob = op.blobId && !op.blobId.startsWith('local-') && !op.blobId.startsWith('mock-') && op.type?.includes('essence');
+  const blobLink = isWalrusBlob ? `${WALRUS_SCAN}${op.blobId}` : null;
+  const suiLink = op.suiObjectId ? `${SUI_EXPLORER}${op.suiObjectId}` : null;
 
   return (
     <div className="flex items-start gap-2 py-1 border-b border-gray-800/30 last:border-0 text-[11px] leading-tight">
@@ -195,8 +197,14 @@ function ChainOpEntry({ op }) {
             <span className="font-mono text-[9px] text-gray-600">{truncId(op.blobId)}</span>
             {blobLink && (
               <a href={blobLink} target="_blank" rel="noopener noreferrer"
-                className="text-[9px] text-teal-500 hover:text-teal-400 underline">view</a>
+                className="text-[9px] text-teal-500 hover:text-teal-400 underline">view on Walrus</a>
             )}
+          </div>
+        )}
+        {suiLink && (
+          <div className="flex items-center gap-1 mt-0.5">
+            <a href={suiLink} target="_blank" rel="noopener noreferrer"
+              className="text-[9px] font-mono text-blue-400 hover:text-blue-300 underline">{truncId(op.suiObjectId)}</a>
           </div>
         )}
       </div>
@@ -336,6 +344,23 @@ function EventEntry({ evt, gs }) {
             <span>★ {playerName(evt.winner)} conquers the realm</span>
             {timeLabel && <span className="text-gray-600 text-[9px] ml-2 flex-shrink-0">{timeLabel}</span>}
           </div>
+        </div>
+      );
+
+    case 'chain_op':
+      return (
+        <div className="text-[11px] text-teal-400/80 mb-0.5">
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-[9px] px-1 py-px rounded bg-teal-900/40 border border-teal-700/30">Sui</span>
+            <span>{evt.label || evt.opType}</span>
+            {timeLabel && <span className="text-gray-600 text-[9px] ml-2 flex-shrink-0">{timeLabel}</span>}
+          </div>
+          {evt.suiObjectId && (
+            <a href={`${SUI_EXPLORER}${evt.suiObjectId}`} target="_blank" rel="noopener noreferrer"
+              className="text-[9px] font-mono text-blue-400 hover:text-blue-300 underline">
+              {truncId(evt.suiObjectId)}
+            </a>
+          )}
         </div>
       );
 
