@@ -51,21 +51,21 @@ export default function PlayerHud({ player, spirits, gameState }) {
           <HudStat label="MEM" value={totalMemories}
             color="text-teal-400" title="Total Memories on MemWal" />
         </div>
-        <span className={`text-gray-500 text-[10px] transition-transform duration-200 ${showBoard ? 'rotate-180' : ''}`}>▾</span>
+        <span className={`text-gray-500 text-xs transition-transform duration-200 ${showBoard ? 'rotate-180' : ''}`}>▾</span>
       </div>
       {showBoard && (
         <div className="absolute top-full right-0 mt-1 bg-gray-900/95 border border-gray-700/60 rounded-md p-2 z-50 min-w-[200px] backdrop-blur-sm">
-          <div className="text-[9px] text-gray-500 font-mono mb-1">SCOREBOARD</div>
+          <div className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>SCOREBOARD</div>
           {allPlayers.map(p => (
-            <div key={p.id} className={`flex items-center gap-2 text-[11px] font-mono py-0.5 ${p.eliminated ? 'opacity-40' : ''}`}>
+            <div key={p.id} className={`flex items-center gap-2 text-xs font-mono py-0.5 ${p.eliminated ? 'opacity-40' : ''}`}>
               <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: getPlayerColor(p.id, gameState) || '#666' }} />
               <span className={`flex-1 truncate ${p.id === player.id ? 'text-amber-400' : 'text-gray-300'}`}>
                 {p.name}
-                {p.deityTitle && <span className="text-gray-600 ml-1">{p.deityTitle}</span>}
+                {p.deityTitle && <span className="ml-1" style={{ color: 'var(--text-muted)' }}>{p.deityTitle}</span>}
               </span>
-              <span className="text-gray-500 w-5 text-right">{p.spirits}s</span>
-              <span className="text-gray-300 w-6 text-right">{p.hexes}h</span>
-              <span className={`w-8 text-right ${p.pct >= 50 ? 'text-amber-400' : 'text-gray-500'}`}>{p.pct}%</span>
+              <span className="w-5 text-right" style={{ color: 'var(--text-secondary)' }}>{p.spirits}s</span>
+              <span className="w-6 text-right" style={{ color: 'var(--text-primary)' }}>{p.hexes}h</span>
+              <span className={`w-8 text-right ${p.pct >= 50 ? 'text-amber-400' : ''}`} style={p.pct < 50 ? { color: 'var(--text-secondary)' } : undefined}>{p.pct}%</span>
             </div>
           ))}
         </div>
@@ -77,7 +77,7 @@ export default function PlayerHud({ player, spirits, gameState }) {
 function HudStat({ label, value, color, title }) {
   return (
     <div className="flex items-center gap-1" title={title}>
-      <span className="text-gray-500 text-[10px]">{label}</span>
+      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{label}</span>
       <span className={`${color} tabular-nums`}>{value}</span>
     </div>
   );

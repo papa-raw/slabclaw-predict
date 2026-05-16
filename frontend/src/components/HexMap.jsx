@@ -950,17 +950,17 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
           const sx = p.x + spread * Math.cos(angle);
           const sy = p.y + spread * Math.sin(angle) - 30;
           const textLen = bubble.text.length;
-          const boxW = Math.min(textLen * 5 + 16, 140);
-          const boxH = 18;
+          const boxW = Math.min(textLen * 6 + 20, 180);
+          const boxH = 22;
           return (
             <g key={`bubble-${spiritId}`} style={{ opacity: 1, transition: 'opacity 0.3s' }}>
               <rect x={sx - boxW / 2} y={sy - boxH + 2} width={boxW} height={boxH} rx={5}
-                fill="rgba(12,16,24,0.92)" stroke="rgba(240,208,128,0.5)" strokeWidth={1} />
-              <polygon points={`${sx - 4},${sy + 4} ${sx},${sy + 9} ${sx + 4},${sy + 4}`}
-                fill="rgba(12,16,24,0.92)" stroke="rgba(240,208,128,0.5)" strokeWidth={1} />
-              <rect x={sx - 5} y={sy + 3} width={10} height={2.5} fill="rgba(12,16,24,0.92)" />
-              <text x={sx} y={sy - 3} textAnchor="middle" fontSize="8"
-                fill="#f0d890" fontFamily="'Inter', sans-serif" fontWeight="500">
+                fill="rgba(12,16,24,0.95)" stroke="rgba(240,208,128,0.6)" strokeWidth={1} />
+              <polygon points={`${sx - 4},${sy + 4} ${sx},${sy + 10} ${sx + 4},${sy + 4}`}
+                fill="rgba(12,16,24,0.95)" stroke="rgba(240,208,128,0.6)" strokeWidth={1} />
+              <rect x={sx - 5} y={sy + 3} width={10} height={2.5} fill="rgba(12,16,24,0.95)" />
+              <text x={sx} y={sy - 4} textAnchor="middle" fontSize="10"
+                fill="#f0ead6" fontFamily="'Inter', sans-serif" fontWeight="500">
                 {bubble.text}
               </text>
             </g>
@@ -1195,14 +1195,14 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
           -
         </button>
         <button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
-          className="w-7 h-7 rounded bg-gray-900/80 border border-gray-700/50 text-gray-400 hover:text-white hover:border-gray-500 text-[9px] font-mono flex items-center justify-center backdrop-blur-sm"
+          className="w-7 h-7 rounded bg-gray-900/80 border border-gray-700/50 text-gray-400 hover:text-white hover:border-gray-500 text-xs font-mono flex items-center justify-center backdrop-blur-sm"
           title="Reset view">
           R
         </button>
       </div>
 
       {zoom !== 1 && (
-        <div className="absolute bottom-3 left-12 text-[9px] font-mono text-gray-500 bg-gray-900/60 px-1.5 py-0.5 rounded backdrop-blur-sm">
+        <div className="absolute bottom-3 left-12 text-xs font-mono text-gray-500 bg-gray-900/60 px-1.5 py-0.5 rounded backdrop-blur-sm">
           {Math.round(zoom * 100)}%
         </div>
       )}
@@ -1285,12 +1285,12 @@ function TickTimer() {
 
   return (
     <div className="absolute top-3 left-3 z-10 flex items-center gap-2 bg-gray-900/80 backdrop-blur-sm rounded px-2 py-1.5 border border-gray-700/50">
-      <span className="text-[9px] font-mono text-gray-500">NEXT CYCLE</span>
+      <span className="text-xs font-mono text-gray-500">NEXT CYCLE</span>
       <div className="w-20 h-1.5 bg-gray-700 rounded-full overflow-hidden">
         <div className="h-full bg-amber-500/60 rounded-full transition-all duration-1000 ease-linear"
           style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-[9px] font-mono text-gray-400">{remaining}s</span>
+      <span className="text-xs font-mono text-gray-400">{remaining}s</span>
     </div>
   );
 }

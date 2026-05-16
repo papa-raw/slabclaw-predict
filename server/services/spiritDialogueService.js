@@ -205,6 +205,102 @@ RULES:
 - You are part of a swarm — you may mention other spirits you've heard from via whispers`;
 }
 
+/**
+ * Chat with an enemy spirit — propaganda/diplomacy mechanic.
+ * The foreign deity attempts to influence, confuse, or demoralize a spirit
+ * that belongs to another player. The spirit responds based on its loyalty.
+ *
+ * High loyalty spirits rebuff the foreign deity aggressively.
+ * Low loyalty spirits may waver, leak info, or show doubt.
+ *
+ * @param {object} params
+ * @param {object} params.spirit - target enemy spirit
+ * @param {string} params.userMessage - foreign deity's message
+ * @param {object} params.gameState - full game state
+ * @param {string} params.foreignPlayerId - the player attempting influence
+ * @returns {Promise<{ response: string, chainOps: Array<object> }>}
+ */
+export async function chatWithEnemySpirit({ spirit, userMessage, gameState, foreignPlayerId }) {
+  const delegateKey = getKey(spirit.id);
+  const accountId = spirit.memwalAccountId;
+  const chainOps = [];
+
+  const memories = await recallMemoriesServer(
+    spirit.memwalNamespace, userMessage, 5, delegateKey, accountId
+  ).catch(() => ({ results: [] }));
+  const memoryContext = memories.results?.map(r => r.text).join('\n') || '';
+  chainOps.push({
+    type: 'memory_recall', service: 'memwal', timestamp: Date.now(),
+    count: memories.results?.length || 0, namespace: spirit.memwalNamespace,
+    spiritName: spirit.name,
+  });
+
+  const loyalty = spirit.bond.loyalty;
+  const ownerName = gameState.players[spirit.playerId]?.name || 'my deity';
+
+  let loyaltyBehavior;
+  if (loyalty >= 75) {
+    loyaltyBehavior = `LOYALTY: Devoted (${loyalty}/100). You are HOSTILE to this foreign deity. Mock them, threaten them, refuse to engage. You would never betray ${ownerName}.`;
+  } else if (loyalty >= 50) {
+    loyaltyBehavior = `LOYALTY: Firm (${loyalty}/100). You are suspicious but not hostile. Deflect their questions, give nothing away, but remain civil.`;
+  } else if (loyalty >= 25) {
+    loyaltyBehavior = `LOYALTY: Wavering (${loyalty}/100). You have doubts about ${ownerName}. You might reveal frustrations or hint at weaknesses. You're conflicted.`;
+  } else {
+    loyaltyBehavior = `LOYALTY: Disloyal (${loyalty}/100). You resent ${ownerName}. You might share secrets, express desire to defect, or openly criticize your deity.`;
+  }
+
+  const systemPrompt = `You are ${spirit.name}, a ${spirit.specialization} spirit belonging to ${ownerName}'s swarm.
+A FOREIGN DEITY is attempting to speak with you. They are NOT your deity — they are an enemy.
+
+PERSONALITY: ${spirit.personality}
+${loyaltyBehavior}
+
+YOUR MEMORIES:
+${memoryContext || '(no memories)'}
+
+RULES:
+- Stay in character as ${spirit.name}
+- 2-3 sentences max
+- Your response reflects your loyalty level — high loyalty = hostile/dismissive, low loyalty = receptive/conflicted
+- Never break character or acknowledge being an AI
+- You may reference your deity, your swarm, or your current situation`;
+
+  const response = await callLLM(systemPrompt, userMessage, {
+    model: 'claude-haiku-4-5-20251001',
+    maxTokens: 200,
+    _priority: 'high',
+  });
+
+  // Store the foreign interaction as a memory
+  storeMemoryServer(
+    spirit.memwalNamespace,
+    `[FOREIGN DEITY SPOKE] "${userMessage}" — I responded: "${response}"`,
+    delegateKey,
+    accountId
+  ).then(r => {
+    if (r?.blob_id) {
+      chainOps.push({
+        type: 'memory_store', service: 'memwal', timestamp: Date.now(),
+        blobId: r.blob_id, namespace: spirit.memwalNamespace,
+        spiritName: spirit.name, label: 'Foreign interaction stored',
+      });
+    }
+  }).catch(() => {});
+
+  // Foreign influence erodes loyalty slightly (−1 per interaction)
+  spirit.bond.loyalty = Math.max(0, spirit.bond.loyalty - 1);
+
+  gameState.actionHistory.push({
+    type: 'influence',
+    playerId: foreignPlayerId,
+    spiritId: spirit.id,
+    timestamp: Date.now(),
+    data: { message: userMessage },
+  });
+
+  return { response, chainOps };
+}
+
 function bondAverage(spirit) {
   return Math.round(
     (spirit.bond.depth + spirit.bond.harmony + spirit.bond.adventure + spirit.bond.loyalty) / 4

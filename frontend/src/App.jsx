@@ -8,6 +8,7 @@ import Lobby from './components/Lobby.jsx';
 import SpiritPanel from './components/SpiritPanel.jsx';
 import EssenceExport from './components/EssenceExport.jsx';
 import OnboardingHints from './components/OnboardingHints.jsx';
+import OnchainFooter from './components/OnchainFooter.jsx';
 import { getAvatarUrl } from '@lib/avatarUrl.js';
 
 function getSessionPlayerId() {
@@ -162,19 +163,19 @@ export default function App() {
           </p>
 
           <div className="bg-gray-900/60 border border-gray-700/40 rounded-lg p-4 text-left">
-            <div className="text-[10px] text-gray-500 font-mono mb-2 tracking-wider">FINAL STANDINGS</div>
+            <div className="text-xs font-mono mb-2 tracking-wider" style={{ color: 'var(--text-muted)' }}>FINAL STANDINGS</div>
             {finalScores.map((p, i) => (
-              <div key={p.id} className={`flex items-center gap-3 py-1 text-sm font-mono ${i === 0 ? 'text-amber-400' : p.spirits === 0 ? 'text-gray-600' : 'text-gray-400'}`}>
-                <span className="w-4 text-right text-gray-600">{i + 1}.</span>
-                <span className="flex-1">{p.name} {p.title && <span className="text-gray-600 text-xs">{p.title}</span>}</span>
+              <div key={p.id} className={`flex items-center gap-3 py-1 text-sm font-mono ${i === 0 ? 'text-amber-400' : p.spirits === 0 ? 'text-gray-500' : 'text-gray-300'}`}>
+                <span className="w-4 text-right text-gray-400">{i + 1}.</span>
+                <span className="flex-1">{p.name} {p.title && <span className="text-gray-400 text-xs">{p.title}</span>}</span>
                 <span>{p.hexes}h</span>
-                <span className="text-gray-500">{p.pct}%</span>
-                <span className="text-gray-600">{p.spirits}s</span>
+                <span className="text-gray-400">{p.pct}%</span>
+                <span className="text-gray-400">{p.spirits}s</span>
               </div>
             ))}
           </div>
 
-          <div className="flex justify-center gap-6 text-xs text-gray-500 font-mono">
+          <div className="flex justify-center gap-6 text-sm text-gray-300 font-mono">
             <span>⚔ {totalBattles} battles</span>
             <span>✦ {totalSpawns} spawns</span>
             <span>☽ {totalDeaths} fallen</span>
@@ -223,13 +224,14 @@ export default function App() {
               { id: 'chain', label: 'Chain', badge: chainOps.length || null },
             ].map(tab => (
               <button key={tab.id} onClick={() => setRightTab(tab.id)}
-                className={`flex-1 py-2 text-[11px] font-mono tracking-wider transition-colors
+                className={`flex-1 py-2 text-xs font-mono tracking-wider transition-colors
                   ${rightTab === tab.id
                     ? 'text-amber-400 border-b-2 border-amber-400 bg-gray-800/30'
-                    : 'text-gray-500 hover:text-gray-300'}`}>
+                    : 'hover:text-gray-200'}`}
+                style={rightTab !== tab.id ? { color: 'var(--text-secondary)' } : undefined}>
                 {tab.label}
                 {tab.badge ? (
-                  <span className="ml-1 text-[9px] px-1 py-px rounded-full bg-teal-900/60 text-teal-400 border border-teal-700/30">
+                  <span className="ml-1 text-xs px-1 py-px rounded-full bg-teal-900/60 text-teal-400 border border-teal-700/30">
                     {tab.badge}
                   </span>
                 ) : null}
@@ -260,14 +262,15 @@ export default function App() {
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
                   <div className="text-3xl mb-3 opacity-40">⬡</div>
-                  <p className="text-gray-400 text-sm">Select a spirit on the map</p>
-                  <p className="text-gray-600 text-xs mt-1">Click any spirit to view stats and whisper commands</p>
+                  <p className="text-sm" style={{ color: 'var(--text-primary)' }}>Select a spirit on the map</p>
+                  <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Click any spirit to view stats and whisper commands</p>
                   {mySpirits.length > 0 && (
                     <div className="mt-4 space-y-1">
-                      <div className="text-[10px] text-gray-500 font-mono">YOUR SWARM</div>
+                      <div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>YOUR SWARM</div>
                       {mySpirits.map(s => (
                         <button key={s.id} onClick={() => { setSelectedSpirit(s.id); }}
-                          className="flex items-center gap-2 text-xs text-gray-400 hover:text-amber-400 transition-colors px-2 py-1 rounded hover:bg-gray-800/40 w-full">
+                          className="flex items-center gap-2 text-sm hover:text-amber-400 transition-colors px-2 py-1 rounded hover:bg-gray-800/40 w-full"
+                          style={{ color: 'var(--text-secondary)' }}>
                           {s.avatarBlobId ? (
                             <img src={getAvatarUrl(s.avatarBlobId)} alt={s.name}
                               className="w-5 h-5 rounded-full object-cover flex-shrink-0 border border-amber-500/40" />
@@ -277,7 +280,7 @@ export default function App() {
                             </span>
                           )}
                           <span>{s.name}</span>
-                          <span className="text-gray-600 text-[10px]">{s.specialization}</span>
+                          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{s.specialization}</span>
                         </button>
                       ))}
                     </div>
@@ -312,6 +315,8 @@ export default function App() {
           </div>
         </div>
       </main>
+
+      <OnchainFooter chainInfo={chainInfo} />
 
       {/* Onboarding */}
       {showOnboarding && (

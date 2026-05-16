@@ -82,7 +82,7 @@ export default function EssenceExport({ gameState, playerId }) {
   return (
     <div className="bg-gray-900/70 border border-amber-900/40 rounded-lg p-5 space-y-4 text-left">
       <div>
-        <div className="text-[10px] text-amber-600 font-mono tracking-wider mb-1">SWARM ESSENCE</div>
+        <div className="text-xs text-amber-600 font-mono tracking-wider mb-1">SWARM ESSENCE</div>
         <p className="text-sm text-gray-400">
           Preserve your swarm's memories and playstyle on Walrus. Import in your next game to reincarnate your spirits.
         </p>
@@ -112,12 +112,12 @@ export default function EssenceExport({ gameState, playerId }) {
         <div className="space-y-3">
           <div className="flex gap-2 text-xs text-gray-500 font-mono">
             <span className="text-amber-600">{spiritCount}</span> spirits
-            <span className="text-gray-600">·</span>
+            <span className="text-gray-400">·</span>
             <span className="text-amber-600">{memoryCount}</span> memories preserved
           </div>
 
           <div className="space-y-1">
-            <div className="text-[10px] text-gray-500 font-mono tracking-wider">BLOB ID</div>
+            <div className="text-xs text-gray-500 font-mono tracking-wider">BLOB ID</div>
             <div className="flex items-stretch gap-2">
               <code className="flex-1 font-mono text-xs text-green-400 bg-gray-950 border border-gray-700/60
                                rounded px-3 py-2 break-all leading-relaxed">
@@ -136,14 +136,14 @@ export default function EssenceExport({ gameState, playerId }) {
 
           {memorableMoments.length > 0 && (
             <div className="space-y-1">
-              <div className="text-[10px] text-gray-500 font-mono tracking-wider">MEMORABLE MOMENTS</div>
+              <div className="text-xs text-gray-500 font-mono tracking-wider">MEMORABLE MOMENTS</div>
               {memorableMoments.map((m, i) => (
-                <p key={i} className="text-[11px] text-gray-500 italic leading-snug">"{m}"</p>
+                <p key={i} className="text-xs text-gray-500 italic leading-snug">"{m}"</p>
               ))}
             </div>
           )}
 
-          <p className="text-[11px] text-gray-600 italic">
+          <p className="text-xs text-gray-400 italic">
             Save this ID — paste it in the lobby next game to reincarnate your spirits.
           </p>
         </div>

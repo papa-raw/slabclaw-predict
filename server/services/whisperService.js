@@ -46,7 +46,7 @@ export async function propagateWhisperServer({
   const whisperText = await callLLM(
     WHISPER_SYSTEM_PROMPT,
     `YOUR PERSONALITY: ${sourcePersonality}\nBOND: ${sourceBond}/100\nTARGET: ${targetPersonality}\n\nDEITY'S WORDS: "${deityMessage}"\n\nSWARM MEMORIES:\n${memoryContext || '(none)'}\n\nGenerate your whisper.`,
-    { model: 'claude-haiku-4-5-20251001', maxTokens: 150 }
+    { model: 'claude-haiku-4-5-20251001', maxTokens: 150, _priority: 'high' }
   );
 
   // Store the whisper in shared swarm memory (non-blocking)
@@ -73,7 +73,7 @@ export async function extractDeityIntent(message, spiritPersonality, bond) {
   const result = await callLLM(
     'You extract structured intent from natural language.',
     `Spirit personality: ${spiritPersonality}\nBond: ${bond}/100\nDeity said: "${message}"\n\nExtract JSON: { "intent": "attack"|"defend"|"explore"|"spawn"|"gather"|"rest"|"diplomacy"|"unclear", "target": "...", "urgency": 1-5, "confidence": 0.0-1.0, "interpretation": "..." }`,
-    { model: 'claude-haiku-4-5-20251001', maxTokens: 200 }
+    { model: 'claude-haiku-4-5-20251001', maxTokens: 200, _priority: 'high' }
   );
 
   const match = result.match(/\{[\s\S]*\}/);

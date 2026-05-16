@@ -35,7 +35,7 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
 
   async function sendMessage(e) {
     e.preventDefault();
-    if (!input.trim() || sending || !isMine) return;
+    if (!input.trim() || sending) return;
 
     const userMsg = input.trim();
     setInput('');
@@ -80,6 +80,13 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
           text: `Whispers propagated to ${data.whispers.length} spirit${data.whispers.length > 1 ? 's' : ''}`,
         }]);
         onWhispers?.(data.whispers.map(w => ({ from: spirit.id, to: w.to, text: w.text })));
+      }
+
+      if (data.influence) {
+        onMessages(prev => [...prev, {
+          role: 'system',
+          text: `Loyalty eroded slightly...`,
+        }]);
       }
     } catch (err) {
       console.error('[SpiritPanel] Chat error:', err);
@@ -140,12 +147,12 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
                   {spirit.name}
                 </h2>
                 {spirit.reincarnationCount > 0 && (
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-purple-900/60 text-purple-300 border border-purple-700/40 flex-shrink-0">
+                  <span className="text-xs font-mono px-1.5 py-0.5 rounded-full bg-purple-900/60 text-purple-300 border border-purple-700/40 flex-shrink-0">
                     ✦ {spirit.reincarnationCount}x
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                 {spirit.specialization} · gen {spirit.generation} · {getBondTierName(bondAvg)} ({bondAvg})
               </p>
               {spirit.memwalAccountId ? (
@@ -153,28 +160,28 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
                   href={`https://suiscan.xyz/testnet/object/${spirit.memwalAccountId}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[10px] text-teal-400/60 font-mono flex items-center gap-1 mt-0.5 hover:text-teal-300 transition-colors cursor-pointer"
+                  className="text-xs text-teal-400/60 font-mono flex items-center gap-1 mt-0.5 hover:text-teal-300 transition-colors cursor-pointer"
                 >
                   <span className="w-1 h-1 rounded-full bg-teal-400/60" />
                   {spirit.memoryCount || 0} memories on MemWal
                   {spirit.memwalNamespace && (
-                    <span className="text-gray-600">· {spirit.memwalNamespace}</span>
+                    <span className="text-gray-400">· {spirit.memwalNamespace}</span>
                   )}
                   <span className="text-teal-500/40 ml-0.5">↗</span>
                 </a>
               ) : (
-                <p className="text-[10px] text-teal-400/60 font-mono flex items-center gap-1 mt-0.5">
+                <p className="text-xs text-teal-400/60 font-mono flex items-center gap-1 mt-0.5">
                   <span className="w-1 h-1 rounded-full bg-teal-400/60" />
                   {spirit.memoryCount || 0} memories on MemWal
                   {spirit.memwalNamespace && (
-                    <span className="text-gray-600">· {spirit.memwalNamespace}</span>
+                    <span className="text-gray-400">· {spirit.memwalNamespace}</span>
                   )}
                 </p>
               )}
               {spirit.previousNames?.length > 0 && (() => {
                 const pastNames = spirit.previousNames.filter(n => n !== spirit.name);
                 return pastNames.length > 0 ? (
-                  <p className="text-[10px] text-purple-400/70 italic mt-0.5">
+                  <p className="text-xs text-purple-400/70 italic mt-0.5">
                     was {pastNames.slice(0, 2).join(', ')}
                   </p>
                 ) : null;
@@ -196,7 +203,7 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
         <div className="grid grid-cols-4 gap-1 mb-3">
           {xpBars.map(xp => (
             <div key={xp.label} className="text-center">
-              <div className="text-[9px] text-gray-500 mb-0.5">{xp.label}</div>
+              <div className="text-xs text-gray-500 mb-0.5">{xp.label}</div>
               <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-300"
@@ -206,7 +213,7 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
                   }}
                 />
               </div>
-              <div className="text-[9px] text-gray-400 mt-0.5">{xp.value}</div>
+              <div className="text-xs text-gray-400 mt-0.5">{xp.value}</div>
             </div>
           ))}
         </div>
@@ -215,14 +222,14 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
         <div className="grid grid-cols-4 gap-1 mb-2">
           {bondDimensions.map(dim => (
             <div key={dim.label} className="text-center">
-              <div className="text-[9px] text-gray-500 mb-0.5">{dim.label.slice(0, 3).toUpperCase()}</div>
+              <div className="text-xs text-gray-500 mb-0.5">{dim.label.slice(0, 3).toUpperCase()}</div>
               <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-300"
                   style={{ width: `${dim.value}%`, background: dim.color }}
                 />
               </div>
-              <div className="text-[9px] text-gray-400 mt-0.5">{dim.value}</div>
+              <div className="text-xs text-gray-400 mt-0.5">{dim.value}</div>
             </div>
           ))}
         </div>
@@ -247,8 +254,8 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
         {messages.length === 0 && (
-          <p className="text-sm text-gray-500 italic">
-            {isMine ? `Whisper to ${spirit.name}...` : `Observing ${spirit.name}`}
+          <p className="text-sm italic" style={{ color: 'var(--text-secondary)' }}>
+            {isMine ? `Whisper to ${spirit.name}...` : `Attempt to influence ${spirit.name} — their loyalty determines how they respond`}
           </p>
         )}
         {messages.map((msg, i) => (
@@ -258,7 +265,7 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
                 msg.role === 'user'
                   ? 'bg-amber-500/20 text-amber-100'
                   : msg.role === 'chain'
-                  ? 'bg-teal-900/30 text-teal-400 text-[10px] font-mono border border-teal-700/30'
+                  ? 'bg-teal-900/30 text-teal-400 text-xs font-mono border border-teal-700/30'
                   : msg.role === 'system'
                   ? 'bg-gray-700/30 text-gray-400 italic text-xs'
                   : 'bg-gray-700/50 text-gray-200'
@@ -274,14 +281,14 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
               <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
               <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
               <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-              <span className="text-[10px] text-gray-500 ml-2 font-mono">{spirit.name} is thinking...</span>
+              <span className="text-xs ml-2 font-mono" style={{ color: 'var(--text-secondary)' }}>{spirit.name} is thinking...</span>
             </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input — own spirit only */}
+      {/* Input */}
       {isMine ? (
         <form onSubmit={sendMessage} className="p-3 border-t border-gray-700/50 flex-shrink-0">
           <div className="flex gap-2">
@@ -303,11 +310,25 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
           </div>
         </form>
       ) : (
-        <div className="p-3 border-t border-gray-700/50 flex-shrink-0">
-          <p className="text-xs text-gray-500 italic text-center">
-            Observing {spirit.name} — not your spirit
-          </p>
-        </div>
+        <form onSubmit={sendMessage} className="p-3 border-t border-red-900/30 flex-shrink-0">
+          <div className="text-xs font-mono text-red-400/70 mb-1.5 text-center">Enemy spirit — influence at your own risk</div>
+          <div className="flex gap-2">
+            <input
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder="Attempt to influence..."
+              className="flex-1 bg-gray-800 border border-red-900/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-500 transition-colors"
+              disabled={sending}
+            />
+            <button
+              type="submit"
+              disabled={sending || !input.trim()}
+              className="bg-red-600 hover:bg-red-500 disabled:opacity-30 text-white font-semibold rounded-lg px-4 py-2 text-sm transition-colors"
+            >
+              {sending ? '...' : 'Influence'}
+            </button>
+          </div>
+        </form>
       )}
     </div>
   );

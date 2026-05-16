@@ -69,16 +69,16 @@ export default function OnboardingHints({ gameState, selectedSpirit, onDismissAl
           <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
           <h3 className="font-header text-sm text-amber-400 uppercase tracking-wider">{hint.title}</h3>
         </div>
-        <p className="text-sm text-gray-300 leading-relaxed mb-4">{hint.body}</p>
+        <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--text-primary)' }}>{hint.body}</p>
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-mono text-gray-600">{currentHint + 1}/{HINTS.length}</span>
+          <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{currentHint + 1}/{HINTS.length}</span>
           <div className="flex gap-2">
             <button onClick={skipAll}
-              className="text-xs text-gray-500 hover:text-gray-300 px-3 py-1 transition-colors">
+              className="text-sm hover:text-gray-200 px-3 py-1 transition-colors" style={{ color: 'var(--text-secondary)' }}>
               Skip
             </button>
             <button onClick={advance}
-              className="text-xs text-amber-400 hover:text-amber-300 px-3 py-1 rounded border border-amber-500/30 hover:border-amber-500/60 transition-colors">
+              className="text-sm text-amber-400 hover:text-amber-300 px-3 py-1 rounded border border-amber-500/30 hover:border-amber-500/60 transition-colors">
               {currentHint >= HINTS.length - 1 ? 'Got it' : 'Next'}
             </button>
           </div>

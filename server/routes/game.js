@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { sanitizeForClient, broadcastStateChange } from '../services/wsService.js';
-import { chatWithSpirit } from '../services/spiritDialogueService.js';
+import { chatWithSpirit, chatWithEnemySpirit } from '../services/spiritDialogueService.js';
 import { applyBondAction } from '../services/bondService.js';
 import { applyDeityIntent } from '../services/spiritDecisionService.js';
 import { readEssence, getStorageMode } from '../services/walrusService.js';
@@ -99,14 +99,61 @@ router.post('/chat', async (req, res) => {
 
   const spirit = state.spirits[spiritId];
   if (!spirit) return res.status(404).json({ error: 'Spirit not found' });
-  if (spirit.playerId !== playerId) return res.status(403).json({ error: 'Not your spirit' });
   if (!spirit.alive) return res.status(400).json({ error: 'Spirit is not alive' });
+
+  const isOwned = spirit.playerId === playerId;
+
+  // Enemy spirit interaction — propaganda/diplomacy mechanic
+  if (!isOwned) {
+    try {
+      console.log(`[chat:influence] ${playerId} → enemy ${spirit.name} (${spiritId}): "${message.slice(0, 60)}"`);
+      const result = await chatWithEnemySpirit({ spirit, userMessage: message, gameState: state, foreignPlayerId: playerId });
+
+      state.events = state.events || [];
+      const responseSnippet = result.response.length > 60 ? result.response.slice(0, 60) + '...' : result.response;
+      state.events.push({
+        type: 'spirit_dialog',
+        dialogType: 'INFLUENCE',
+        sourceId: spiritId,
+        sourceName: spirit.name,
+        targetId: playerId,
+        targetName: state.players[playerId]?.name || 'Foreign Deity',
+        text: responseSnippet,
+        timestamp: Date.now(),
+      });
+
+      return res.json({
+        response: result.response,
+        intent: null,
+        whispers: [],
+        chainOps: result.chainOps || [],
+        influence: true,
+      });
+    } catch (err) {
+      console.error('[chat:influence] Error:', err.message);
+      return res.status(500).json({ error: err.message });
+    }
+  }
 
   try {
     console.log(`[chat] ${playerId} → ${spirit.name} (${spiritId}): "${message.slice(0, 60)}"`);
     const result = await chatWithSpirit({ spirit, userMessage: message, gameState: state });
     applyBondAction(spirit, 'chat');
     console.log(`[chat] ${spirit.name} responded, ${result.whispers?.length || 0} whispers propagated`);
+
+    // Emit spirit_dialog event so the map shows a speech bubble
+    state.events = state.events || [];
+    const responseSnippet = result.response.length > 60 ? result.response.slice(0, 60) + '...' : result.response;
+    state.events.push({
+      type: 'spirit_dialog',
+      dialogType: 'RESPONSE',
+      sourceId: spiritId,
+      sourceName: spirit.name,
+      targetId: playerId,
+      targetName: state.players[playerId]?.name || 'Deity',
+      text: responseSnippet,
+      timestamp: Date.now(),
+    });
 
     // Act on deity intent immediately if the spirit is idle
     if (result.intent?.intent && result.intent.intent !== 'unclear') {
