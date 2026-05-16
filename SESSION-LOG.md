@@ -39,3 +39,13 @@
 - **Fixed:** Spirits unclickable (setPointerCapture in pointerDown redirected all events to SVG container)
 - **Fixed:** 429 rate limit from Windfall (added proactive throttling + retry backoff)
 - **Remaining:** Avatar cache is empty (first run of new feature) — avatars will regenerate on next game start and persist from then on
+- **DESIGN SESSION:** Full mechanics redesign discussion (see plan file). Key decisions:
+  - Memories ARE power (replaces XP entirely)
+  - Whisper economy: 3 charges, regen 1/cycle
+  - 15-min timed scoring games
+  - Swarm posture emergent from behavior (centralized/decentralized, aggressive/territorial, coordinated/autonomous)
+  - Whisper-guided specialization (words shape what spirits become)
+  - Enemy swarm whispers + resistance stat (deity psychological warfare)
+  - Bond = swarm-level cohesion, not per-spirit
+  - HP memory-derived
+  - Open: memory value formula (linchpin), scoring weights, HP numbers
