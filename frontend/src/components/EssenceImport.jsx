@@ -59,7 +59,7 @@ export default function EssenceImport({ onEssenceConfirmed, confirmedBlobId }) {
             </p>
           ) : (
             <>
-              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
+              <p className="text-base" style={{ color: 'var(--text-primary)' }}>
                 Paste a Walrus blob ID from a previous game to reincarnate your spirits.
               </p>
 

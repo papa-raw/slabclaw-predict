@@ -7,7 +7,7 @@ import { broadcast } from './wsService.js';
 import { checkSpawnReadiness } from './spawningService.js';
 import { getKey } from './keyStore.js';
 
-const DECISION_INTERVAL = 30_000; // 30s between autonomous decisions
+const DECISION_INTERVAL = 15_000; // 15s between autonomous decisions
 const DIALOG_CHANCE = 0.3; // 30% chance a spirit speaks to nearby spirits each tick
 
 const DECISION_PROMPT = `You are a spirit in a territorial strategy game. You are part of a SWARM — coordinate with your allies.
@@ -41,14 +41,17 @@ SWARM TACTICS:
 - Warriors should engage enemies; scouts explore; gatherers collect memories
 - If an ally is in battle nearby, move to support them
 - You can MOVE TOWARD any spirit by name — pathfinding handles multi-hop navigation
+- NEVER idle — always push toward unclaimed or enemy territory. Standing still loses the game.
+- If no deity orders exist, your DEFAULT is to expand: move toward unclaimed hexes or enemy territory.
+- Prioritize capturing territory over waiting. A spirit that isn't moving is a spirit that's losing.
 
-AVAILABLE ACTIONS:
+AVAILABLE ACTIONS (ordered by priority):
+- EXPLORE — scout toward unclaimed territory (PREFERRED when unclaimed hexes are adjacent)
 - MOVE_TO <spirit name or "unclaimed"> — navigate toward a target (pathfinding, multi-hop)
 - BATTLE — attack an enemy spirit in your hex
-- EXPLORE — scout toward unclaimed territory
 - SPAWN — create a child spirit (2 min, needs 5+ memories and 35+ bond)
-- GATHER — absorb memories from your hex (instant)
-- WAIT — hold position
+- GATHER — absorb memories from your hex (instant, only if hex has memories)
+- WAIT — hold position (DISCOURAGED — only when completely surrounded by allies with no path forward)
 
 Respond with ONLY a JSON object:
 {
@@ -92,6 +95,32 @@ async function decideSpiritAction(spirit, gameState) {
   if (!hex) return null;
 
   const adj = neighbors({ q: hex.q, r: hex.r });
+
+  // Rally continuation — skip LLM, just keep moving toward the rally hex
+  const rally = spirit._deityOrder?._rallyHexId;
+  if (rally && rally !== spirit.hexId) {
+    const nextHexId = getNextStep(spirit.hexId, rally, gameState.map.hexes);
+    if (nextHexId) {
+      const duration = spirit.specialization === 'scout' ? 8_000 : 15_000;
+      startTimer(gameState, {
+        type: 'movement',
+        spiritId: spirit.id,
+        duration,
+        data: { fromHex: spirit.hexId, toHex: nextHexId },
+      });
+      spirit.currentAction = {
+        type: 'moving',
+        startedAt: Date.now(),
+        completesAt: Date.now() + duration,
+        data: { toHex: nextHexId },
+      };
+      return { type: 'spirit_moving', spiritId: spirit.id, spiritName: spirit.name, toHex: nextHexId, duration, reasoning: 'Rally order' };
+    }
+  }
+  // Clear rally order if spirit arrived at the target hex
+  if (rally && rally === spirit.hexId) {
+    spirit._deityOrder = null;
+  }
 
   let recentMemories = { results: [] };
   try {
@@ -340,8 +369,9 @@ function executeDecision(spirit, decision, gameState, adj) {
       return { type: 'explore_started', spiritId: spirit.id, spiritName: spirit.name, targetHex: targetHex.id, reasoning };
     }
 
+    case 'wait':
     default:
-      return null; // WAIT or unrecognized
+      return fallbackMove(spirit, gameState, adj);
   }
 }
 
@@ -356,11 +386,11 @@ function pickMoveTarget(validAdj, spirit) {
     case 'aggressive':
       return pick(enemy) || pick(unclaimed) || pick(own);
     case 'explorer':
-      return pick(unclaimed) || pick(own) || pick(enemy);
+      return pick(unclaimed) || pick(enemy) || pick(own);
     case 'cautious':
-      return pick(own) || pick(unclaimed) || pick(enemy);
+      return pick(unclaimed) || pick(own) || pick(enemy);
     case 'protector':
-      return pick(own) || pick(enemy) || pick(unclaimed);
+      return pick(enemy) || pick(own) || pick(unclaimed);
     default:
       return pick(unclaimed) || pick(enemy) || pick(own);
   }
@@ -535,6 +565,87 @@ Generate your ${isEnemy ? 'taunt' : 'message'}.`;
 
   broadcast(gameState, [event]);
   return event;
+}
+
+/**
+ * Rally all idle player spirits toward a target hex. Direct command — no LLM.
+ * Returns { dispatched, events, commandType } for the response.
+ */
+export function issueRallyCommand(playerId, targetHexId, gameState) {
+  const targetHex = gameState.map.hexes[targetHexId];
+  if (!targetHex) return { dispatched: 0, events: [], commandType: 'invalid' };
+
+  const hasEnemy = targetHex.spiritIds.some(id => {
+    const s = gameState.spirits[id];
+    return s && s.alive && s.playerId !== playerId;
+  });
+  const isOwn = targetHex.controller === playerId;
+  const commandType = hasEnemy ? 'attack' : isOwn ? 'regroup' : 'capture';
+
+  const mySpirits = Object.values(gameState.spirits).filter(
+    s => s.playerId === playerId && s.alive
+  );
+
+  const events = [];
+  for (const spirit of mySpirits) {
+    if (spirit.hexId === targetHexId) continue;
+
+    // Cancel in-progress movement to redirect (but don't interrupt battles/spawns)
+    if (spirit.currentAction) {
+      if (spirit.currentAction.type !== 'moving' && spirit.currentAction.type !== 'exploring') continue;
+      gameState.activeTimers = gameState.activeTimers.filter(t => t.spiritId !== spirit.id);
+      spirit.currentAction = null;
+    }
+
+    const nextHexId = getNextStep(spirit.hexId, targetHexId, gameState.map.hexes);
+    if (!nextHexId) continue;
+
+    // Set persistent deity order so spirits keep moving toward the target
+    spirit._deityOrder = {
+      intent: commandType,
+      target: targetHexId,
+      text: `Rally to ${targetHex.terrain} (${commandType})`,
+      issuedAt: Date.now(),
+      _rallyHexId: targetHexId,
+    };
+
+    const duration = spirit.specialization === 'scout' ? 8_000 : 15_000;
+    startTimer(gameState, {
+      type: 'movement',
+      spiritId: spirit.id,
+      duration,
+      data: { fromHex: spirit.hexId, toHex: nextHexId },
+    });
+    spirit.currentAction = {
+      type: 'moving',
+      startedAt: Date.now(),
+      completesAt: Date.now() + duration,
+      data: { toHex: nextHexId },
+    };
+
+    const event = {
+      type: 'spirit_moving',
+      spiritId: spirit.id,
+      spiritName: spirit.name,
+      toHex: nextHexId,
+      duration,
+      reasoning: `Rally: ${commandType} ${targetHex.terrain}`,
+    };
+    events.push(event);
+
+    gameState.actionHistory = gameState.actionHistory || [];
+    gameState.actionHistory.push({
+      type: 'movement',
+      playerId,
+      spiritId: spirit.id,
+      timestamp: Date.now(),
+      data: event,
+    });
+  }
+
+  if (events.length) broadcast(gameState, events);
+
+  return { dispatched: events.length, events, commandType, targetHexId };
 }
 
 function fallbackMove(spirit, gameState, adj) {

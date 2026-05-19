@@ -73,7 +73,7 @@ export async function createInitialGameState() {
       hexesControlled: 1,
       spiritCount: 3,
       isBot: !isHuman,
-      connected: isHuman,
+      connected: false,
       lastSeen: Date.now(),
     };
 
@@ -125,6 +125,8 @@ export async function createInitialGameState() {
         playerId,
         bond: startBond,
         alive: true,
+        hp: 100,
+        maxHp: 100,
         memwalNamespace: namespace,
         memwalAccountId: process.env.MEMWAL_ACCOUNT_ID || '',
         spawnCount: 0,

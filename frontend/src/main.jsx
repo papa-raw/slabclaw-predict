@@ -5,6 +5,7 @@ import { SuiClientProvider, WalletProvider } from '@mysten/dapp-kit';
 import { createNetworkConfig } from '@mysten/dapp-kit';
 import '@mysten/dapp-kit/dist/index.css';
 import App from './App.jsx';
+import { DevWalletProvider } from './lib/devWallet.jsx';
 import './index.css';
 
 const queryClient = new QueryClient();
@@ -31,7 +32,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <QueryClientProvider client={queryClient}>
       <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
         <WalletProvider autoConnect>
-          <App />
+          <DevWalletProvider>
+            <App />
+          </DevWalletProvider>
         </WalletProvider>
       </SuiClientProvider>
     </QueryClientProvider>

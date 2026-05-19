@@ -496,7 +496,7 @@ function SpiritSprite({ spec, color, animState = 'idle', animFrame = 0, facing =
   }
 }
 
-export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSelectSpirit, gameState, whisperTrails = [], events = [] }) {
+export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSelectSpirit, onHexCommand, gameState, whisperTrails = [], events = [] }) {
   const hexArray = useMemo(() => Object.values(hexes), [hexes]);
   const [hoveredHex, setHoveredHex] = useState(null);
   const [hoveredSpirit, setHoveredSpirit] = useState(null);
@@ -509,6 +509,7 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
   const [battleEffects, setBattleEffects] = useState([]);
   const [spawnEffects, setSpawnEffects] = useState([]);
   const [claimFlashes, setClaimFlashes] = useState([]);
+  const [rallyPoint, setRallyPoint] = useState(null);
   const prevSpiritsRef = useRef({});
   const processedEventsRef = useRef(new Set());
 
@@ -626,7 +627,7 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
         }, 3500);
 
         // Also show speech bubble above the source spirit
-        const bubbleText = evt.text ? (evt.text.length > 35 ? evt.text.slice(0, 35) + '...' : evt.text) : '...';
+        const bubbleText = evt.text ? (evt.text.length > 50 ? evt.text.slice(0, 47) + '...' : evt.text) : '...';
         setSpeechBubbles(prev => ({ ...prev, [fromId]: { text: bubbleText, ts: Date.now() } }));
         setTimeout(() => setSpeechBubbles(prev => { const n = { ...prev }; if (n[fromId]?.ts <= Date.now()) delete n[fromId]; return n; }), 5000);
       }
@@ -797,6 +798,16 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
                 setTooltipPos({ x: e.clientX - cr.left + 14, y: e.clientY - cr.top - 10 });
               }}
               onMouseLeave={() => setHoveredHex(null)}
+              onClick={(e) => {
+                if (dragRef.current?.dragged) return;
+                if (hex.terrain === 'ocean') return;
+                if (onHexCommand) {
+                  e.stopPropagation();
+                  onHexCommand(hex.id);
+                  setRallyPoint({ hexId: hex.id, ts: Date.now() });
+                  setTimeout(() => setRallyPoint(rp => rp?.hexId === hex.id ? null : rp), 4000);
+                }
+              }}
               className="cursor-pointer"
             >
               <polygon points={HEX_POINTS} fill={t.base} />
@@ -887,6 +898,33 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
 
                 <SpiritSprite spec={spec} color={pc} animState={animState} animFrame={animTick} facing={face} />
 
+                {/* HP bar */}
+                {spirit.alive && (() => {
+                  const maxHp = spirit.maxHp || 100;
+                  const hp = spirit.hp != null ? spirit.hp : maxHp;
+                  const pct = Math.max(0, Math.min(1, hp / maxHp));
+                  if (pct >= 1) return null;
+                  const barW = 18;
+                  const barH = 2.5;
+                  const barY = -27;
+                  const fillColor = pct > 0.6 ? '#4ade80' : pct > 0.3 ? '#fbbf24' : '#ef4444';
+                  return (
+                    <g>
+                      <rect x={-barW / 2} y={barY} width={barW} height={barH} rx={1}
+                        fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.15)" strokeWidth={0.3} />
+                      <rect x={-barW / 2 + 0.5} y={barY + 0.5} width={(barW - 1) * pct} height={barH - 1} rx={0.5}
+                        fill={fillColor} opacity={0.9} />
+                    </g>
+                  );
+                })()}
+
+                {/* Speaking indicator */}
+                {speechBubbles[spirit.id] && (
+                  <circle cx={7} cy={-28} r={2.5} fill={pc} opacity={0.9}>
+                    <animate attributeName="opacity" values="0.9;0.4;0.9" dur="1.5s" repeatCount="indefinite" />
+                  </circle>
+                )}
+
                 {isSelected && (
                   <g>
                     <rect x={-8} y={-26} width={16} height={28} rx={2}
@@ -936,36 +974,7 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
           });
         })}
 
-        {/* Speech bubbles above spirits */}
-        {Object.entries(speechBubbles).map(([spiritId, bubble]) => {
-          const spirit = spirits[spiritId];
-          if (!spirit?.alive) return null;
-          const hex = hexes[spirit.hexId];
-          if (!hex) return null;
-          const hexSpiritsHere = hex.spiritIds?.filter(id => spirits[id]?.alive) || [];
-          const idx = hexSpiritsHere.indexOf(spiritId);
-          const angle = (2 * Math.PI * Math.max(0, idx)) / Math.max(hexSpiritsHere.length, 1);
-          const spread = hexSpiritsHere.length === 1 ? 0 : HEX_SIZE * 0.3;
-          const p = hexToPixel({ q: hex.q, r: hex.r }, HEX_SIZE);
-          const sx = p.x + spread * Math.cos(angle);
-          const sy = p.y + spread * Math.sin(angle) - 30;
-          const textLen = bubble.text.length;
-          const boxW = Math.min(textLen * 6 + 20, 180);
-          const boxH = 22;
-          return (
-            <g key={`bubble-${spiritId}`} style={{ opacity: 1, transition: 'opacity 0.3s' }}>
-              <rect x={sx - boxW / 2} y={sy - boxH + 2} width={boxW} height={boxH} rx={5}
-                fill="rgba(12,16,24,0.95)" stroke="rgba(240,208,128,0.6)" strokeWidth={1} />
-              <polygon points={`${sx - 4},${sy + 4} ${sx},${sy + 10} ${sx + 4},${sy + 4}`}
-                fill="rgba(12,16,24,0.95)" stroke="rgba(240,208,128,0.6)" strokeWidth={1} />
-              <rect x={sx - 5} y={sy + 3} width={10} height={2.5} fill="rgba(12,16,24,0.95)" />
-              <text x={sx} y={sy - 4} textAnchor="middle" fontSize="10"
-                fill="#f0ead6" fontFamily="'Inter', sans-serif" fontWeight="500">
-                {bubble.text}
-              </text>
-            </g>
-          );
-        })}
+        {/* Speech bubbles removed — dialog shown in feed overlay */}
 
         {activeTrails.map(trail => {
           const from = spirits[trail.from];
@@ -1149,6 +1158,42 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
             </polygon>
           </g>
         ))}
+
+        {/* Rally point marker */}
+        {rallyPoint && (() => {
+          const rh = hexes[rallyPoint.hexId];
+          if (!rh) return null;
+          const rp = hexToPixel({ q: rh.q, r: rh.r }, HEX_SIZE);
+          const hasEnemy = rh.spiritIds?.some(id => {
+            const s = spirits[id];
+            return s && s.alive && s.playerId !== playerId;
+          });
+          const isOwn = rh.controller === playerId;
+          const color = hasEnemy ? '#ef4444' : isOwn ? '#60a5fa' : '#f59e0b';
+          const label = hasEnemy ? 'ATTACK' : isOwn ? 'REGROUP' : 'CAPTURE';
+          return (
+            <g transform={`translate(${rp.x},${rp.y})`}>
+              <polygon points={HEX_POINTS} fill={color} opacity={0.15}>
+                <animate attributeName="opacity" values="0.2;0.08;0.2" dur="1.5s" repeatCount="indefinite" />
+              </polygon>
+              <polygon points={HEX_POINTS} fill="none" stroke={color} strokeWidth={2.5} strokeDasharray="6 4" opacity={0.7}>
+                <animate attributeName="stroke-dashoffset" values="0;-20" dur="1.5s" repeatCount="indefinite" />
+              </polygon>
+              {/* Chevron pointing down into the hex */}
+              <g>
+                <animate attributeName="opacity" values="0.9;0.4;0.9" dur="1.5s" repeatCount="indefinite" />
+                <polygon points="0,-6 -5,-14 5,-14" fill={color} opacity={0.8}>
+                  <animate attributeName="transform" values="translate(0,-2);translate(0,2);translate(0,-2)" dur="1s" repeatCount="indefinite" />
+                </polygon>
+              </g>
+              <text x={0} y={-22} textAnchor="middle" fontSize="6" fontFamily="monospace" fontWeight="700"
+                fill={color} opacity={0.8} letterSpacing="0.1em">
+                <animate attributeName="opacity" values="0.9;0.5;0.9" dur="1.5s" repeatCount="indefinite" />
+                {label}
+              </text>
+            </g>
+          );
+        })()}
       </svg>
 
       {hoveredHex && (
@@ -1206,6 +1251,41 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
           {Math.round(zoom * 100)}%
         </div>
       )}
+
+      {/* Dialog feed — floating overlay */}
+      <div
+        className="absolute bottom-14 left-3 w-72 max-h-48 overflow-hidden pointer-events-none flex flex-col-reverse gap-1"
+        style={{ zIndex: 20 }}
+      >
+        {Object.entries(speechBubbles).slice(-5).reverse().map(([spiritId, bubble]) => {
+          const spirit = spirits[spiritId];
+          if (!spirit) return null;
+          const pc = getPlayerColor(spirit.playerId, gameState) || '#6b7280';
+          const isMine = spirit.playerId === playerId;
+          const cleanText = bubble.text.replace(/\*+/g, '').trim();
+          const age = Date.now() - bubble.ts;
+          const opacity = age > 3000 ? Math.max(0, 1 - (age - 3000) / 1500) : 1;
+          return (
+            <div
+              key={`feed-${spiritId}-${bubble.ts}`}
+              className="rounded-md px-2.5 py-1.5 text-xs backdrop-blur-sm"
+              style={{
+                background: isMine ? 'rgba(30,24,12,0.85)' : 'rgba(12,16,24,0.85)',
+                borderLeft: `3px solid ${pc}`,
+                opacity,
+                transition: 'opacity 0.5s',
+              }}
+            >
+              <span className="font-header font-semibold text-xs" style={{ color: pc }}>
+                {spirit.name}
+              </span>
+              <span className="ml-1.5" style={{ color: isMine ? '#f0d080' : '#d0d4dc' }}>
+                {cleanText.length > 60 ? cleanText.slice(0, 57) + '...' : cleanText}
+              </span>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Minimap */}
       <Minimap hexArray={hexArray} spirits={spirits} playerId={playerId} gameState={gameState} />
@@ -1271,7 +1351,7 @@ function Minimap({ hexArray, spirits, playerId, gameState }) {
 
 function TickTimer() {
   const [elapsed, setElapsed] = useState(0);
-  const DECISION_INTERVAL = 30;
+  const DECISION_INTERVAL = 15;
 
   useEffect(() => {
     const id = setInterval(() => {

@@ -50,6 +50,20 @@ export function getCurrentGameState() {
   return gameState;
 }
 
+export function pauseGame() {
+  if (!gameState || gameState.status !== 'active') return false;
+  gameState.status = 'paused';
+  broadcastStateChange(gameState);
+  return true;
+}
+
+export function resumeGame() {
+  if (!gameState || gameState.status !== 'paused') return false;
+  gameState.status = 'active';
+  broadcastStateChange(gameState);
+  return true;
+}
+
 async function tick() {
   if (!gameState || gameState.status !== 'active') return;
 

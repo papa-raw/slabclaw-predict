@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anima Swarm — Docs</title>
+  <link rel="icon" href="/logo-icon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-deep: #060a12;
+      --bg-surface: #0d1117;
+      --bg-elevated: #161b22;
+      --gold-bright: #d4a052;
+      --gold-dim: rgba(212,160,82,0.2);
+      --text-primary: #e8e0d0;
+      --text-secondary: #a09080;
+      --text-muted: #605848;
+      --accent-teal: #2dd4bf;
+      --accent-purple: #a78bfa;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.7;
+    }
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; align-items: center; gap: 16px;
+      padding: 12px 32px;
+      background: rgba(6,10,18,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--gold-dim);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { width: 28px; height: 28px; }
+    .nav-logo span { font-family: 'Cinzel', serif; font-size: 16px; color: var(--gold-bright); font-weight: 600; letter-spacing: 0.08em; }
+    .nav-spacer { flex: 1; }
+    .nav a { color: var(--text-secondary); font-size: 13px; text-decoration: none; font-family: 'JetBrains Mono', monospace; transition: color 0.2s; }
+    .nav a:hover { color: var(--gold-bright); }
+    .container { max-width: 820px; margin: 0 auto; padding: 48px 32px 96px; }
+    h1 { font-family: 'Cinzel', serif; font-size: 2.2rem; color: var(--gold-bright); margin-bottom: 8px; }
+    h2 { font-family: 'Cinzel', serif; font-size: 1.4rem; color: var(--gold-bright); margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--gold-dim); }
+    h3 { font-family: 'Inter', sans-serif; font-size: 1rem; color: var(--text-primary); margin: 28px 0 10px; font-weight: 600; }
+    p { margin-bottom: 14px; color: var(--text-secondary); font-size: 15px; }
+    .subtitle { font-style: italic; color: var(--text-muted); font-size: 15px; margin-bottom: 32px; }
+    code { font-family: 'JetBrains Mono', monospace; background: var(--bg-elevated); padding: 2px 6px; border-radius: 4px; font-size: 13px; color: var(--accent-teal); }
+    pre { background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 16px 20px; margin: 12px 0 20px; overflow-x: auto; }
+    pre code { background: none; padding: 0; font-size: 13px; color: var(--text-primary); line-height: 1.6; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px; }
+    th { text-align: left; padding: 8px 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: var(--text-muted); border-bottom: 1px solid var(--gold-dim); text-transform: uppercase; }
+    td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text-secondary); }
+    ul { padding-left: 20px; margin-bottom: 14px; }
+    li { margin-bottom: 6px; color: var(--text-secondary); font-size: 15px; }
+    .badge { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 2px 8px; border-radius: 12px; margin-right: 6px; }
+    .badge-gold { background: rgba(212,160,82,0.15); color: var(--gold-bright); border: 1px solid rgba(212,160,82,0.3); }
+    .badge-teal { background: rgba(45,212,191,0.1); color: var(--accent-teal); border: 1px solid rgba(45,212,191,0.2); }
+    .badge-purple { background: rgba(167,139,250,0.1); color: var(--accent-purple); border: 1px solid rgba(167,139,250,0.2); }
+    .card { background: var(--bg-surface); border: 1px solid var(--gold-dim); border-radius: 8px; padding: 20px; margin: 16px 0; }
+    .card-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--gold-bright); letter-spacing: 0.06em; margin-bottom: 8px; }
+    .spec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 12px 0; }
+    .spec-card { background: var(--bg-elevated); border-radius: 6px; padding: 12px; text-align: center; }
+    .spec-card .name { font-family: 'Cinzel', serif; font-size: 14px; color: var(--text-primary); margin-bottom: 4px; }
+    .spec-card .bonus { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+    .footer { text-align: center; padding: 32px; color: var(--text-muted); font-size: 12px; font-family: 'JetBrains Mono', monospace; border-top: 1px solid var(--gold-dim); margin-top: 48px; }
+    .footer a { color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="/" class="nav-logo">
+      <img src="/logo-icon.svg" alt="Anima Swarm" />
+      <span>Anima Swarm</span>
+    </a>
+    <div class="nav-spacer"></div>
+    <a href="/">Play</a>
+    <a href="/docs/" style="color: var(--gold-bright);">Docs</a>
+    <a href="https://github.com/papa-raw/anima-swarm" target="_blank" rel="noopener">GitHub</a>
+  </nav>
+
+  <div class="container">
+    <h1>Anima Swarm</h1>
+    <p class="subtitle">Command AI spirits through whispers. Memories persist on Walrus.</p>
+
+    <p>Anima Swarm is a 6-player deity-controlled AI strategy game on a hex grid. You don't move units directly&mdash;you whisper to your spirits, and they interpret your commands through their own personality, bond level, and accumulated memories. Every whisper, battle, spawn, and territory claim is stored as verifiable memory on <a href="https://docs.wal.app/" target="_blank" style="color: var(--accent-teal);">Walrus</a> via <a href="https://docs.memwal.ai" target="_blank" style="color: var(--accent-teal);">MemWal</a>.</p>
+
+    <h2>How It Works</h2>
+
+    <h3>The Deity-Spirit Relationship</h3>
+    <p>You are a deity. Your swarm of AI spirits acts autonomously every 30 seconds, making decisions based on their personality, specialization, memories, and your whispered orders. Higher bond = more faithful interpretation of your commands. Low bond spirits may misinterpret or ignore you.</p>
+
+    <h3>Whisper Propagation</h3>
+    <p>When you whisper to one spirit, the message propagates through your swarm. Each spirit relays the whisper in their own voice&mdash;a high-bond warrior delivers it faithfully, while a low-bond scout might twist the meaning entirely. This creates emergent swarm behavior from a single command.</p>
+
+    <div class="card">
+      <div class="card-title">WHISPER FLOW</div>
+      <p style="margin:0;">Deity &rarr; Spirit (interprets via bond) &rarr; Swarm allies (relay with personality color) &rarr; Stored on MemWal as verifiable memory</p>
+    </div>
+
+    <h2>Spirits</h2>
+
+    <h3>Specializations</h3>
+    <div class="spec-grid">
+      <div class="spec-card">
+        <div class="name">Warrior</div>
+        <div class="bonus" style="color: #ef4444;">+Combat</div>
+      </div>
+      <div class="spec-card">
+        <div class="name">Scout</div>
+        <div class="bonus" style="color: #3b82f6;">+Speed</div>
+      </div>
+      <div class="spec-card">
+        <div class="name">Gatherer</div>
+        <div class="bonus" style="color: #22c55e;">+Memory</div>
+      </div>
+      <div class="spec-card">
+        <div class="name">Sage</div>
+        <div class="bonus" style="color: #a78bfa;">+Wisdom</div>
+      </div>
+      <div class="spec-card">
+        <div class="name">Generalist</div>
+        <div class="bonus" style="color: #f59e0b;">Balanced</div>
+      </div>
+    </div>
+
+    <h3>Actions</h3>
+    <table>
+      <thead>
+        <tr><th>Action</th><th>Description</th><th>Duration</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>MOVE_TO</code></td><td>Navigate toward a target spirit or hex via A* pathfinding</td><td>8&ndash;15s</td></tr>
+        <tr><td><code>BATTLE</code></td><td>Attack an enemy spirit sharing your hex</td><td>30s</td></tr>
+        <tr><td><code>EXPLORE</code></td><td>Scout toward unclaimed territory</td><td>4&ndash;8s</td></tr>
+        <tr><td><code>SPAWN</code></td><td>Create a child spirit (requires 5+ memories, 35+ bond)</td><td>2 min</td></tr>
+        <tr><td><code>GATHER</code></td><td>Absorb memories from your hex</td><td>Instant</td></tr>
+        <tr><td><code>WAIT</code></td><td>Hold position</td><td>&mdash;</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Bond System</h3>
+    <p>Each spirit tracks four bond dimensions with their deity:</p>
+    <ul>
+      <li><strong>Depth</strong>&mdash;how well the spirit understands you</li>
+      <li><strong>Harmony</strong>&mdash;alignment of values and temperament</li>
+      <li><strong>Adventure</strong>&mdash;shared experiences and risks taken</li>
+      <li><strong>Loyalty</strong>&mdash;trust and reliability over time</li>
+    </ul>
+    <p>Higher average bond means more accurate whisper interpretation and better battle performance. Chat regularly with your spirits to increase bond.</p>
+
+    <h2>Combat</h2>
+    <p>Battles are LLM-arbitrated. When two opposing spirits occupy the same hex, either can initiate combat. The arbiter evaluates:</p>
+    <ul>
+      <li><strong>Bond score (40%)</strong>&mdash;deity connection strength</li>
+      <li><strong>Tactical score (35%)</strong>&mdash;specialization advantage, terrain, XP</li>
+      <li><strong>Narrative score (25%)</strong>&mdash;personality-driven invocation quality</li>
+    </ul>
+    <p>Outcomes: close margin = loser retreats to an adjacent hex. Wide margin (&ge;8 points) = loser dies. If the loser is surrounded with no retreat path, they also die. Winners claim the hex.</p>
+
+    <h2>Territory &amp; Win Conditions</h2>
+    <p>Hexes are claimed by the player whose spirit occupies them. Memory pools accumulate on controlled hexes over time&mdash;gatherer spirits can absorb these.</p>
+    <p>The game ends when:</p>
+    <ul>
+      <li>A player controls <strong>50%</strong> of all hexes, or</li>
+      <li>Only one player has <strong>living spirits</strong>, or</li>
+      <li>The <strong>max tick count</strong> (500 ticks) is reached&mdash;most territory wins</li>
+    </ul>
+
+    <h2>Enemy Diplomacy</h2>
+    <p>You can click on enemy spirits and attempt to influence them. Their response depends on their loyalty stat:</p>
+    <table>
+      <thead><tr><th>Loyalty</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td>75+</td><td>Hostile&mdash;rejects your influence outright</td></tr>
+        <tr><td>50&ndash;74</td><td>Suspicious&mdash;guarded but listening</td></tr>
+        <tr><td>25&ndash;49</td><td>Wavering&mdash;open to persuasion</td></tr>
+        <tr><td>0&ndash;24</td><td>Disloyal&mdash;may defect or sabotage their own swarm</td></tr>
+      </tbody>
+    </table>
+    <p>Each influence attempt erodes the target's loyalty by 1 point. A patient deity can turn an enemy spirit into an unreliable asset for their opponent.</p>
+
+    <h2>Spawning &amp; Lineage</h2>
+    <p>Spirits can spawn children when they have 5+ memories and 35+ average bond. The child inherits the parent's most formative memories (LLM-ranked) and develops its own personality based on those inherited experiences. Children start as generalists with 30% of the parent's bond.</p>
+    <p>Spirits track their lineage: generation number, parent, past life names (if reincarnated via essence import), and memorable actions.</p>
+
+    <h2>Essence &amp; Reincarnation</h2>
+    <p>After a game ends, you can export your swarm's essence&mdash;a snapshot of memories, personality, lineage, and battle history&mdash;as a Walrus blob. In the next game's lobby, import that blob ID to reincarnate your spirits with their past-life memories intact. This is how spirits persist across games.</p>
+
+    <h2>Onchain Architecture</h2>
+
+    <div class="card">
+      <div class="card-title">STACK</div>
+      <p style="margin:0;"><span class="badge badge-gold">Sui</span> <span class="badge badge-teal">Walrus</span> <span class="badge badge-teal">MemWal</span> <span class="badge badge-purple">Move</span></p>
+    </div>
+
+    <h3>Move Contracts (Sui Testnet)</h3>
+    <table>
+      <thead><tr><th>Module</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>spirit.move</code></td><td>Spirit NFTs&mdash;owned objects with stats, personality hash, lineage</td></tr>
+        <tr><td><code>territory.move</code></td><td>Territory claims&mdash;shared objects tracking hex control</td></tr>
+        <tr><td><code>battle.move</code></td><td>Battle recording&mdash;onchain proof of combat outcomes</td></tr>
+        <tr><td><code>spawn.move</code></td><td>Spawn fee collection and child minting</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Memory Layer</h3>
+    <table>
+      <thead><tr><th>Memory Type</th><th>Storage</th><th>Visibility</th></tr></thead>
+      <tbody>
+        <tr><td>Conversation history</td><td>MemWal</td><td>Owner only</td></tr>
+        <tr><td>Battle outcomes</td><td>MemWal</td><td>Public (cross-agent readable)</td></tr>
+        <tr><td>Whisper logs</td><td>MemWal</td><td>Swarm-scoped</td></tr>
+        <tr><td>Territory discoveries</td><td>MemWal</td><td>Public</td></tr>
+        <tr><td>Essence snapshots</td><td>Walrus blob</td><td>Public (blob ID shared)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Links</h2>
+    <ul>
+      <li><a href="https://github.com/papa-raw/anima-swarm" target="_blank" style="color:var(--accent-teal);">GitHub Repository</a></li>
+      <li><a href="https://docs.wal.app/" target="_blank" style="color:var(--accent-teal);">Walrus Documentation</a></li>
+      <li><a href="https://docs.memwal.ai" target="_blank" style="color:var(--accent-teal);">MemWal Documentation</a></li>
+      <li><a href="https://docs.sui.io/" target="_blank" style="color:var(--accent-teal);">Sui Documentation</a></li>
+      <li><a href="https://suiscan.xyz/testnet/object/0xb0f9ba3da143c92225ada477204a57fd61bae3f2c5c70e8593ce29eac309da21" target="_blank" style="color:var(--accent-teal);">Deployed Package on SuiScan</a></li>
+    </ul>
+
+    <div class="footer">
+      <p>Anima Swarm &middot; Sui Overflow 2026 &middot; Walrus Track</p>
+      <p>Built by <a href="https://github.com/papa-raw" target="_blank">paparaw.eth</a></p>
+    </div>
+  </div>
+</body>
+</html>

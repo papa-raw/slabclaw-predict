@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useCurrentAccount } from '@mysten/dapp-kit';
+import { useDevWallet } from './lib/devWallet.jsx';
 import HexMap from './components/HexMap.jsx';
 import CommandBar from './components/CommandBar.jsx';
 import WalletConnect from './components/WalletConnect.jsx';
@@ -22,7 +23,10 @@ function getSessionPlayerId() {
 
 export default function App() {
   const account = useCurrentAccount();
+  const devWallet = useDevWallet();
+  const walletAddress = account?.address || devWallet.address;
   const [gameState, setGameState] = useState(null);
+  const [claimedPlayerId, setClaimedPlayerId] = useState(null);
   const [selectedSpirit, setSelectedSpirit] = useState(null);
   const [events, setEvents] = useState([]);
   const [spiritMessages, setSpiritMessages] = useState({});
@@ -38,6 +42,18 @@ export default function App() {
     fetch('/api/game/chain-info').then(r => r.json()).then(setChainInfo).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (!walletAddress) { setClaimedPlayerId(null); return; }
+    fetch('/api/game/claim-slot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ walletAddress }),
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.playerId) setClaimedPlayerId(data.playerId); })
+      .catch(() => {});
+  }, [walletAddress]);
+
   function addChainOps(ops) {
     setChainOps(prev => {
       const tagged = ops.map(op => ({ ...op, id: `op-${++chainOpIdRef.current}` }));
@@ -47,7 +63,7 @@ export default function App() {
 
   // WebSocket connection with reconnection
   useEffect(() => {
-    const playerId = account?.address || getSessionPlayerId();
+    const playerId = claimedPlayerId || getSessionPlayerId();
     let ws = null;
     let retryCount = 0;
     let retryTimer = null;
@@ -114,23 +130,62 @@ export default function App() {
       clearTimeout(retryTimer);
       ws?.close();
     };
-  }, [account?.address]);
+  }, [claimedPlayerId, walletAddress]);
+
+  const isPaused = gameState?.status === 'paused';
+
+  useEffect(() => {
+    function handleKey(e) {
+      if (e.code === 'Space' && !e.target.closest('input, textarea') && gameState) {
+        e.preventDefault();
+        const paused = gameState.status === 'paused';
+        fetch(`/api/game/${paused ? 'resume' : 'pause'}`, { method: 'POST' });
+      }
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  });
 
   if (!gameState) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-deep)' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6" style={{ background: 'var(--bg-abyss)' }}>
+        <img src="/logo-icon.svg" alt="" className="w-16 h-16 opacity-60" style={{ animation: 'pulse 2s ease-in-out infinite' }} />
         <div className="text-center">
-          <h1 className="text-3xl font-display text-amber-500 mb-4">Anima Swarm</h1>
-          <p className="text-gray-400">Connecting to game...</p>
+          <h1 className="font-title text-2xl tracking-widest mb-3" style={{ color: 'var(--gold-bright)' }}>Anima Swarm</h1>
+          <p className="text-sm font-body" style={{ color: 'var(--text-muted)' }}>Awakening the realm&hellip;</p>
         </div>
+        <div className="w-48 h-1 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
+          <div
+            className="h-full rounded-full"
+            style={{
+              background: 'linear-gradient(90deg, var(--gold-dim), var(--gold-bright))',
+              animation: 'loading-bar 1.5s ease-in-out infinite',
+            }}
+          />
+        </div>
+        <style>{`
+          @keyframes loading-bar {
+            0% { width: 0%; margin-left: 0; }
+            50% { width: 60%; margin-left: 20%; }
+            100% { width: 0%; margin-left: 100%; }
+          }
+        `}</style>
       </div>
     );
   }
 
-  const playerId = account?.address || getSessionPlayerId();
+  const playerId = claimedPlayerId || getSessionPlayerId();
   const mySpirits = Object.values(gameState.spirits).filter(s => s.playerId === playerId && s.alive);
 
   if (gameState.status === 'lobby') {
+    return <Lobby playerId={playerId} gameState={gameState} chainInfo={chainInfo} />;
+  }
+
+  // Game over: show results — always, regardless of connection
+  const myPlayer = gameState.players[playerId];
+
+  // Player exited — show lobby so they can rejoin
+  if (gameState.status === 'active' && myPlayer && !myPlayer.connected) {
     return <Lobby playerId={playerId} gameState={gameState} chainInfo={chainInfo} />;
   }
 
@@ -151,47 +206,129 @@ export default function App() {
     const totalDeaths = Object.values(gameState.spirits).filter(s => !s.alive).length;
 
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-deep)' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-abyss)' }}>
         <div className="text-center max-w-lg space-y-6">
-          <h1 className="text-4xl font-display text-amber-500">
+          <h1
+            className="font-title text-4xl tracking-widest"
+            style={{ color: 'var(--gold-bright)', textShadow: isVictory ? '0 0 40px var(--gold-glow)' : 'none' }}
+          >
             {isVictory ? 'Victory' : 'Defeat'}
           </h1>
-          <p className="text-gray-400 text-lg">
+          <p className="text-lg font-body" style={{ color: 'var(--text-secondary)' }}>
             {isVictory
               ? 'Your swarm dominates the world.'
               : `${winnerPlayer?.name || 'Another deity'}${winnerPlayer?.deityTitle ? ` ${winnerPlayer.deityTitle}` : ''} has conquered the realm.`}
           </p>
 
-          <div className="bg-gray-900/60 border border-gray-700/40 rounded-lg p-4 text-left">
+          <div className="rounded-lg p-4 text-left" style={{ background: 'var(--bg-surface)', border: '1px solid var(--gold-dim)' }}>
             <div className="text-xs font-mono mb-2 tracking-wider" style={{ color: 'var(--text-muted)' }}>FINAL STANDINGS</div>
             {finalScores.map((p, i) => (
-              <div key={p.id} className={`flex items-center gap-3 py-1 text-sm font-mono ${i === 0 ? 'text-amber-400' : p.spirits === 0 ? 'text-gray-500' : 'text-gray-300'}`}>
-                <span className="w-4 text-right text-gray-400">{i + 1}.</span>
-                <span className="flex-1">{p.name} {p.title && <span className="text-gray-400 text-xs">{p.title}</span>}</span>
+              <div
+                key={p.id}
+                className="flex items-center gap-3 py-1.5 text-sm font-mono"
+                style={{ color: i === 0 ? 'var(--gold-bright)' : p.spirits === 0 ? 'var(--text-muted)' : 'var(--text-primary)' }}
+              >
+                <span className="w-4 text-right" style={{ color: 'var(--text-muted)' }}>{i + 1}.</span>
+                <span className="flex-1">{p.name} {p.title && <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{p.title}</span>}</span>
                 <span>{p.hexes}h</span>
-                <span className="text-gray-400">{p.pct}%</span>
-                <span className="text-gray-400">{p.spirits}s</span>
+                <span style={{ color: 'var(--text-muted)' }}>{p.pct}%</span>
+                <span style={{ color: 'var(--text-muted)' }}>{p.spirits}s</span>
               </div>
             ))}
           </div>
 
-          <div className="flex justify-center gap-6 text-sm text-gray-300 font-mono">
+          <div className="flex justify-center gap-6 text-sm font-mono" style={{ color: 'var(--text-secondary)' }}>
             <span>⚔ {totalBattles} battles</span>
             <span>✦ {totalSpawns} spawns</span>
             <span>☽ {totalDeaths} fallen</span>
           </div>
 
           <EssenceExport gameState={gameState} playerId={playerId} />
+
+          <button
+            onClick={() => fetch('/api/game/restart', { method: 'POST' })}
+            className="font-mono text-sm transition-colors"
+            style={{ color: 'var(--text-muted)', textDecoration: 'underline', textUnderlineOffset: '4px' }}
+          >
+            Start New Game
+          </button>
         </div>
       </div>
     );
   }
 
+  function togglePause() {
+    fetch(`/api/game/${isPaused ? 'resume' : 'pause'}`, { method: 'POST' });
+  }
+
+  function handleExit() {
+    fetch('/api/game/exit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId }),
+    });
+  }
+
+  function handleHexCommand(targetHexId) {
+    fetch('/api/game/command', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId, targetHexId }),
+    })
+      .then(r => r.json())
+      .then(result => {
+        if (result.events?.length) {
+          setEvents(prev => [...prev.slice(-50), ...result.events]);
+        }
+      })
+      .catch(() => {});
+  }
+
   return (
     <div className="h-screen flex flex-col overflow-hidden" style={{ background: 'var(--bg-deep)' }}>
+      {/* Pause overlay */}
+      {isPaused && (
+        <div
+          className="absolute inset-0 z-50 flex items-center justify-center cursor-pointer"
+          style={{ background: 'rgba(6,10,18,0.7)', backdropFilter: 'blur(4px)' }}
+          onClick={togglePause}
+        >
+          <div className="text-center">
+            <h2 className="font-title text-3xl tracking-widest mb-3" style={{ color: 'var(--gold-bright)' }}>
+              Paused
+            </h2>
+            <p className="font-mono text-sm" style={{ color: 'var(--text-muted)' }}>
+              Press Space or click to resume
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="h-12 bg-gray-900/80 backdrop-blur border-b border-gray-700/50 flex items-center justify-between px-4 relative z-30 overflow-visible">
-        <h1 className="font-display text-lg text-amber-500 font-semibold">Anima Swarm</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="font-display text-lg text-amber-500 font-semibold">Anima Swarm</h1>
+          <button
+            onClick={togglePause}
+            className="px-2 py-1 rounded text-xs font-mono transition-colors"
+            style={{
+              color: isPaused ? 'var(--gold-bright)' : 'var(--text-muted)',
+              background: isPaused ? 'rgba(212,160,82,0.15)' : 'transparent',
+              border: `1px solid ${isPaused ? 'var(--gold-dim)' : 'transparent'}`,
+            }}
+            title="Space to toggle"
+          >
+            {isPaused ? '▶ Resume' : '⏸ Pause'}
+          </button>
+          <button
+            onClick={handleExit}
+            className="px-2 py-1 rounded text-xs font-mono transition-colors hover:text-red-400"
+            style={{ color: 'var(--text-muted)' }}
+            title="Return to lobby"
+          >
+            ↩ Exit
+          </button>
+        </div>
         <div className="flex items-center gap-4">
           <PlayerHud player={gameState.players[playerId]} spirits={mySpirits} gameState={gameState} />
           <WalletConnect />
@@ -208,6 +345,7 @@ export default function App() {
             playerId={playerId}
             selectedSpirit={selectedSpirit}
             onSelectSpirit={(id) => { setSelectedSpirit(id); if (id) setRightTab('spirit'); }}
+            onHexCommand={handleHexCommand}
             gameState={gameState}
             whisperTrails={whisperTrails}
             events={events}

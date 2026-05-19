@@ -37,11 +37,23 @@ export async function resolveBattle(gameState, timer) {
     (evaluation.scores?.defender?.totalScore || 15)
   );
 
-  let loserOutcome;
+  // HP damage — loser takes margin-scaled damage, winner takes minor chip damage
+  if (loserSpirit.maxHp == null) loserSpirit.maxHp = 100;
+  if (loserSpirit.hp == null) loserSpirit.hp = loserSpirit.maxHp;
+  if (winnerSpirit.maxHp == null) winnerSpirit.maxHp = 100;
+  if (winnerSpirit.hp == null) winnerSpirit.hp = winnerSpirit.maxHp;
 
-  if (margin >= 8) {
-    // Fatal blow
+  const loserDmg = 15 + margin * 3;
+  const winnerDmg = Math.max(3, 10 - margin);
+  loserSpirit.hp = Math.max(0, loserSpirit.hp - loserDmg);
+  winnerSpirit.hp = Math.max(1, winnerSpirit.hp - winnerDmg);
+
+  let loserOutcome;
+  const isDead = loserSpirit.hp <= 0;
+
+  if (isDead) {
     loserSpirit.alive = false;
+    loserSpirit.hp = 0;
     loserSpirit.currentAction = null;
     const loserHex = gameState.map.hexes[loserSpirit.hexId];
     if (loserHex) {
@@ -55,7 +67,7 @@ export async function resolveBattle(gameState, timer) {
       );
     }
   } else {
-    // Retreat
+    // Retreat with HP remaining
     const retreatHexId = findRetreatHex(loserSpirit, gameState);
     if (retreatHexId) {
       const fromHex = gameState.map.hexes[loserSpirit.hexId];
@@ -69,6 +81,7 @@ export async function resolveBattle(gameState, timer) {
     } else {
       // Surrounded — dies
       loserSpirit.alive = false;
+      loserSpirit.hp = 0;
       const loserHex = gameState.map.hexes[loserSpirit.hexId];
       if (loserHex) {
         loserHex.spiritIds = loserHex.spiritIds.filter(id => id !== loserSpirit.id);

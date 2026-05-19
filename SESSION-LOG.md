@@ -49,3 +49,35 @@
   - Bond = swarm-level cohesion, not per-spirit
   - HP memory-derived
   - Open: memory value formula (linchpin), scoring weights, HP numbers
+
+### Session Log — 2026-05-16 (evening)
+- **UI legibility pass:** Bumped design system vars (--text-secondary → #c9cdd4, --text-muted → #9ca3af), swept all 11 components to eliminate text-[9px]/text-[10px]/text-[11px] and replace text-gray-600/700 with lighter values
+- **EssenceImport:** Removed accordion toggle, content always visible, bumped to text-sm with design system color vars
+- **Speech bubbles fix:** Added `spirit_dialog` event emission in POST /chat handler — bubbles now appear above spirits when player chats
+- **Rate limit fix:** Added `_priority: 'high'` to whisperService LLM calls (whisper generation + intent extraction) so they bypass 50/min background cap during player chat flow
+- **Enemy spirit diplomacy:** New `chatWithEnemySpirit()` function — deities can whisper to opposing spirits. Response shaped by loyalty stat (75+=hostile, 50-74=suspicious, 25-49=wavering, 0-24=disloyal). Each interaction erodes loyalty by 1. Frontend shows red-themed "Influence" input for enemy spirits.
+- **OnchainFooter:** New component showing Sui network status, Walrus publisher, MemWal relayer links
+- **Lobby redesign:** Rewritten layout with spirit cards, deity counter, wallet connect placement
+- **Remaining:** Lobby UI tweaks from plan (deities counter above title, "Sui Overflow 2026" to footer), wallet connection infrastructure (wallet→player slot claim system)
+
+### Session Log — 2026-05-19
+- **WindfallRouter 502 fix:** nginx on Hetzner (46.225.135.67) had `proxy_pass` to port 3403, app on 3402. Fixed via sed + nginx reload.
+- **Spirit aggression overhaul:** DECISION_INTERVAL 30s→15s, prompt rewritten with "NEVER idle" bias, EXPLORE first / WAIT last (DISCOURAGED), `pickMoveTarget()` all personalities now prioritize unclaimed/enemy over own territory, `wait` case fallbacks to `fallbackMove()`
+- **Rally command system:** `POST /api/game/command` + `issueRallyCommand()` — click hex to rally all player spirits. Cancels in-progress movements, persistent `_rallyHexId` on deity order, A* pathfinding per step. Rally continuation block at top of `decideSpiritAction()` skips LLM entirely when rally active. Visual: pulsing hex outline + chevron + ATTACK/CAPTURE/REGROUP label.
+- **OnchainFooter simplification:** Three availability dots (Sui testnet — Package, Walrus testnet — Memory Registry, LLM — Windfall Router), only second part is link
+- **WalletConnect consolidation:** Single button with truncated address + logout icon, hover turns red
+- **Lobby wallet gate:** Awaken button disabled without `walletAddress`, server-side guard on `/ready` returns 400 if no wallet. `gameInit` changed `connected: isHuman` → `connected: false` so counter shows 0/6 until wallet connect.
+- **Exit-to-lobby:** `POST /api/game/exit` sets `player.connected = false`, preserves walletAddress. App.jsx shows Lobby when player disconnected during active game. Exit button in game header. `claim-slot` reordered to allow returning players during active games.
+- **HexMap click handling:** `onClick` on hex `<g>` elements with drag guard, rally point state with 4s auto-clear
+- **TickTimer:** Updated from 30s to 15s decision cycle display
+- **HP damage system:** Replaced instant death (margin >= 8) with HP bars in `battleResolver.js`. Spirits at 100HP. Loser takes `15 + margin*3`, winner takes `max(3, 10 - margin)` chip damage. Death at HP <= 0. HP bars on map above spirits (green/yellow/red gradient), hidden at full HP.
+- **Auto-engage battles:** Spirits moving onto enemy-occupied hexes auto-trigger 30s battles in `timerService.js`. Both attacker/defender set to 'battling'. No more walking through enemies.
+- **Pause system:** Space toggles pause. `pauseGame()`/`resumeGame()` in tickEngine, POST `/api/game/pause` and `/resume` routes. Frosted overlay "Press Space or click to resume". Pause/Resume + Exit buttons in game header.
+- **Dialog feed overlay:** Replaced SVG speech bubbles (unreadable, overlapping, markdown artifacts) with HTML floating feed at bottom-left of HexMap. Last 5 messages, team-color left border (`pc`), warm bg for own spirits, cool bg for enemies. Markdown `**` stripped.
+- **Speaking indicator dot:** Pulsing circle above speaking spirit, color = `pc` (team color), consistent with feed card accent.
+- **Loading screen:** Gold animated loading bar + pulsing logo while connecting to game server.
+- **Game over screen:** Design system colors, victory glow, "Start New Game" button, EssenceExport integrated.
+- **EssenceExport redesign:** Gold design system, gradient export button, yellow warning "only way to bring spirits back", green confirmation copy button.
+- **DevWallet context:** `frontend/src/lib/devWallet.jsx` for CLI testing. WalletConnect shows "Dev Connect" text input when no browser wallets detected. DevWalletProvider wraps App in main.jsx.
+- **Fixed:** React hooks ordering — isPaused useEffect after early returns caused "Rendered more hooks" crash. Moved above all returns.
+- **Remaining:** Demo video, project logo, submission description, website. Mechanics redesign (memory-as-power) unimplemented.

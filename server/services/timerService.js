@@ -59,6 +59,40 @@ async function resolveTimer(timer, gameState) {
           toHex.spiritIds.push(spirit.id);
         }
 
+        // Check for enemy spirits on the destination hex — auto-engage
+        const enemyOnHex = toHex.spiritIds.find(id => {
+          const s = gameState.spirits[id];
+          return s && s.id !== spirit.id && s.playerId !== spirit.playerId && s.alive && s.currentAction?.type !== 'battling';
+        });
+
+        if (enemyOnHex) {
+          // Auto-start battle with the first enemy found
+          const battleDuration = 30_000;
+          startTimer(gameState, {
+            type: 'battle',
+            spiritId: spirit.id,
+            duration: battleDuration,
+            data: { attackerId: spirit.id, defenderId: enemyOnHex, hexId: toHex.id },
+          });
+          spirit.hexId = timer.data.toHex;
+          spirit.currentAction = { type: 'battling', startedAt: Date.now(), completesAt: Date.now() + battleDuration };
+          const defender = gameState.spirits[enemyOnHex];
+          if (defender) {
+            defender.currentAction = { type: 'battling', startedAt: Date.now(), completesAt: Date.now() + battleDuration };
+          }
+          spirit.explorationXP = (spirit.explorationXP || 0) + 2;
+          evaluateSpecialization(spirit);
+          return {
+            type: 'battle_started',
+            attackerId: spirit.id,
+            attackerName: spirit.name,
+            defenderId: enemyOnHex,
+            defenderName: defender?.name || '?',
+            hexId: toHex.id,
+            autoEngaged: true,
+          };
+        }
+
         // Territory claim logic:
         // - Unclaimed: auto-claim
         // - Enemy hex: claim if spirit's team has a presence and enemy doesn't
@@ -71,14 +105,12 @@ async function resolveTimer(timer, gameState) {
         }).length;
 
         if (!toHex.controller) {
-          // Unclaimed — claim it
           toHex.controller = spirit.playerId;
           if (gameState.players[spirit.playerId]) {
             gameState.players[spirit.playerId].hexesControlled =
               (gameState.players[spirit.playerId].hexesControlled || 0) + 1;
           }
         } else if (toHex.controller !== spirit.playerId && myTeamCount > 0 && enemyCount === 0) {
-          // Contested and we're the only ones here now — claim it
           claimHex(toHex.id, spirit.playerId, gameState);
         }
       }

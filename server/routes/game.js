@@ -2,10 +2,11 @@ import { Router } from 'express';
 import { sanitizeForClient, broadcastStateChange } from '../services/wsService.js';
 import { chatWithSpirit, chatWithEnemySpirit } from '../services/spiritDialogueService.js';
 import { applyBondAction } from '../services/bondService.js';
-import { applyDeityIntent } from '../services/spiritDecisionService.js';
+import { applyDeityIntent, issueRallyCommand } from '../services/spiritDecisionService.js';
 import { readEssence, getStorageMode } from '../services/walrusService.js';
 import { applyEssence } from '../services/essenceService.js';
 import { generateAvatarBackground } from '../services/avatarService.js';
+import { pauseGame, resumeGame } from '../services/tickEngine.js';
 
 const PACKAGE_ID = process.env.PACKAGE_ID || '0xb0f9ba3da143c92225ada477204a57fd61bae3f2c5c70e8593ce29eac309da21';
 const ADMIN_CAP = process.env.ADMIN_CAP_ID || '0x87faef3092e7568ecac9c9e2475828ed521bace50f3747e87abb07dc585a6f88';
@@ -34,10 +35,44 @@ router.post('/restart', async (req, res) => {
   }
 });
 
+router.post('/pause', (req, res) => {
+  if (pauseGame()) return res.json({ status: 'paused' });
+  res.status(400).json({ error: 'Game is not active' });
+});
+
+router.post('/resume', (req, res) => {
+  if (resumeGame()) return res.json({ status: 'active' });
+  res.status(400).json({ error: 'Game is not paused' });
+});
+
 router.get('/state', (req, res) => {
   const state = getGameState();
   if (!state) return res.status(404).json({ error: 'No active game' });
   res.json(sanitizeForClient(state));
+});
+
+router.post('/claim-slot', (req, res) => {
+  const { walletAddress } = req.body;
+  if (!walletAddress) return res.status(400).json({ error: 'Missing walletAddress' });
+
+  const state = getGameState();
+  if (!state) return res.status(404).json({ error: 'No active game' });
+  const existing = Object.entries(state.players).find(([, p]) => p.walletAddress === walletAddress);
+  if (existing) return res.json({ playerId: existing[0], player: existing[1], alreadyClaimed: true });
+
+  if (state.status !== 'lobby') return res.status(400).json({ error: 'Game already started' });
+
+  const available = Object.entries(state.players).find(([, p]) => !p.walletAddress);
+  if (!available) return res.status(400).json({ error: 'All deity slots are taken' });
+
+  const [playerId, player] = available;
+  player.walletAddress = walletAddress;
+  player.connected = true;
+  player.lastSeen = Date.now();
+
+  broadcastStateChange(state);
+  console.log(`[claim-slot] ${walletAddress.slice(0, 10)}... claimed ${playerId} (${player.name})`);
+  res.json({ playerId, player, alreadyClaimed: false });
 });
 
 router.post('/ready', async (req, res) => {
@@ -47,6 +82,7 @@ router.post('/ready', async (req, res) => {
 
   const player = state.players[playerId];
   if (!player) return res.status(404).json({ error: 'Player not found' });
+  if (!player.walletAddress) return res.status(400).json({ error: 'Connect wallet first' });
 
   player.connected = true;
   player.lastSeen = Date.now();
@@ -173,6 +209,38 @@ router.post('/chat', async (req, res) => {
     console.error('[chat] Error:', err.message, err.stack?.split('\n').slice(0, 3).join('\n'));
     res.status(500).json({ error: err.message });
   }
+});
+
+// POST /api/game/command — direct tactical command (click hex to rally/attack)
+router.post('/command', (req, res) => {
+  const { playerId, targetHexId } = req.body;
+  const state = getGameState();
+  if (!state) return res.status(404).json({ error: 'No active game' });
+  if (!playerId || !targetHexId) return res.status(400).json({ error: 'Missing playerId or targetHexId' });
+
+  const targetHex = state.map.hexes[targetHexId];
+  if (!targetHex) return res.status(400).json({ error: 'Invalid hex' });
+  if (targetHex.terrain === 'ocean') return res.status(400).json({ error: 'Cannot rally to ocean' });
+
+  const result = issueRallyCommand(playerId, targetHexId, state);
+  res.json(result);
+});
+
+// POST /api/game/exit — return to lobby without disconnecting wallet
+router.post('/exit', (req, res) => {
+  const { playerId } = req.body;
+  const state = getGameState();
+  if (!state) return res.status(404).json({ error: 'No active game' });
+
+  const player = state.players[playerId];
+  if (!player) return res.status(404).json({ error: 'Player not found' });
+
+  player.connected = false;
+  player.lastSeen = Date.now();
+
+  broadcastStateChange(state);
+  console.log(`[exit] ${player.name} (${playerId}) returned to lobby`);
+  res.json({ status: 'exited' });
 });
 
 // GET /api/game/chain-info — exposes deployed contract/storage metadata for UI

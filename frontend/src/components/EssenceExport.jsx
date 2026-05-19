@@ -80,81 +80,117 @@ export default function EssenceExport({ gameState, playerId }) {
   }
 
   return (
-    <div className="bg-gray-900/70 border border-amber-900/40 rounded-lg p-5 space-y-4 text-left">
+    <div
+      className="rounded-lg p-5 space-y-4 text-left"
+      style={{
+        background: 'rgba(6,10,18,0.8)',
+        border: '1px solid var(--gold-dim)',
+        boxShadow: status === 'success' ? '0 0 30px rgba(212,160,82,0.15)' : 'none',
+      }}
+    >
       <div>
-        <div className="text-xs text-amber-600 font-mono tracking-wider mb-1">SWARM ESSENCE</div>
-        <p className="text-sm text-gray-400">
-          Preserve your swarm's memories and playstyle on Walrus. Import in your next game to reincarnate your spirits.
+        <div className="text-sm font-mono tracking-wider mb-1" style={{ color: 'var(--gold-bright)' }}>
+          PRESERVE YOUR SWARM
+        </div>
+        <p className="text-base" style={{ color: 'var(--text-secondary)' }}>
+          Export your spirits' memories to Walrus. This blob ID is how they live again.
         </p>
       </div>
 
       {status === 'idle' && (
         <button
           onClick={handleExport}
-          className="w-full py-2.5 bg-amber-700 hover:bg-amber-600 rounded-lg text-white font-display
-                     text-sm transition-colors"
+          className="w-full py-3 rounded-lg font-display text-base transition-all hover:brightness-110"
+          style={{
+            background: 'linear-gradient(135deg, rgba(180,120,40,0.8), rgba(140,90,30,0.9))',
+            color: '#fff',
+            border: '1px solid var(--gold-dim)',
+            boxShadow: '0 0 20px rgba(212,160,82,0.2)',
+          }}
         >
           Export Swarm Essence
         </button>
       )}
 
       {status === 'loading' && (
-        <div className="flex items-center gap-3 py-2.5 text-amber-400 text-sm font-mono">
+        <div className="flex items-center gap-3 py-3 text-sm font-mono" style={{ color: 'var(--gold-bright)' }}>
           <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
-          Preserving essence...
+          Preserving essence on Walrus...
         </div>
       )}
 
       {status === 'success' && blobId && (
-        <div className="space-y-3">
-          <div className="flex gap-2 text-xs text-gray-500 font-mono">
-            <span className="text-amber-600">{spiritCount}</span> spirits
-            <span className="text-gray-400">·</span>
-            <span className="text-amber-600">{memoryCount}</span> memories preserved
+        <div className="space-y-4">
+          <div className="flex gap-2 text-sm font-mono" style={{ color: 'var(--text-secondary)' }}>
+            <span style={{ color: 'var(--gold-bright)' }}>{spiritCount}</span> spirits
+            <span style={{ color: 'var(--gold-dim)' }}>·</span>
+            <span style={{ color: 'var(--gold-bright)' }}>{memoryCount}</span> memories preserved
           </div>
 
-          <div className="space-y-1">
-            <div className="text-xs text-gray-500 font-mono tracking-wider">BLOB ID</div>
+          <div className="space-y-2">
+            <div className="text-xs font-mono tracking-wider" style={{ color: 'var(--gold-bright)' }}>
+              YOUR BLOB ID — SAVE THIS
+            </div>
             <div className="flex items-stretch gap-2">
-              <code className="flex-1 font-mono text-xs text-green-400 bg-gray-950 border border-gray-700/60
-                               rounded px-3 py-2 break-all leading-relaxed">
+              <code
+                className="flex-1 font-mono text-sm break-all leading-relaxed rounded px-3 py-2.5"
+                style={{
+                  color: '#86efac',
+                  background: 'rgba(0,0,0,0.4)',
+                  border: '1px solid var(--gold-dim)',
+                }}
+              >
                 {blobId}
               </code>
               <button
                 onClick={handleCopy}
                 title="Copy blob ID"
-                className="px-3 bg-gray-800 hover:bg-gray-700 border border-gray-700/60 rounded text-xs
-                           text-gray-400 hover:text-white transition-colors whitespace-nowrap"
+                className="px-4 rounded text-sm font-mono transition-all whitespace-nowrap"
+                style={{
+                  background: copied ? 'rgba(34,197,94,0.2)' : 'var(--bg-elevated)',
+                  border: `1px solid ${copied ? 'rgba(34,197,94,0.4)' : 'var(--gold-dim)'}`,
+                  color: copied ? '#86efac' : 'var(--text-primary)',
+                }}
               >
                 {copied ? '✓ Copied' : 'Copy'}
               </button>
             </div>
+            <p
+              className="text-sm font-body flex items-center gap-1.5"
+              style={{
+                color: '#fbbf24',
+                background: 'rgba(251,191,36,0.08)',
+                border: '1px solid rgba(251,191,36,0.15)',
+                borderRadius: '6px',
+                padding: '8px 12px',
+              }}
+            >
+              <span style={{ fontSize: '1.1em' }}>⚠</span>
+              This is your only way to bring your spirits back. Save it somewhere safe.
+            </p>
           </div>
 
           {memorableMoments.length > 0 && (
             <div className="space-y-1">
-              <div className="text-xs text-gray-500 font-mono tracking-wider">MEMORABLE MOMENTS</div>
+              <div className="text-xs font-mono tracking-wider" style={{ color: 'var(--text-secondary)' }}>MEMORABLE MOMENTS</div>
               {memorableMoments.map((m, i) => (
-                <p key={i} className="text-xs text-gray-500 italic leading-snug">"{m}"</p>
+                <p key={i} className="text-sm italic leading-snug" style={{ color: 'var(--text-muted)' }}>"{m}"</p>
               ))}
             </div>
           )}
-
-          <p className="text-xs text-gray-400 italic">
-            Save this ID — paste it in the lobby next game to reincarnate your spirits.
-          </p>
         </div>
       )}
 
       {status === 'error' && (
         <div className="space-y-2">
-          <p className="text-xs text-red-400 font-mono">{error}</p>
+          <p className="text-sm text-red-400 font-mono">{error}</p>
           <button
             onClick={handleExport}
-            className="w-full py-2 bg-gray-800 hover:bg-gray-700 rounded text-gray-300 text-sm transition-colors"
+            className="w-full py-2.5 rounded text-sm transition-colors"
+            style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--gold-dim)' }}
           >
             Retry Export
           </button>
