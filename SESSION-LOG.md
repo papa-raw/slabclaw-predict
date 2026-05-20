@@ -81,3 +81,17 @@
 - **DevWallet context:** `frontend/src/lib/devWallet.jsx` for CLI testing. WalletConnect shows "Dev Connect" text input when no browser wallets detected. DevWalletProvider wraps App in main.jsx.
 - **Fixed:** React hooks ordering — isPaused useEffect after early returns caused "Rendered more hooks" crash. Moved above all returns.
 - **Remaining:** Demo video, project logo, submission description, website. Mechanics redesign (memory-as-power) unimplemented.
+
+### Session Log — 2026-05-20
+- **Whisper system:** `WhisperBar.jsx` — swarm decree + enemy whisper with 2 charges per 30s cycle. `whisperService.js` with `broadcastSwarmWhisper()` and `broadcastEnemyWhisper()`. Enemy resistance mechanic (4 tiers: ignored/eroded/influenced/defected). "Chosen by god" name-drop targeting. Charge reset in tickEngine every 6th tick.
+- **Soul mining economy:** Replaced "memory harvesting" with soul mining. `memoryGenService.js` rewritten: 3% spawn chance per hex (was 10%), 8-19 energy per deposit (was 2-5), cap 80. Spawning costs 10 memories (`MIN_MEMORIES=10` in spawningService, deducted in spawnResolver). Gatherers renamed to soul miners in decision prompts.
+- **Soul deposit visualization:** SVG particle layer on HexMap — pulsing teal circles scaled by pool intensity, replacing plain text overlay. Hex tooltip changed to "soul energy".
+- **SpiritPanel overhaul:** Removed chat input (whispers now swarm-level). Added XP/bond stat tooltips (`cursor-help` + `title`). Added expandable MemWal memory recall section with `GET /api/game/spirit/:id/memories` endpoint.
+- **Target hex highlights:** Pulsing dashed outlines on hexes spirits are moving/exploring toward, player-colored with glow filter. Removed "Moving..."/"Exploring!" speech bubble labels.
+- **Dialog feed improvements:** Cards clickable to open spirit info panels. Three dialog types (DECREE/ENEMY_WHISPER/TAUNT) with distinct styling. Fixed deity decree events for non-spirit sourceIds.
+- **HP bars repositioned:** Moved above spirit heads (barY=-35, was -27).
+- **Deity naming fix:** All 6 players get random deity names from pool (removed hardcoded "You" for player-1).
+- **Enemy dropdown fix:** WhisperBar filter removed `connected !== false` check — AI bot players now appear as selectable targets.
+- **Docs rewritten:** `frontend/public/docs/index.html` updated with all current mechanics (whisper system, soul mining, enemy resistance tiers, spawning costs, XP/bond descriptions, game timing).
+- **Vite docs route:** Added middleware plugin to rewrite `/docs/` → `/docs/index.html` before SPA fallback.
+- **Remaining:** Player name selection (lobby input), stats bars deeper revisit, target hex highlight browser verification, demo video, submission.

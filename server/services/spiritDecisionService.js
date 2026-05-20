@@ -32,6 +32,9 @@ Spawn readiness: {spawnReady}
 DEITY ORDERS:
 {deityOrders}
 
+PAST LIVES:
+{pastLifeContext}
+
 MAP ROSTER (all spirits on the map):
 {mapRoster}
 
@@ -202,6 +205,17 @@ async function decideSpiritAction(spirit, gameState) {
     deityOrdersText = `From memory: ${whisperOrders.slice(0, 2).join('; ')}`;
   }
 
+  // Build past-life context for reincarnated spirits
+  let pastLifeContext;
+  if (spirit.reincarnationCount > 0) {
+    const namesList = (spirit.previousNames || []).join(', ') || 'unknown';
+    const memoriesList = (spirit.pastLifeMemories || []).map(m => `- ${m}`).join('\n');
+    pastLifeContext = `You have lived ${spirit.reincarnationCount} time(s) before. Previous names: ${namesList}.`
+      + (memoriesList ? `\nMemories from past lives:\n${memoriesList}` : '');
+  } else {
+    pastLifeContext = 'No past lives — this is your first existence.';
+  }
+
   const prompt = DECISION_PROMPT
     .replace('{name}', spirit.name)
     .replace('{personality}', spirit.personality)
@@ -216,6 +230,7 @@ async function decideSpiritAction(spirit, gameState) {
     .replace('{memoryCount}', String(spirit.memoryCount))
     .replace('{spawnReady}', spawnCheck.ready ? 'YES' : `NO (${spawnCheck.reasons.join(', ')})`)
     .replace('{deityOrders}', deityOrdersText)
+    .replace('{pastLifeContext}', pastLifeContext)
     .replace('{mapRoster}', mapRoster || 'No other spirits visible');
 
   if (!spirit.personalityProfile) {

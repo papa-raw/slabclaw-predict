@@ -15,7 +15,7 @@ const SUI_PRIVATE_KEY = process.env.SUI_PRIVATE_KEY;
 const SUI_RPC_URL = process.env.SUI_RPC_URL || 'https://fullnode.testnet.sui.io';
 
 /**
- * Mint a Spirit NFT on-chain.
+ * Mint a Spirit NFT onchain.
  * @param {string} name
  * @param {string} personalityHash - hex string
  * @param {number} generation
@@ -32,7 +32,7 @@ export async function mintSpirit(name, personalityHash, generation, parentId = n
 }
 
 /**
- * Record a battle on-chain.
+ * Record a battle onchain.
  * @param {string} attackerId - object ID
  * @param {string} defenderId - object ID
  * @param {string} winnerId - object ID
@@ -50,7 +50,7 @@ export async function recordBattle(attackerId, defenderId, winnerId, margin, ter
 }
 
 /**
- * Claim a territory hex on-chain.
+ * Claim a territory hex onchain.
  * @param {string} hexId
  * @param {string} controllerId - spirit or player address
  * @returns {Promise<void>}
@@ -64,7 +64,7 @@ export async function claimTerritory(hexId, controllerId) {
 }
 
 /**
- * Collect spawn fee on-chain.
+ * Collect spawn fee onchain.
  * @param {string} recipientAddress - SUI address
  * @returns {Promise<void>}
  */

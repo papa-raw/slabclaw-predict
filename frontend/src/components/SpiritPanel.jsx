@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { SPEC_COLORS, getPlayerColor } from '@lib/terrainTypes.js';
+import { SPEC_COLORS, SPEC_ICONS, getPlayerColor } from '@lib/terrainTypes.js';
 import { getAvatarUrl } from '@lib/avatarUrl.js';
 import LineageSection from './LineageSection.jsx';
 
@@ -100,7 +100,7 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
                 )}
               </div>
               <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                {spirit.specialization} · gen {spirit.generation} · {getBondTierName(bondAvg)} ({bondAvg})
+                <span style={{ color: SPEC_COLORS[spirit.specialization] || '#6b7280' }}>{SPEC_ICONS[spirit.specialization] || '◉'}</span> {spirit.specialization} · gen {spirit.generation} · {getBondTierName(bondAvg)} ({bondAvg})
               </p>
               {spirit.memwalAccountId ? (
                 <a

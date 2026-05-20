@@ -8,11 +8,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [
     {
-      name: 'docs-static',
+      name: 'static-pages',
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
           if (req.url === '/docs' || req.url === '/docs/') {
             req.url = '/docs/index.html';
+          }
+          if (req.url === '/explorer' || req.url === '/explorer/') {
+            req.url = '/explorer/index.html';
           }
           next();
         });
