@@ -268,7 +268,7 @@ router.get('/spirit/:id/memories', async (req, res) => {
   try {
     const key = getKey(spirit.id);
     const result = await recallMemoriesServer(
-      spirit.memwalNamespace, '', 50, key, spirit.memwalAccountId
+      spirit.memwalNamespace, 'all memories', 50, key, spirit.memwalAccountId
     );
     res.json({
       spiritId: spirit.id,

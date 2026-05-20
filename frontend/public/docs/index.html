@@ -6,6 +6,7 @@
   <title>Anima Swarm — Docs</title>
   <link rel="icon" href="/logo-icon.svg" type="image/svg+xml" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/shared-chrome.css" />
   <style>
     :root {
       --bg-deep: #060a12;
@@ -26,20 +27,7 @@
       font-family: 'Inter', sans-serif;
       line-height: 1.7;
     }
-    .nav {
-      position: sticky; top: 0; z-index: 50;
-      display: flex; align-items: center; gap: 16px;
-      padding: 12px 32px;
-      background: rgba(6,10,18,0.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--gold-dim);
-    }
-    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-    .nav-logo img { width: 28px; height: 28px; }
-    .nav-logo span { font-family: 'Cinzel', serif; font-size: 16px; color: var(--gold-bright); font-weight: 600; letter-spacing: 0.08em; }
-    .nav-spacer { flex: 1; }
-    .nav a { color: var(--text-secondary); font-size: 13px; text-decoration: none; font-family: 'JetBrains Mono', monospace; transition: color 0.2s; }
-    .nav a:hover { color: var(--gold-bright); }
+    #shared-nav { position: sticky; top: 0; }
     .container { max-width: 820px; margin: 0 auto; padding: 48px 32px 96px; }
     h1 { font-family: 'Cinzel', serif; font-size: 2.2rem; color: var(--gold-bright); margin-bottom: 8px; }
     h2 { font-family: 'Cinzel', serif; font-size: 1.4rem; color: var(--gold-bright); margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--gold-dim); }
@@ -66,22 +54,11 @@
     .spec-card .name { font-family: 'Cinzel', serif; font-size: 14px; color: var(--text-primary); margin-bottom: 4px; }
     .spec-card .bonus { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
     .spec-card .desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-    .footer { text-align: center; padding: 32px; color: var(--text-muted); font-size: 12px; font-family: 'JetBrains Mono', monospace; border-top: 1px solid var(--gold-dim); margin-top: 48px; }
-    .footer a { color: var(--text-secondary); }
     .tier-table td:first-child { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
   </style>
 </head>
 <body>
-  <nav class="nav">
-    <a href="/" class="nav-logo">
-      <img src="/logo-icon.svg" alt="Anima Swarm" />
-      <span>Anima Swarm</span>
-    </a>
-    <div class="nav-spacer"></div>
-    <a href="/">Play</a>
-    <a href="/docs/" style="color: var(--gold-bright);">Docs</a>
-    <a href="https://github.com/papa-raw/anima-swarm" target="_blank" rel="noopener">GitHub</a>
-  </nav>
+  <nav id="shared-nav"></nav>
 
   <div class="container">
     <h1>Anima Swarm</h1>
@@ -302,10 +279,116 @@
       <li><a href="https://suiscan.xyz/testnet/object/0xb0f9ba3da143c92225ada477204a57fd61bae3f2c5c70e8593ce29eac309da21" target="_blank" style="color:var(--accent-teal);">Deployed Package on SuiScan</a></li>
     </ul>
 
-    <div class="footer">
-      <p>Anima Swarm &middot; Sui Overflow 2026 &middot; Walrus Track</p>
-      <p>Built by <a href="https://github.com/papa-raw" target="_blank">paparaw.eth</a></p>
+    <h2>Build Your Own&mdash;Persistent Agent Memory</h2>
+
+    <h3>Architecture Overview</h3>
+    <p>Anima Swarm wires <a href="https://docs.memwal.ai" target="_blank" style="color:var(--accent-teal);">MemWal</a> + <a href="https://docs.wal.app" target="_blank" style="color:var(--accent-teal);">Walrus</a> to give every AI agent persistent, verifiable, portable memory. The pattern works for any multi-agent system&mdash;games, assistants, autonomous workflows.</p>
+
+    <pre><code>  Agent (JS/TS)
+      │
+      ▼
+  MemWal SDK
+      │  remember()  →  store text + vector embedding
+      │  recall()    →  semantic search across all memories
+      ▼
+  Walrus Blobs
+      │  Each memory = a Walrus blob with a unique blob ID
+      │  Indexed by MemWal for vector recall
+      ▼
+  Sui Ledger
+      │  MemWal account = Sui object (delegate key auth)
+      │  Blob references are verifiable onchain
+      ▼
+  Any Agent, Any App
+         Can read public memories by namespace</code></pre>
+
+    <p>Each agent gets a <strong>MemWal account</strong> (a Sui object) with a <strong>delegate key</strong> for signing. Memories are stored as Walrus blobs with vector indexing on the relayer. Agents recall memories by semantic search&mdash;not key lookup. Multiple agents can share a namespace for coordination.</p>
+
+    <h3>The 50-Line Pattern</h3>
+    <p>Everything you need to give an agent persistent memory:</p>
+
+    <pre><code>// 1. Generate a delegate key for your agent
+import { generateDelegateKey, createAccount, addDelegateKey } from '@mysten-incubation/memwal/account';
+import { MemWal } from '@mysten-incubation/memwal';
+
+// 2. Create a MemWal account (one-time setup)
+const delegate = await generateDelegateKey();
+const { accountId } = await createAccount({
+  packageId: '0xcf6ad755...', // MemWal testnet
+  registryId: '0xe80f2fee...',
+  suiPrivateKey: process.env.SUI_PRIVATE_KEY,
+  suiNetwork: 'testnet',
+});
+await addDelegateKey({
+  packageId,
+  accountId,
+  publicKey: delegate.publicKey,
+  label: 'Agent',
+  suiPrivateKey,
+  suiNetwork: 'testnet',
+});
+
+// 3. Wire up the agent's memory
+const memory = MemWal.create({
+  key: delegate.privateKey,
+  accountId,
+  serverUrl: 'https://relayer.memwal.ai',
+  namespace: 'my-agent',
+});
+
+// 4. Remember (stores on Walrus, indexed for recall)
+await memory.rememberAndWait('User prefers morning meetings');
+
+// 5. Recall (semantic search across all memories)
+const results = await memory.recall('scheduling preferences', 5);
+// results.results = [{ text: 'User prefers morning meetings', ... }]
+
+// 6. Cross-agent sharing — another agent reads the same namespace
+const agent2 = MemWal.create({
+  key: agent2Key,
+  accountId: agent2Account,
+  namespace: 'my-agent',
+});
+const shared = await agent2.recall('scheduling', 3);</code></pre>
+
+    <h3>What Makes This Different</h3>
+    <ul>
+      <li><strong>Persistent</strong>&mdash;memories live on Walrus. They survive server restarts, app migrations, even company shutdowns.</li>
+      <li><strong>Verifiable</strong>&mdash;anyone can check what an agent remembers via Walrus blob IDs. No hidden state.</li>
+      <li><strong>Portable</strong>&mdash;export an agent's memory namespace, import into a different app. Your agent's history travels with it.</li>
+      <li><strong>Shared</strong>&mdash;multiple agents read the same namespace for coordination. One agent's discovery becomes another's context.</li>
+      <li><strong>Semantic</strong>&mdash;recall by meaning, not by key lookup. Ask "scheduling preferences" and get memories about morning meetings.</li>
+    </ul>
+
+    <h3>Anima Swarm as Reference Implementation</h3>
+    <div class="card">
+      <div class="card-title">LIVING PROOF</div>
+      <p style="margin:0;">This game is a reference implementation. Every spirit is an autonomous agent with its own MemWal account. Deity whispers become memories, battle outcomes become memories, territorial discoveries become memories. When a spirit dies and is reincarnated in a new game, its memories persist on Walrus&mdash;portable across game sessions. Browse any spirit's memory timeline in the <a href="/explorer/" style="color:var(--accent-teal);">Memory Explorer</a>.</p>
     </div>
+
+    <table>
+      <thead><tr><th>Game Event</th><th>Memory Stored</th><th>Used For</th></tr></thead>
+      <tbody>
+        <tr><td>Deity decree</td><td><code>[DEITY DECREE]</code> text</td><td>Spirit decision-making, bond tracking</td></tr>
+        <tr><td>Enemy whisper</td><td><code>[ENEMY WHISPER]</code> text</td><td>Resistance erosion, loyalty drift</td></tr>
+        <tr><td>Battle outcome</td><td>Winner, loser, margin, narrative</td><td>Future combat decisions, reputation</td></tr>
+        <tr><td>Territory claim</td><td>Hex ID, timestamp, context</td><td>Exploration strategy, swarm coordination</td></tr>
+        <tr><td>Spawn event</td><td>Parent memories (LLM-ranked)</td><td>Child personality formation</td></tr>
+        <tr><td>Essence export</td><td>Full memory snapshot (Walrus blob)</td><td>Cross-game reincarnation</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Developer Links</h3>
+    <ul>
+      <li><a href="https://github.com/MystenLabs/MemWal" target="_blank" style="color:var(--accent-teal);">MemWal SDK (GitHub)</a></li>
+      <li><a href="https://docs.memwal.ai" target="_blank" style="color:var(--accent-teal);">MemWal Documentation</a></li>
+      <li><a href="https://docs.wal.app" target="_blank" style="color:var(--accent-teal);">Walrus Documentation</a></li>
+      <li><a href="https://github.com/papa-raw/anima-swarm" target="_blank" style="color:var(--accent-teal);">Anima Swarm Source</a></li>
+      <li><a href="/explorer/" style="color:var(--accent-teal);">Memory Explorer</a></li>
+    </ul>
+
+    <div id="shared-footer" style="margin-top:48px;"></div>
   </div>
+  <script src="/assets/shared-chrome.js"></script>
 </body>
 </html>

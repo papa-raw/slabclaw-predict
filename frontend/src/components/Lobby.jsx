@@ -12,6 +12,8 @@ const SPEC_COLORS = {
   generalist: 'var(--spec-generalist)',
 };
 
+const SPEC_ICONS = { warrior: '⚔', scout: '⌖', gatherer: '◈', sage: '✦', generalist: '◉' };
+
 function WalrusIcon({ size = 20 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
@@ -169,6 +171,13 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
         >
           GitHub
         </a>
+        <a
+          href="/explorer/"
+          className="font-mono text-xs transition-colors hover:text-amber-400"
+          style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
+        >
+          Explorer
+        </a>
         <div className="h-4 w-px" style={{ background: 'var(--gold-dim)' }} />
         <WalletConnect />
       </nav>
@@ -290,7 +299,7 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
                           {s.name}
                         </span>
                         <span className="text-xs font-mono uppercase tracking-wider" style={{ color: specColor }}>
-                          {s.specialization}
+                          {SPEC_ICONS[s.specialization] || '◉'} {s.specialization}
                         </span>
                         {isReborn && prevNames.length > 0 && (
                           <span className="text-xs italic" style={{ color: 'var(--text-muted)' }}>

@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anima Swarm — Memory Explorer</title>
+  <link rel="icon" href="/logo-icon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/shared-chrome.css" />
+  <style>
+    :root {
+      --bg-deep: #060a12;
+      --bg-surface: #0d1117;
+      --bg-elevated: #161b22;
+      --gold-bright: #d4a052;
+      --gold-dim: rgba(212,160,82,0.2);
+      --text-primary: #e8e0d0;
+      --text-secondary: #a09080;
+      --text-muted: #605848;
+      --accent-teal: #2dd4bf;
+      --accent-purple: #a78bfa;
+      --spec-warrior: #dc2626;
+      --spec-scout: #2563eb;
+      --spec-gatherer: #16a34a;
+      --spec-sage: #9333ea;
+      --spec-generalist: #6b7280;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg-deep); color: var(--text-primary); font-family: 'Inter', sans-serif; line-height: 1.7; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+    /* Nav + footer via shared chrome */
+
+    /* Main two-column layout */
+    .main { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+
+    /* Left column — spirit list */
+    .left-col { width: 340px; flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid var(--gold-dim); background: var(--bg-surface); }
+    .left-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--gold-dim); flex-shrink: 0; }
+    .left-header h1 { font-family: 'Cinzel', serif; font-size: 1.3rem; color: var(--gold-bright); margin-bottom: 2px; }
+    .left-header .subtitle { font-style: italic; color: var(--text-muted); font-size: 12px; }
+    .left-header .refresh-note { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .spirit-list { flex: 1; overflow-y: auto; padding: 8px; }
+    .spirit-list::-webkit-scrollbar { width: 4px; }
+    .spirit-list::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+
+    .spirit-card { background: var(--bg-elevated); border: 1px solid transparent; border-radius: 8px; padding: 12px; cursor: pointer; transition: border-color 0.2s, background 0.15s; margin-bottom: 6px; }
+    .spirit-card:hover { background: rgba(212,160,82,0.04); }
+    .spirit-card.active { border-color: var(--gold-bright); background: rgba(212,160,82,0.06); }
+    .spirit-card.dead { opacity: 0.55; }
+    .spirit-header { display: flex; align-items: center; gap: 10px; }
+    .spirit-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Cinzel', serif; font-size: 15px; font-weight: 700; flex-shrink: 0; overflow: hidden; }
+    .spirit-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .spirit-name { font-family: 'Cinzel', serif; font-size: 14px; color: var(--text-primary); line-height: 1.2; }
+    .spirit-meta { font-size: 11px; color: var(--text-muted); line-height: 1.3; display: flex; align-items: center; gap: 4px; }
+    .spirit-meta .spec-icon { font-size: 12px; }
+    .spirit-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+
+    .badge { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 1px 6px; border-radius: 10px; }
+    .badge-gold { background: rgba(212,160,82,0.15); color: var(--gold-bright); border: 1px solid rgba(212,160,82,0.3); }
+    .badge-teal { background: rgba(45,212,191,0.1); color: var(--accent-teal); border: 1px solid rgba(45,212,191,0.2); }
+    .badge-red { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
+    .badge-alive { background: rgba(74,222,128,0.1); color: #4ade80; border: 1px solid rgba(74,222,128,0.2); }
+    .stat { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-secondary); background: var(--bg-deep); padding: 1px 6px; border-radius: 4px; }
+
+    .no-game { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .no-game h3 { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--text-secondary); margin-bottom: 6px; }
+
+    /* Right column — detail + essence */
+    .right-col { flex: 1; overflow-y: auto; min-width: 0; }
+    .right-col::-webkit-scrollbar { width: 6px; }
+    .right-col::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
+    .right-inner { padding: 24px 32px 64px; max-width: 720px; }
+
+    .err-msg { color: #ef4444; font-size: 13px; margin-top: 8px; }
+
+    /* Detail panel */
+    .detail-empty { display: flex; align-items: center; justify-content: center; height: 300px; color: var(--text-muted); font-style: italic; font-size: 14px; }
+    .detail-name { font-family: 'Cinzel', serif; font-size: 1.2rem; color: var(--gold-bright); margin-bottom: 2px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .detail-name .spec-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; display: inline-flex; align-items: center; gap: 3px; }
+    .detail-subtitle { font-size: 12px; color: var(--text-secondary); }
+    .section-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+
+    .bar-wrap { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+    .bar-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); width: 36px; text-transform: uppercase; }
+    .bar-track { flex: 1; height: 8px; background: var(--bg-elevated); border-radius: 4px; overflow: hidden; position: relative; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; min-width: 3px; }
+    .bar-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-secondary); width: 32px; text-align: right; }
+
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0; }
+    .stat-box { background: var(--bg-elevated); border-radius: 6px; padding: 10px; text-align: center; }
+    .stat-box .val { font-family: 'JetBrains Mono', monospace; font-size: 18px; color: var(--text-primary); }
+    .stat-box .lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .past-life { background: var(--bg-elevated); border-radius: 6px; padding: 12px; margin-top: 12px; }
+    .past-life h4 { font-family: 'Cinzel', serif; font-size: 13px; color: var(--accent-purple); margin-bottom: 6px; }
+    .link-row { margin-top: 10px; }
+    .link-row a { color: var(--accent-teal); font-size: 13px; font-family: 'JetBrains Mono', monospace; text-decoration: none; }
+    .link-row a:hover { text-decoration: underline; }
+    .memory-list-header { display: flex; align-items: center; justify-content: space-between; margin: 16px 0 8px; }
+    .memory-list-header .section-label { margin-bottom: 0; }
+
+    /* Memory cards */
+    .mem-card { background: var(--bg-elevated); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; border: 1px solid transparent; transition: border-color 0.2s; position: relative; overflow: hidden; }
+    .mem-card:hover { border-color: var(--gold-dim); }
+    .mem-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px; }
+    .mem-card.cat-deity::before { background: var(--gold-bright); }
+    .mem-card.cat-dialog::before { background: #3b82f6; }
+    .mem-card.cat-battle::before { background: #ef4444; }
+    .mem-card.cat-enemy::before { background: #f97316; }
+    .mem-card.cat-response::before { background: var(--accent-teal); }
+    .mem-card.cat-other::before { background: var(--text-muted); }
+    .mem-type { display: inline-flex; align-items: center; gap: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 1px 7px; border-radius: 3px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .mem-type.t-deity { background: rgba(212,160,82,0.12); color: var(--gold-bright); }
+    .mem-type.t-dialog { background: rgba(59,130,246,0.1); color: #60a5fa; }
+    .mem-type.t-battle { background: rgba(239,68,68,0.1); color: #f87171; }
+    .mem-type.t-enemy { background: rgba(249,115,22,0.1); color: #fb923c; }
+    .mem-type.t-response { background: rgba(45,212,191,0.1); color: var(--accent-teal); }
+    .mem-type.t-other { background: var(--bg-deep); color: var(--text-muted); }
+    .mem-body { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+    .mem-effect { display: inline-flex; align-items: center; gap: 3px; font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 10px; margin-top: 6px; margin-right: 4px; }
+    .mem-footer { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+    .mem-time { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); }
+    .mem-score { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); }
+
+    /* Bond rings */
+    .bond-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+    .bond-cell { text-align: center; padding: 8px 4px; background: var(--bg-elevated); border-radius: 8px; }
+    .bond-ring { width: 56px; height: 56px; margin: 0 auto 6px; position: relative; }
+    .bond-ring svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+    .bond-ring .bond-val { position: absolute; top: 0; left: 0; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; }
+    .bond-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Pagination */
+    .mem-pagination { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; }
+    .mem-pagination button { background: var(--bg-elevated); border: 1px solid var(--gold-dim); color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 10px; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+    .mem-pagination button:hover:not(:disabled) { border-color: var(--gold-bright); color: var(--gold-bright); }
+    .mem-pagination button:disabled { opacity: 0.3; cursor: default; }
+    .mem-pagination button.active { background: var(--gold-bright); color: var(--bg-deep); border-color: var(--gold-bright); }
+    .mem-pagination span { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); }
+
+    /* Category filter tabs */
+    .mem-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .mem-filter-btn { background: var(--bg-deep); border: 1px solid transparent; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 3px 8px; border-radius: 12px; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.03em; }
+    .mem-filter-btn:hover { color: var(--text-secondary); }
+    .mem-filter-btn.active { border-color: var(--gold-dim); color: var(--text-primary); background: var(--bg-elevated); }
+
+    /* Left column tabs */
+    .left-tabs { display: flex; border-bottom: 1px solid var(--gold-dim); flex-shrink: 0; }
+    .left-tab { flex: 1; padding: 8px 0; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-muted); cursor: pointer; transition: all 0.2s; border-bottom: 2px solid transparent; background: none; border-top: none; border-left: none; border-right: none; }
+    .left-tab:hover { color: var(--text-secondary); }
+    .left-tab.active { color: var(--gold-bright); border-bottom-color: var(--gold-bright); }
+    .left-tab-content { display: none; flex: 1; overflow-y: auto; min-height: 0; }
+    .left-tab-content.visible { display: flex; flex-direction: column; flex: 1; }
+    .essence-input-wrap { padding: 12px; flex-shrink: 0; }
+    .essence-input-wrap input { width: 100%; background: var(--bg-elevated); border: 1px solid var(--gold-dim); color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 8px 10px; border-radius: 6px; outline: none; margin-bottom: 8px; }
+    .essence-input-wrap input::placeholder { color: var(--text-muted); }
+    .essence-input-wrap input:focus { border-color: var(--gold-bright); }
+    .essence-input-wrap button { width: 100%; background: var(--gold-bright); color: var(--bg-deep); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; padding: 8px; border: none; border-radius: 6px; cursor: pointer; }
+    .essence-input-wrap button:hover { opacity: 0.85; }
+    .essence-hint { padding: 0 12px; font-size: 11px; color: var(--text-muted); font-style: italic; line-height: 1.4; }
+    .essence-legacy-card { background: var(--bg-elevated); border-radius: 8px; padding: 10px 12px; margin: 4px 12px; cursor: pointer; border: 1px solid transparent; transition: border-color 0.2s; }
+    .essence-legacy-card:hover { border-color: var(--gold-dim); }
+    .essence-legacy-card.active { border-color: var(--gold-bright); }
+
+
+    code { font-family: 'JetBrains Mono', monospace; background: var(--bg-elevated); padding: 2px 6px; border-radius: 4px; font-size: 13px; color: var(--accent-teal); }
+
+    @media (max-width: 768px) {
+      .main { flex-direction: column; }
+      .left-col { width: 100%; height: 40vh; border-right: none; border-bottom: 1px solid var(--gold-dim); }
+      .right-inner { padding: 16px; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <nav id="shared-nav"></nav>
+
+  <div class="main">
+    <!-- LEFT: Tabbed navigation -->
+    <div class="left-col">
+      <div class="left-header">
+        <h1>Memory Explorer</h1>
+        <div class="subtitle">Browse spirit memories, verify onchain</div>
+      </div>
+      <div class="left-tabs">
+        <button class="left-tab active" onclick="switchTab('spirits')">Spirits</button>
+        <button class="left-tab" onclick="switchTab('essence')">Essence</button>
+      </div>
+
+      <!-- Spirits tab -->
+      <div class="left-tab-content visible" id="tab-spirits">
+        <div style="padding:6px 12px 0;"><span class="refresh-note" id="refresh-note" style="float:none;">auto-refresh 10s</span></div>
+        <div class="spirit-list" id="spirit-list"></div>
+        <div id="no-game" class="no-game" style="display:none;">
+          <h3>No active game</h3>
+          <p style="font-size:13px;">Start a game at <a href="/" style="color:var(--accent-teal);">the lobby</a></p>
+        </div>
+      </div>
+
+      <!-- Essence tab -->
+      <div class="left-tab-content" id="tab-essence">
+        <div class="essence-input-wrap">
+          <input type="text" id="blob-input" placeholder="Walrus blob ID..." />
+          <button onclick="fetchEssence()">Inspect Essence</button>
+        </div>
+        <div id="essence-error" class="err-msg" style="padding:0 12px;"></div>
+        <div class="essence-hint">Paste an exported swarm essence blob ID to inspect deity stats, spirit legacies, and game history stored on Walrus.</div>
+        <div id="essence-legacy-list" style="margin-top:8px;padding-bottom:12px;"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Detail panel -->
+    <div class="right-col">
+      <div class="right-inner">
+        <div id="detail-empty" class="detail-empty">Select a spirit to view details</div>
+        <div id="detail-content" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="shared-footer"></div>
+  <script src="/assets/shared-chrome.js"></script>
+
+<script>
+const COLORS = ['#22d3ee','#f87171','#a78bfa','#4ade80','#fbbf24','#f472b6'];
+const SPEC_COLORS = { warrior: '#dc2626', scout: '#2563eb', gatherer: '#16a34a', sage: '#9333ea', generalist: '#6b7280' };
+const SPEC_ICONS = { warrior: '⚔', scout: '⌖', gatherer: '◈', sage: '✦', generalist: '◉' };
+let gameState = null;
+let selectedSpiritId = null;
+let refreshTimer = null;
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function playerColor(pid) { const idx = parseInt((pid || '').replace('player-',''),10); return COLORS[(idx - 1) % COLORS.length] || COLORS[0]; }
+function specColor(spec) { return SPEC_COLORS[spec] || SPEC_COLORS.generalist; }
+function specIcon(spec) { return SPEC_ICONS[spec] || '◉'; }
+function pct(v, max) { return Math.min(100, Math.max(0, (v / (max || 1)) * 100)); }
+function bondAvg(b) { return b ? Math.round(((b.depth||0)+(b.harmony||0)+(b.adventure||0)+(b.loyalty||0))/4) : 0; }
+function ago(ts) { if (!ts) return ''; const s = Math.floor((Date.now()-ts)/1000); if (s<60) return s+'s ago'; if (s<3600) return Math.floor(s/60)+'m ago'; return Math.floor(s/3600)+'h ago'; }
+function avatarUrl(blobId) {
+  if (!blobId) return null;
+  return blobId.startsWith('mock-blob-') ? `/api/essence/blob/${blobId}` : `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${blobId}`;
+}
+
+// ── Fetch state ──────────────────────────────────────────────────────────
+async function loadState() {
+  try {
+    const r = await fetch('/api/game/state');
+    if (!r.ok) { gameState = null; renderList(); return; }
+    gameState = await r.json();
+    renderList();
+    if (selectedSpiritId) renderDetail(selectedSpiritId);
+  } catch { gameState = null; renderList(); }
+}
+
+// ── Spirit list (left column) ────────────────────────────────────────────
+function renderList() {
+  const list = document.getElementById('spirit-list');
+  const noGame = document.getElementById('no-game');
+  if (!gameState || !gameState.spirits) { list.innerHTML = ''; noGame.style.display = 'block'; return; }
+  noGame.style.display = 'none';
+  const spirits = Object.values(gameState.spirits).sort((a,b) => (a.playerId||'').localeCompare(b.playerId||'') || a.name.localeCompare(b.name));
+
+  list.innerHTML = spirits.map(s => {
+    const sc = specColor(s.specialization);
+    const si = specIcon(s.specialization);
+    const player = gameState.players?.[s.playerId];
+    const deityName = player ? player.name : s.playerId;
+    const hasAvatar = !!s.avatarBlobId;
+    const url = avatarUrl(s.avatarBlobId);
+    const isActive = s.id === selectedSpiritId;
+
+    return `<div class="spirit-card ${s.alive?'':'dead'} ${isActive?'active':''}" onclick="openDetail('${s.id}')">
+      <div class="spirit-header">
+        <div class="spirit-avatar" style="${hasAvatar ? '' : `background:${sc}20;color:${sc};border:2px solid ${sc}60`}">
+          ${hasAvatar ? `<img src="${url}" alt="" style="border:2px solid ${sc}" />` : `<span>${si}</span>`}
+        </div>
+        <div style="min-width:0;">
+          <div class="spirit-name">${esc(s.name)}</div>
+          <div class="spirit-meta">
+            <span class="spec-icon" style="color:${sc}">${si}</span>
+            <span style="color:${sc}">${esc(s.specialization||'generalist')}</span>
+            <span style="color:var(--text-muted);">&middot;</span>
+            <span>${esc(deityName)}</span>
+          </div>
+        </div>
+      </div>
+      <div class="spirit-badges">
+        <span class="badge ${s.alive?'badge-alive':'badge-red'}">${s.alive?'ALIVE':'DEAD'}</span>
+        <span class="stat">MEM ${s.memoryCount||0}</span>
+        <span class="stat">BOND ${bondAvg(s.bond)}</span>
+        <span class="stat">${s.kills||0}/${(s.reincarnationCount||0)+(s.alive?0:1)} K/D</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Detail panel (right column) ──────────────────────────────────────────
+function openDetail(id) {
+  selectedSpiritId = id;
+  renderList();
+  renderDetail(id);
+}
+
+let allMemories = [];
+let memFilter = 'all';
+let memPage = 0;
+const MEM_PER_PAGE = 8;
+
+const CATEGORY_META = {
+  deity:    { label: 'Deity',    icon: '👁', cls: 'deity',    effects: ['bond +depth', 'loyalty +'] },
+  dialog:   { label: 'Dialog',   icon: '💬', cls: 'dialog',   effects: ['bond +harmony'] },
+  battle:   { label: 'Battle',   icon: '⚔',  cls: 'battle',   effects: ['personality shift', 'bond +adventure'] },
+  enemy:    { label: 'Enemy',    icon: '🐍', cls: 'enemy',    effects: ['loyalty −', 'resistance −'] },
+  response: { label: 'Thought',  icon: '✦',  cls: 'response', effects: ['personality growth'] },
+  other:    { label: 'Other',    icon: '◦',  cls: 'other',    effects: [] },
+};
+
+function categorizeMem(text) {
+  if (text.startsWith('[DEITY')) return 'deity';
+  if (text.startsWith('[DIALOG')) return 'dialog';
+  if (text.startsWith('[BATTLE')) return 'battle';
+  if (text.startsWith('[ENEMY')) return 'enemy';
+  if (text.startsWith('[RESPONSE')) return 'response';
+  return 'other';
+}
+
+function extractEffects(text, cat) {
+  const effects = [];
+  const meta = CATEGORY_META[cat];
+  if (cat === 'deity') {
+    effects.push({ label: 'depth +', color: '#8b5cf6' });
+    if (text.toLowerCase().includes('loyalty') || text.toLowerCase().includes('trust')) effects.push({ label: 'loyalty +', color: '#3b82f6' });
+  } else if (cat === 'dialog') {
+    if (text.includes('ALLY_CHAT')) effects.push({ label: 'harmony +', color: '#22c55e' });
+    if (text.includes('TAUNT')) effects.push({ label: 'adventure +', color: '#f97316' });
+  } else if (cat === 'battle') {
+    effects.push({ label: 'personality shift', color: '#ef4444' });
+    if (text.includes('wins')) effects.push({ label: 'adventure +', color: '#f97316' });
+    if (text.includes('died') || text.includes('Loser died')) effects.push({ label: 'death', color: '#dc2626' });
+  } else if (cat === 'enemy') {
+    effects.push({ label: 'loyalty −', color: '#ef4444' });
+    effects.push({ label: 'resistance −', color: '#f97316' });
+  } else if (cat === 'response') {
+    effects.push({ label: 'personality growth', color: '#2dd4bf' });
+  }
+  return effects;
+}
+
+function bondRing(label, value, color) {
+  const r = 22, stroke = 4, circ = 2 * Math.PI * r;
+  const offset = circ - (value / 100) * circ;
+  return `<div class="bond-cell">
+    <div class="bond-ring">
+      <svg width="56" height="56" viewBox="0 0 56 56">
+        <circle cx="28" cy="28" r="${r}" fill="none" stroke="var(--bg-deep)" stroke-width="${stroke}" />
+        <circle cx="28" cy="28" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}"
+          stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round" />
+      </svg>
+      <span class="bond-val" style="color:${color};">${value}</span>
+    </div>
+    <div class="bond-lbl">${label}</div>
+  </div>`;
+}
+
+function renderMemoryPage() {
+  const items = document.getElementById('memory-items');
+  if (!items) return;
+  const filtered = memFilter === 'all' ? allMemories : allMemories.filter(m => m.cat === memFilter);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / MEM_PER_PAGE));
+  if (memPage >= totalPages) memPage = totalPages - 1;
+  const page = filtered.slice(memPage * MEM_PER_PAGE, (memPage + 1) * MEM_PER_PAGE);
+
+  if (filtered.length === 0) {
+    items.innerHTML = '<div style="color:var(--text-muted);font-size:13px;font-style:italic;padding:12px 0;">No memories in this category.</div>';
+    return;
+  }
+
+  let html = '';
+  page.forEach(m => {
+    const meta = CATEGORY_META[m.cat];
+    const effects = extractEffects(m.text, m.cat);
+    const cleanText = m.text.replace(/^\[[^\]]*\]\s*/, '');
+    html += `<div class="mem-card cat-${meta.cls}">
+      <div class="mem-type t-${meta.cls}">${meta.icon} ${meta.label}</div>
+      <div class="mem-body">${esc(cleanText)}</div>
+      <div class="mem-footer">`;
+    effects.forEach(e => {
+      html += `<span class="mem-effect" style="background:${e.color}15;color:${e.color};border:1px solid ${e.color}30;">${e.label}</span>`;
+    });
+    if (m.score) html += `<span class="mem-score">relevance ${Math.round(m.score * 100)}%</span>`;
+    html += `</div></div>`;
+  });
+
+  // Pagination
+  if (totalPages > 1) {
+    html += `<div class="mem-pagination">
+      <button onclick="memPage=0;renderMemoryPage();" ${memPage===0?'disabled':''}>«</button>
+      <button onclick="memPage--;renderMemoryPage();" ${memPage===0?'disabled':''}>‹</button>
+      <span>${memPage+1} / ${totalPages}</span>
+      <button onclick="memPage++;renderMemoryPage();" ${memPage>=totalPages-1?'disabled':''}>›</button>
+      <button onclick="memPage=${totalPages-1};renderMemoryPage();" ${memPage>=totalPages-1?'disabled':''}>»</button>
+    </div>`;
+  }
+  items.innerHTML = html;
+}
+
+function setMemFilter(cat) {
+  memFilter = cat;
+  memPage = 0;
+  document.querySelectorAll('.mem-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  renderMemoryPage();
+}
+
+async function renderDetail(id) {
+  const emptyEl = document.getElementById('detail-empty');
+  const contentEl = document.getElementById('detail-content');
+  if (!gameState) return;
+  const s = gameState.spirits[id];
+  if (!s) return;
+  emptyEl.style.display = 'none';
+  contentEl.style.display = 'block';
+  allMemories = [];
+  memFilter = 'all';
+  memPage = 0;
+
+  const sc = specColor(s.specialization);
+  const si = specIcon(s.specialization);
+  const player = gameState.players?.[s.playerId];
+  const deityName = player ? player.name : s.playerId;
+  const hasAvatar = !!s.avatarBlobId;
+  const url = avatarUrl(s.avatarBlobId);
+  const deaths = (s.reincarnationCount||0) + (s.alive ? 0 : 1);
+
+  let html = '';
+
+  // ── Identity header ──
+  html += `<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">`;
+  if (hasAvatar) {
+    html += `<img src="${url}" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid ${sc};flex-shrink:0;" />`;
+  } else {
+    html += `<div style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;background:${sc}15;color:${sc};border:2px solid ${sc}50;flex-shrink:0;">${si}</div>`;
+  }
+  html += `<div>
+    <div class="detail-name">${esc(s.name)}
+      <span class="spec-badge" style="background:${sc}15;color:${sc};border:1px solid ${sc}30;">${si} ${esc(s.specialization||'generalist')}</span>
+      <span class="badge ${s.alive?'badge-alive':'badge-red'}" style="font-size:10px;">${s.alive?'ALIVE':'DEAD'}</span>
+    </div>
+    <div class="detail-subtitle">${esc(deityName)}'s swarm &middot; Gen ${s.generation||0}${s.reincarnationCount > 0 ? ` &middot; <span style="color:var(--accent-purple);">✦ ${s.reincarnationCount}x reborn</span>` : ''} &middot; ${s.memoryCount||0} memories &middot; ${s.kills||0}/${deaths} K/D</div>
+    ${s.personality ? `<div style="font-size:11px;color:var(--text-muted);font-style:italic;margin-top:2px;max-width:400px;line-height:1.4;">${esc(s.personality.slice(0,120))}${s.personality.length>120?'...':''}</div>` : ''}
+  </div></div>`;
+
+  // ── Bond dimensions (ring gauges) ──
+  const b = s.bond || {};
+  html += `<div class="bond-grid">
+    ${bondRing('Depth', b.depth||0, '#8b5cf6')}
+    ${bondRing('Harmony', b.harmony||0, '#22c55e')}
+    ${bondRing('Adventure', b.adventure||0, '#f97316')}
+    ${bondRing('Loyalty', b.loyalty||0, '#3b82f6')}
+  </div>`;
+
+  // ── Lineage ──
+  html += `<div style="margin-bottom:16px;">
+    <div class="section-label">Lineage</div>`;
+
+  if ((s.reincarnationCount||0) > 0 || (s.previousNames||[]).length > 0) {
+    const pastNames = (s.previousNames || []).filter(n => n !== s.name);
+    html += `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">`;
+    for (let i = 0; i < pastNames.length; i++) {
+      html += `<div style="background:var(--bg-elevated);padding:6px 12px;border-radius:6px;border:1px solid rgba(167,139,250,0.2);">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-purple);">${esc(pastNames[i])}</span>
+        <span style="font-size:10px;color:var(--text-muted);margin-left:4px;">Gen ${i}</span>
+      </div>`;
+      html += `<span style="color:var(--text-muted);font-size:14px;">&rarr;</span>`;
+    }
+    html += `<div style="background:var(--bg-elevated);padding:6px 12px;border-radius:6px;border:1px solid ${sc}40;">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:${sc};">${si} ${esc(s.name)}</span>
+      <span style="font-size:10px;color:var(--text-muted);margin-left:4px;">Gen ${s.generation||0} (current)</span>
+    </div></div>`;
+
+    if (s.pastLifeMemories?.length) {
+      html += `<div style="margin-top:10px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Memories carried from past lives:</div>`;
+      s.pastLifeMemories.forEach(m => {
+        html += `<div class="mem-card cat-other" style="border:1px solid rgba(167,139,250,0.15);">
+          <div class="mem-type t-other">✦ Past Life</div>
+          <div class="mem-body">${esc(typeof m === 'string' ? m : m.text || JSON.stringify(m))}</div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+  } else {
+    html += `<div style="display:flex;align-items:center;gap:6px;">
+      <div style="background:var(--bg-elevated);padding:6px 12px;border-radius:6px;border:1px solid ${sc}40;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:${sc};">${si} ${esc(s.name)}</span>
+        <span style="font-size:10px;color:var(--text-muted);margin-left:4px;">Gen ${s.generation||0} (first life)</span>
+      </div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  // ── Onchain verification ──
+  const hasLinks = s.memwalAccountId || s.avatarBlobId;
+  if (hasLinks) {
+    html += `<div style="margin-bottom:16px;">
+      <div class="section-label" style="color:var(--accent-teal);">Onchain Verification</div>
+      <div style="padding:10px 12px;background:var(--bg-elevated);border-radius:8px;border:1px solid rgba(45,212,191,0.12);">`;
+    if (s.memwalAccountId) {
+      html += `<div class="link-row" style="margin:3px 0;"><a href="https://suiscan.xyz/testnet/object/${s.memwalAccountId}" target="_blank" rel="noopener">MemWal Account on SuiScan &rarr;</a></div>`;
+    }
+    if (s.avatarBlobId) {
+      html += `<div class="link-row" style="margin:3px 0;"><a href="https://walruscan.com/testnet/blob/${s.avatarBlobId}" target="_blank" rel="noopener">Avatar Blob on WalrusScan &rarr;</a></div>`;
+    }
+    if (s.memwalNamespace) {
+      html += `<div style="font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;margin-top:4px;">namespace: ${esc(s.memwalNamespace)}</div>`;
+    }
+    html += `</div></div>`;
+  }
+
+  // ── Memories ──
+  html += `<div class="memory-list">
+    <div class="memory-list-header">
+      <div class="section-label">Memories on MemWal</div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);">${s.memoryCount||0} stored</span>
+    </div>
+    <div class="mem-filters" id="mem-filters"></div>
+    <div id="memory-items"><span style="color:var(--text-muted);font-size:13px;font-style:italic;">Loading memories from Walrus...</span></div>
+  </div>`;
+
+  contentEl.innerHTML = html;
+  document.querySelector('.right-col').scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Fetch and render memories
+  try {
+    const r = await fetch(`/api/game/spirit/${encodeURIComponent(id)}/memories`);
+    if (!r.ok) throw new Error('Failed to load');
+    const data = await r.json();
+
+    if (!data.memories || data.memories.length === 0) {
+      document.getElementById('memory-items').innerHTML = '<div style="color:var(--text-muted);font-size:13px;font-style:italic;padding:12px 0;">No memories stored yet.</div>';
+      return;
+    }
+
+    allMemories = data.memories.map(m => {
+      const text = m.text || m.content || m.memory || JSON.stringify(m);
+      return { ...m, text, cat: categorizeMem(text) };
+    });
+
+    // Build filter tabs
+    const counts = { all: allMemories.length };
+    allMemories.forEach(m => { counts[m.cat] = (counts[m.cat]||0) + 1; });
+    const filtersEl = document.getElementById('mem-filters');
+    let filterHtml = `<button class="mem-filter-btn active" data-cat="all" onclick="setMemFilter('all')">All (${counts.all})</button>`;
+    for (const [cat, meta] of Object.entries(CATEGORY_META)) {
+      if (counts[cat]) filterHtml += `<button class="mem-filter-btn" data-cat="${cat}" onclick="setMemFilter('${cat}')">${meta.icon} ${meta.label} (${counts[cat]})</button>`;
+    }
+    filtersEl.innerHTML = filterHtml;
+
+    renderMemoryPage();
+  } catch {
+    document.getElementById('memory-items').innerHTML = '<span class="err-msg">Could not load memories.</span>';
+  }
+}
+
+// ── Tab switching ────────────────────────────────────────────────────────
+let activeTab = 'spirits';
+let currentEssence = null;
+let selectedLegacyIdx = null;
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.left-tab').forEach(t => t.classList.toggle('active', t.textContent.toLowerCase().includes(tab)));
+  document.getElementById('tab-spirits').classList.toggle('visible', tab === 'spirits');
+  document.getElementById('tab-essence').classList.toggle('visible', tab === 'essence');
+  if (tab === 'spirits' && selectedSpiritId) {
+    renderDetail(selectedSpiritId);
+  } else if (tab === 'essence' && currentEssence) {
+    renderEssenceDetail();
+  } else {
+    document.getElementById('detail-empty').style.display = 'flex';
+    document.getElementById('detail-content').style.display = 'none';
+    document.getElementById('detail-empty').textContent = tab === 'spirits' ? 'Select a spirit to view details' : 'Inspect an essence to view deity stats';
+  }
+}
+
+// ── Essence viewer ───────────────────────────────────────────────────────
+async function fetchEssence() {
+  const input = document.getElementById('blob-input');
+  const blobId = input.value.trim();
+  const errEl = document.getElementById('essence-error');
+  errEl.textContent = '';
+  if (!blobId) { errEl.textContent = 'Enter a blob ID.'; return; }
+
+  try {
+    const r = await fetch('/api/essence/import', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blobId }),
+    });
+    if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || 'Import failed'); }
+    const { essence } = await r.json();
+    if (!essence) throw new Error('No essence data returned');
+    essence._blobId = blobId;
+    currentEssence = essence;
+    selectedLegacyIdx = null;
+
+    // Populate legacy list in left sidebar
+    const listEl = document.getElementById('essence-legacy-list');
+    let listHtml = '';
+    if (essence.spiritLegacies?.length) {
+      essence.spiritLegacies.forEach((s, i) => {
+        const sc = specColor(s.specialization);
+        const si = specIcon(s.specialization);
+        const hasAvatar = !!s.avatarBlobId;
+        const url = avatarUrl(s.avatarBlobId);
+        listHtml += `<div class="essence-legacy-card" onclick="selectLegacy(${i})" id="legacy-card-${i}">
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${hasAvatar
+              ? `<img src="${url}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid ${sc};flex-shrink:0;" />`
+              : `<div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;background:${sc}20;color:${sc};border:2px solid ${sc}60;flex-shrink:0;">${si}</div>`
+            }
+            <div style="min-width:0;">
+              <div style="font-family:'Cinzel',serif;font-size:13px;color:var(--text-primary);">${esc(s.name)}</div>
+              <div style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px;">
+                <span style="color:${sc}">${si}</span> ${esc(s.specialization||'generalist')}
+              </div>
+            </div>
+          </div>
+        </div>`;
+      });
+    }
+    listEl.innerHTML = listHtml;
+
+    // Show deity overview in right panel
+    renderEssenceDetail();
+
+  } catch (e) {
+    errEl.textContent = e.message || 'Failed to fetch essence.';
+  }
+}
+
+function selectLegacy(idx) {
+  selectedLegacyIdx = idx;
+  document.querySelectorAll('.essence-legacy-card').forEach((c, i) => c.classList.toggle('active', i === idx));
+  renderEssenceLegacyDetail(idx);
+}
+
+function renderEssenceDetail() {
+  const emptyEl = document.getElementById('detail-empty');
+  const contentEl = document.getElementById('detail-content');
+  if (!currentEssence) return;
+  emptyEl.style.display = 'none';
+  contentEl.style.display = 'block';
+  const e = currentEssence;
+
+  let html = '';
+
+  // Deity header
+  html += `<div style="margin-bottom:16px;">
+    <div class="detail-name">${esc(e.deityName || 'Unknown Deity')}</div>
+    <div class="detail-subtitle">Exported ${e.exportedAt ? new Date(e.exportedAt).toLocaleDateString() : 'unknown'}</div>
+  </div>`;
+
+  // Playstyle
+  if (e.playstyle) {
+    html += `<div style="margin-bottom:16px;">
+      <div class="section-label">Playstyle</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <span class="stat" style="font-size:11px;padding:3px 8px;">Aggression ${e.playstyle.aggressionRatio ?? '?'}</span>
+        <span class="stat" style="font-size:11px;padding:3px 8px;">Whispers ${e.playstyle.whisperFrequency ?? '?'}</span>
+        <span class="stat" style="font-size:11px;padding:3px 8px;">Spec ${esc(e.playstyle.specTendency || '?')}</span>
+        ${(e.playstyle.dominantThemes||[]).map(t => `<span class="badge badge-teal" style="font-size:11px;padding:3px 8px;">${esc(t)}</span>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Spirit legacies overview with avatars
+  if (e.spiritLegacies?.length) {
+    html += `<div style="margin-bottom:16px;">
+      <div class="section-label">Swarm (${e.spiritLegacies.length} spirits)</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;">`;
+    e.spiritLegacies.forEach((s, i) => {
+      const sc = specColor(s.specialization);
+      const si = specIcon(s.specialization);
+      const ba = bondAvg(s.bond);
+      const hasAvatar = !!s.avatarBlobId;
+      const url = avatarUrl(s.avatarBlobId);
+      html += `<div style="background:var(--bg-elevated);border-radius:8px;padding:12px;cursor:pointer;border:1px solid transparent;transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--gold-dim)'" onmouseout="this.style.borderColor='transparent'" onclick="selectLegacy(${i})">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          ${hasAvatar
+            ? `<img src="${url}" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid ${sc};flex-shrink:0;" />`
+            : `<div style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;background:${sc}20;color:${sc};border:2px solid ${sc}60;flex-shrink:0;">${si}</div>`
+          }
+          <div>
+            <div style="font-family:'Cinzel',serif;font-size:13px;color:var(--text-primary);">${esc(s.name)}</div>
+            <div style="font-size:10px;color:${sc};">${si} ${esc(s.specialization||'generalist')}</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+          <span class="badge ${s.alive?'badge-alive':'badge-red'}">${s.alive?'ALIVE':'DEAD'}</span>
+          <span class="stat">Bond ${ba}</span>
+          <span class="stat">${s.kills||0} K</span>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Game outcome
+  if (e.gameOutcome) {
+    const o = e.gameOutcome;
+    html += `<div style="margin-bottom:16px;">
+      <div class="section-label">Game Outcome</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+        <span class="stat" style="font-size:11px;padding:3px 8px;">Winner: ${esc(o.winner||'ongoing')}</span>
+        <span class="stat" style="font-size:11px;padding:3px 8px;">Battles: ${o.totalBattles||0}</span>
+        <span class="stat" style="font-size:11px;padding:3px 8px;">Spawns: ${o.totalSpawns||0}</span>
+        <span class="stat" style="font-size:11px;padding:3px 8px;">Deaths: ${o.totalDeaths||0}</span>
+      </div>`;
+    if (o.finalStandings?.length || o.standings?.length) {
+      const standings = o.finalStandings || o.standings;
+      html += `<div style="display:flex;flex-direction:column;gap:4px;">`;
+      standings.forEach((s, i) => {
+        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+        html += `<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;background:var(--bg-elevated);border-radius:4px;font-size:12px;">
+          <span style="width:24px;text-align:center;">${medal}</span>
+          <span style="color:var(--text-primary);flex:1;">${esc(s.name || s.deityTitle || s.playerId || '?')}</span>
+          <span class="stat">${s.hexes||0} hexes</span>
+          <span class="stat">${s.spirits||0} spirits</span>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+
+  // Core memories
+  if (e.coreMemories?.length) {
+    html += `<div style="margin-bottom:16px;">
+      <div class="section-label">Core Memories</div>`;
+    e.coreMemories.forEach(m => {
+      const text = typeof m === 'string' ? m : (m.text || m.description || JSON.stringify(m));
+      html += `<div class="mem-card cat-other"><div class="mem-body">${esc(text)}</div></div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Walrus verification
+  html += `<div style="margin-bottom:16px;">
+    <div class="section-label" style="color:var(--accent-teal);">Onchain Verification</div>
+    <div style="padding:10px 12px;background:var(--bg-elevated);border-radius:8px;border:1px solid rgba(45,212,191,0.12);">
+      <div class="link-row" style="margin:3px 0;"><a href="https://walruscan.com/testnet/blob/${encodeURIComponent(e._blobId)}" target="_blank" rel="noopener">View Essence on WalrusScan &rarr;</a></div>
+      <div style="font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;margin-top:4px;word-break:break-all;">blob: ${esc(e._blobId)}</div>
+    </div>
+  </div>`;
+
+  contentEl.innerHTML = html;
+  document.querySelector('.right-col').scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderEssenceLegacyDetail(idx) {
+  const emptyEl = document.getElementById('detail-empty');
+  const contentEl = document.getElementById('detail-content');
+  if (!currentEssence?.spiritLegacies?.[idx]) return;
+  emptyEl.style.display = 'none';
+  contentEl.style.display = 'block';
+  const s = currentEssence.spiritLegacies[idx];
+
+  const sc = specColor(s.specialization);
+  const si = specIcon(s.specialization);
+  const hasAvatar = !!s.avatarBlobId;
+  const url = avatarUrl(s.avatarBlobId);
+  const b = s.bond || {};
+
+  let html = '';
+
+  // Header
+  html += `<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">`;
+  if (hasAvatar) {
+    html += `<img src="${url}" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid ${sc};flex-shrink:0;" />`;
+  } else {
+    html += `<div style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;background:${sc}15;color:${sc};border:2px solid ${sc}50;flex-shrink:0;">${si}</div>`;
+  }
+  html += `<div>
+    <div class="detail-name">${esc(s.name)}
+      <span class="spec-badge" style="background:${sc}15;color:${sc};border:1px solid ${sc}30;">${si} ${esc(s.specialization||'generalist')}</span>
+    </div>
+    <div class="detail-subtitle">Gen ${s.generation||0}${s.reincarnationCount > 0 ? ` &middot; <span style="color:var(--accent-purple);">✦ ${s.reincarnationCount}x reborn</span>` : ''}</div>
+    ${s.personality ? `<div style="font-size:11px;color:var(--text-muted);font-style:italic;margin-top:2px;max-width:400px;line-height:1.4;">${esc(s.personality.slice(0,120))}${s.personality.length>120?'...':''}</div>` : ''}
+  </div></div>`;
+
+  // Bond rings
+  html += `<div class="bond-grid">
+    ${bondRing('Depth', b.depth||0, '#8b5cf6')}
+    ${bondRing('Harmony', b.harmony||0, '#22c55e')}
+    ${bondRing('Adventure', b.adventure||0, '#f97316')}
+    ${bondRing('Loyalty', b.loyalty||0, '#3b82f6')}
+  </div>`;
+
+  // Stats
+  const totalXP = (s.combatXP||0)+(s.explorationXP||0)+(s.socialXP||0)+(s.wisdomXP||0);
+  html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
+    <span class="badge ${s.alive?'badge-alive':'badge-red'}" style="font-size:11px;padding:3px 10px;">${s.alive?'ALIVE':'DEAD'}</span>
+    <span class="stat" style="font-size:11px;padding:3px 8px;">XP ${totalXP}</span>
+    <span class="stat" style="font-size:11px;padding:3px 8px;">${s.kills||0} kills</span>
+    <span class="stat" style="font-size:11px;padding:3px 8px;">${s.hexesClaimed||0} hexes</span>
+  </div>`;
+
+  // Lineage
+  if ((s.reincarnationCount||0) > 0 || (s.previousNames||[]).length > 0) {
+    const pastNames = (s.previousNames || []).filter(n => n !== s.name);
+    if (pastNames.length > 0) {
+      html += `<div style="margin-bottom:16px;">
+        <div class="section-label">Lineage</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">`;
+      pastNames.forEach((n, i) => {
+        html += `<div style="background:var(--bg-elevated);padding:6px 12px;border-radius:6px;border:1px solid rgba(167,139,250,0.2);">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-purple);">${esc(n)}</span>
+          <span style="font-size:10px;color:var(--text-muted);margin-left:4px;">Gen ${i}</span>
+        </div><span style="color:var(--text-muted);font-size:14px;">&rarr;</span>`;
+      });
+      html += `<div style="background:var(--bg-elevated);padding:6px 12px;border-radius:6px;border:1px solid ${sc}40;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:${sc};">${si} ${esc(s.name)}</span>
+        <span style="font-size:10px;color:var(--text-muted);margin-left:4px;">Gen ${s.generation||0}</span>
+      </div></div></div>`;
+    }
+  }
+
+  // Back link
+  html += `<div style="margin-top:16px;"><button onclick="renderEssenceDetail()" style="background:none;border:1px solid var(--gold-dim);color:var(--text-secondary);font-family:'JetBrains Mono',monospace;font-size:12px;padding:6px 14px;border-radius:6px;cursor:pointer;">← Back to deity overview</button></div>`;
+
+  contentEl.innerHTML = html;
+  document.querySelector('.right-col').scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────
+loadState();
+refreshTimer = setInterval(loadState, 10000);
+document.getElementById('blob-input').addEventListener('keydown', e => { if (e.key === 'Enter') fetchEssence(); });
+</script>
+</body>
+</html>
