@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { SPEC_COLORS, getPlayerColor } from '@lib/terrainTypes.js';
 import { getAvatarUrl } from '@lib/avatarUrl.js';
 import LineageSection from './LineageSection.jsx';
@@ -14,16 +14,26 @@ import LineageSection from './LineageSection.jsx';
  *   messages   - persisted message history for this spirit (lifted to App.jsx)
  *   onMessages - setter to update message history
  */
-export default function SpiritPanel({ spirit, gameState, playerId, onClose, messages = [], onMessages, onWhispers, onChainOps, chainInfo }) {
-  const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const [lastChainOps, setLastChainOps] = useState(null);
-  const messagesEndRef = useRef(null);
+export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
   const isMine = spirit?.playerId === playerId;
+  const [memories, setMemories] = useState([]);
+  const [loadingMem, setLoadingMem] = useState(false);
+  const [showMemories, setShowMemories] = useState(false);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    setMemories([]);
+    setShowMemories(false);
+  }, [spirit?.id]);
+
+  useEffect(() => {
+    if (!showMemories || !spirit?.id) return;
+    setLoadingMem(true);
+    fetch(`/api/game/spirit/${spirit.id}/memories`)
+      .then(r => r.json())
+      .then(d => setMemories(d.memories || []))
+      .catch(() => setMemories([]))
+      .finally(() => setLoadingMem(false));
+  }, [showMemories, spirit?.id]);
 
   if (!spirit) return null;
 
@@ -32,69 +42,6 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
   );
 
   const spiritColor = SPEC_COLORS[spirit.specialization] || getPlayerColor(spirit.playerId, gameState) || '#6b7280';
-
-  async function sendMessage(e) {
-    e.preventDefault();
-    if (!input.trim() || sending) return;
-
-    const userMsg = input.trim();
-    setInput('');
-    onMessages(prev => [...prev, { role: 'user', text: userMsg }]);
-    setSending(true);
-
-    try {
-      const res = await fetch('/api/game/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          spiritId: spirit.id,
-          message: userMsg,
-          playerId,
-        }),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `HTTP ${res.status}`);
-      }
-
-      const data = await res.json();
-      onMessages(prev => [...prev, { role: 'spirit', text: data.response }]);
-
-      if (data.chainOps?.length) {
-        onChainOps?.(data.chainOps);
-        setLastChainOps(data.chainOps);
-        const stored = data.chainOps.filter(o => o.type === 'memory_store').length;
-        const recalled = data.chainOps.find(o => o.type === 'memory_recall')?.count || 0;
-        const parts = [];
-        if (recalled > 0) parts.push(`${recalled} memories recalled`);
-        if (stored > 0) parts.push(`${stored} stored on MemWal`);
-        if (parts.length) {
-          onMessages(prev => [...prev, { role: 'chain', text: parts.join(' · ') }]);
-        }
-      }
-
-      if (data.whispers?.length) {
-        onMessages(prev => [...prev, {
-          role: 'system',
-          text: `Whispers propagated to ${data.whispers.length} spirit${data.whispers.length > 1 ? 's' : ''}`,
-        }]);
-        onWhispers?.(data.whispers.map(w => ({ from: spirit.id, to: w.to, text: w.text })));
-      }
-
-      if (data.influence) {
-        onMessages(prev => [...prev, {
-          role: 'system',
-          text: `Loyalty eroded slightly...`,
-        }]);
-      }
-    } catch (err) {
-      console.error('[SpiritPanel] Chat error:', err);
-      onMessages(prev => [...prev, { role: 'system', text: `Failed: ${err.message}` }]);
-    } finally {
-      setSending(false);
-    }
-  }
 
   // Bond tier label
   function getBondTierName(avg) {
@@ -106,17 +53,17 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
   }
 
   const bondDimensions = [
-    { label: 'Depth',     value: spirit.bond.depth,     color: '#8b5cf6' },
-    { label: 'Harmony',   value: spirit.bond.harmony,   color: '#22c55e' },
-    { label: 'Adventure', value: spirit.bond.adventure, color: '#f97316' },
-    { label: 'Loyalty',   value: spirit.bond.loyalty,   color: '#3b82f6' },
+    { label: 'Depth',     abbr: 'DEP', value: spirit.bond.depth,     color: '#8b5cf6', tip: 'Emotional connection — grows from meaningful conversations' },
+    { label: 'Harmony',   abbr: 'HAR', value: spirit.bond.harmony,   color: '#22c55e', tip: 'Alignment with deity — grows when orders match personality' },
+    { label: 'Adventure', abbr: 'ADV', value: spirit.bond.adventure, color: '#f97316', tip: 'Boldness — grows from exploration and risky decisions' },
+    { label: 'Loyalty',   abbr: 'LOY', value: spirit.bond.loyalty,   color: '#3b82f6', tip: 'Resistance to enemy whispers — eroded by foreign deities' },
   ];
 
   const xpBars = [
-    { label: 'COM', value: spirit.combatXP,      color: '#dc2626' },
-    { label: 'EXP', value: spirit.explorationXP, color: '#2563eb' },
-    { label: 'SOC', value: spirit.socialXP,      color: '#16a34a' },
-    { label: 'WIS', value: spirit.wisdomXP,      color: '#9333ea' },
+    { label: 'COM', value: spirit.combatXP,      color: '#dc2626', tip: 'Combat XP — earned by fighting and winning battles' },
+    { label: 'EXP', value: spirit.explorationXP, color: '#2563eb', tip: 'Exploration XP — earned by discovering new hexes' },
+    { label: 'SOC', value: spirit.socialXP,      color: '#16a34a', tip: 'Social XP — earned by gathering memories from hexes' },
+    { label: 'WIS', value: spirit.wisdomXP,      color: '#9333ea', tip: 'Wisdom XP — earned from whispers and deep conversations' },
   ];
 
   return (
@@ -202,7 +149,7 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
         {/* XP Bars */}
         <div className="grid grid-cols-4 gap-1 mb-3">
           {xpBars.map(xp => (
-            <div key={xp.label} className="text-center">
+            <div key={xp.label} className="text-center cursor-help" title={xp.tip}>
               <div className="text-xs text-gray-500 mb-0.5">{xp.label}</div>
               <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
                 <div
@@ -221,8 +168,8 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
         {/* Bond Dimensions */}
         <div className="grid grid-cols-4 gap-1 mb-2">
           {bondDimensions.map(dim => (
-            <div key={dim.label} className="text-center">
-              <div className="text-xs text-gray-500 mb-0.5">{dim.label.slice(0, 3).toUpperCase()}</div>
+            <div key={dim.label} className="text-center cursor-help" title={dim.tip}>
+              <div className="text-xs text-gray-500 mb-0.5">{dim.abbr}</div>
               <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-300"
@@ -251,85 +198,78 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose, mess
         )}
       </div>
 
-      {/* Chat Messages */}
+      {/* Spirit status — replaces per-spirit chat */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
-        {messages.length === 0 && (
-          <p className="text-sm italic" style={{ color: 'var(--text-secondary)' }}>
-            {isMine ? `Whisper to ${spirit.name}...` : `Attempt to influence ${spirit.name} — their loyalty determines how they respond`}
-          </p>
-        )}
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div
-              className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${
-                msg.role === 'user'
-                  ? 'bg-amber-500/20 text-amber-100'
-                  : msg.role === 'chain'
-                  ? 'bg-teal-900/30 text-teal-400 text-xs font-mono border border-teal-700/30'
-                  : msg.role === 'system'
-                  ? 'bg-gray-700/30 text-gray-400 italic text-xs'
-                  : 'bg-gray-700/50 text-gray-200'
-              }`}
-            >
-              {msg.text}
-            </div>
-          </div>
-        ))}
-        {sending && (
-          <div className="flex justify-start">
-            <div className="bg-gray-700/50 rounded-2xl px-4 py-3 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-              <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-              <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-              <span className="text-xs ml-2 font-mono" style={{ color: 'var(--text-secondary)' }}>{spirit.name} is thinking...</span>
-            </div>
+        {spirit.personality && (
+          <div className="text-sm italic leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+            {spirit.personality.slice(0, 200)}
           </div>
         )}
-        <div ref={messagesEndRef} />
-      </div>
 
-      {/* Input */}
-      {isMine ? (
-        <form onSubmit={sendMessage} className="p-3 border-t border-gray-700/50 flex-shrink-0">
-          <div className="flex gap-2">
-            <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              placeholder="Whisper to your spirit..."
-              className="flex-1 bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500 transition-colors"
-              disabled={sending}
-              autoFocus
-            />
-            <button
-              type="submit"
-              disabled={sending || !input.trim()}
-              className="bg-amber-500 hover:bg-amber-400 disabled:opacity-30 text-black font-semibold rounded-lg px-4 py-2 text-sm transition-colors"
-            >
-              {sending ? '...' : 'Send'}
-            </button>
+        {/* Stats grid */}
+        <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+          <div className="flex justify-between px-2 py-1 rounded" style={{ background: 'var(--bg-elevated)' }}>
+            <span style={{ color: 'var(--text-muted)' }}>HP</span>
+            <span style={{ color: (spirit.hp ?? 100) > 60 ? '#4ade80' : (spirit.hp ?? 100) > 30 ? '#fbbf24' : '#ef4444' }}>
+              {spirit.hp ?? 100}/{spirit.maxHp || 100}
+            </span>
           </div>
-        </form>
-      ) : (
-        <form onSubmit={sendMessage} className="p-3 border-t border-red-900/30 flex-shrink-0">
-          <div className="text-xs font-mono text-red-400/70 mb-1.5 text-center">Enemy spirit — influence at your own risk</div>
-          <div className="flex gap-2">
-            <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              placeholder="Attempt to influence..."
-              className="flex-1 bg-gray-800 border border-red-900/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-500 transition-colors"
-              disabled={sending}
-            />
-            <button
-              type="submit"
-              disabled={sending || !input.trim()}
-              className="bg-red-600 hover:bg-red-500 disabled:opacity-30 text-white font-semibold rounded-lg px-4 py-2 text-sm transition-colors"
-            >
-              {sending ? '...' : 'Influence'}
-            </button>
+          <div className="flex justify-between px-2 py-1 rounded" style={{ background: 'var(--bg-elevated)' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Kills</span>
+            <span style={{ color: 'var(--text-primary)' }}>{spirit.kills || 0}</span>
           </div>
-        </form>
-      )}
+          <div className="flex justify-between px-2 py-1 rounded" style={{ background: 'var(--bg-elevated)' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Memories</span>
+            <span style={{ color: '#2dd4bf' }}>{spirit.memoryCount || 0}</span>
+          </div>
+          <div className="flex justify-between px-2 py-1 rounded" style={{ background: 'var(--bg-elevated)' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Hexes</span>
+            <span style={{ color: 'var(--text-primary)' }}>{spirit.hexesClaimed || 0}</span>
+          </div>
+          {!isMine && (
+            <div className="flex justify-between px-2 py-1 rounded col-span-2" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
+              <span style={{ color: '#ef4444' }}>Resistance</span>
+              <span style={{ color: '#ef4444' }}>{Math.round(spirit.enemyResistance ?? 50)}/100</span>
+            </div>
+          )}
+        </div>
+
+        {/* Memories */}
+        <div className="pt-2 border-t border-gray-800/50">
+          <button
+            onClick={() => setShowMemories(v => !v)}
+            className="w-full flex items-center justify-between text-xs font-mono py-1 hover:text-teal-300 transition-colors"
+            style={{ color: '#2dd4bf' }}
+          >
+            <span>{spirit.memoryCount || 0} memories on MemWal</span>
+            <span>{showMemories ? '▾' : '▸'}</span>
+          </button>
+          {showMemories && (
+            <div className="mt-1 space-y-1 max-h-40 overflow-y-auto">
+              {loadingMem ? (
+                <p className="text-xs text-gray-500 italic animate-pulse">Recalling memories...</p>
+              ) : memories.length === 0 ? (
+                <p className="text-xs text-gray-500 italic">No memories found</p>
+              ) : (
+                memories.map((m, i) => (
+                  <div key={i} className="text-xs px-2 py-1 rounded leading-tight" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>
+                    {m.text?.length > 120 ? m.text.slice(0, 117) + '...' : m.text}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="pt-2">
+          <p className="text-xs italic text-center" style={{ color: 'var(--text-muted)' }}>
+            {isMine
+              ? 'Use the Whisper Bar below to decree to your swarm'
+              : 'Use the Enemy Whisper to influence this swarm'
+            }
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

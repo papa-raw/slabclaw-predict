@@ -3,7 +3,7 @@ import { recallMemoriesServer } from './memwalServer.js';
 import { getKey } from './keyStore.js';
 
 const SPAWN_COOLDOWN_MS = 60_000; // 1 minute
-const MIN_MEMORIES = 5;
+const MIN_MEMORIES = 10;
 const MIN_BOND_AVG = 35;
 
 export function checkSpawnReadiness(spirit) {

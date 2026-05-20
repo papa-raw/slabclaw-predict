@@ -78,6 +78,24 @@ async function tick() {
   // 2. Accumulate memories in controlled hexes
   accumulateMemories(gameState);
 
+  // 2b. Reset whisper charges every 30s + drift enemy resistance
+  const now = Date.now();
+  for (const player of Object.values(gameState.players)) {
+    if (now - (player.lastWhisperReset || 0) >= 30_000) {
+      player.whisperCharges = { swarm: 1, enemy: 1 };
+      player.lastWhisperReset = now;
+    }
+  }
+  for (const spirit of Object.values(gameState.spirits)) {
+    if (!spirit.alive) continue;
+    if (spirit.enemyResistance == null) spirit.enemyResistance = 50;
+    if (spirit.bond.loyalty >= 75) {
+      spirit.enemyResistance = Math.min(80, spirit.enemyResistance + 0.2);
+    } else if (spirit.bond.loyalty < 25) {
+      spirit.enemyResistance = Math.max(10, spirit.enemyResistance - 0.1);
+    }
+  }
+
   // 3. Spirit decision cycle (fire-and-forget, async)
   runSpiritDecisions(gameState);
 

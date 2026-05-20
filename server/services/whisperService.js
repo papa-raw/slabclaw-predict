@@ -6,6 +6,8 @@
 
 import { callLLM } from './llmProxy.js';
 import { storeMemoryServer, recallMemoriesServer } from './memwalServer.js';
+import { getKey } from './keyStore.js';
+import { broadcast } from './wsService.js';
 
 const WHISPER_SYSTEM_PROMPT = `You are a spirit in a swarm, relaying your deity's influence to another spirit.
 Reinterpret the deity's message in your own voice and personality, then pass it along.
@@ -86,4 +88,148 @@ export async function extractDeityIntent(message, spiritPersonality, bond) {
   }
 
   return { intent: 'unclear', target: '', urgency: 1, confidence: 0, interpretation: message };
+}
+
+/**
+ * Broadcast a deity decree to all spirits in the player's swarm.
+ * Each spirit stores the decree as memory and gets a deity order set.
+ * If a spirit's name is mentioned, they get "chosen by god" status.
+ */
+export async function broadcastSwarmWhisper({ playerId, message, gameState }) {
+  const spirits = Object.values(gameState.spirits).filter(
+    s => s.playerId === playerId && s.alive
+  );
+  if (!spirits.length) return { spirits: [], events: [] };
+
+  const spiritNames = spirits.map(s => s.name.toLowerCase());
+  const mentionedName = spiritNames.find(n => message.toLowerCase().includes(n));
+
+  const events = [];
+  const results = [];
+
+  await Promise.allSettled(spirits.map(async (spirit) => {
+    const key = getKey(spirit.id);
+    const isChosen = mentionedName && spirit.name.toLowerCase() === mentionedName;
+
+    storeMemoryServer(
+      spirit.memwalNamespace,
+      `[DEITY DECREE] "${message}"${isChosen ? ' (YOU WERE NAMED)' : ''}`,
+      key, spirit.memwalAccountId
+    ).catch(() => {});
+    spirit.memoryCount = (spirit.memoryCount || 0) + 1;
+
+    const bondAvg = Math.round(
+      (spirit.bond.depth + spirit.bond.harmony + spirit.bond.adventure + spirit.bond.loyalty) / 4
+    );
+    const effectiveBond = isChosen ? Math.min(100, bondAvg + 10) : bondAvg;
+
+    const intent = await extractDeityIntent(message, spirit.personality, effectiveBond);
+    if (isChosen) {
+      intent.confidence = Math.min(1, (intent.confidence || 0.5) + 0.2);
+      spirit._chosenByGod = true;
+    }
+
+    spirit._swarmDecree = { text: message, issuedAt: Date.now() };
+    spirit._deityOrder = {
+      intent: intent.intent,
+      target: intent.target || null,
+      text: intent.interpretation || message,
+      issuedAt: Date.now(),
+    };
+
+    spirit.whispersReceived = (spirit.whispersReceived || 0) + 1;
+
+    const event = {
+      type: 'spirit_dialog',
+      sourceId: 'deity',
+      sourceName: gameState.players[playerId]?.name || 'You',
+      targetId: spirit.id,
+      targetName: spirit.name,
+      dialogType: 'DECREE',
+      text: message,
+      timestamp: Date.now(),
+    };
+    events.push(event);
+    results.push({ spiritId: spirit.id, name: spirit.name, intent, chosen: !!isChosen });
+  }));
+
+  broadcast(gameState, events);
+  return { spirits: results, events };
+}
+
+/**
+ * Broadcast an enemy whisper to all spirits of a target player.
+ * Effect depends on each spirit's enemyResistance stat.
+ */
+export async function broadcastEnemyWhisper({ playerId, targetPlayerId, message, gameState }) {
+  const targetSpirits = Object.values(gameState.spirits).filter(
+    s => s.playerId === targetPlayerId && s.alive
+  );
+  if (!targetSpirits.length) return { spirits: [], events: [] };
+
+  const attackerName = gameState.players[playerId]?.name || 'A foreign deity';
+  const events = [];
+  const results = [];
+
+  await Promise.allSettled(targetSpirits.map(async (spirit) => {
+    const key = getKey(spirit.id);
+    const resistance = spirit.enemyResistance ?? 50;
+
+    storeMemoryServer(
+      spirit.memwalNamespace,
+      `[ENEMY WHISPER from ${attackerName}] "${message}"`,
+      key, spirit.memwalAccountId
+    ).catch(() => {});
+    spirit.memoryCount = (spirit.memoryCount || 0) + 1;
+
+    spirit.enemyResistance = Math.max(0, (spirit.enemyResistance ?? 50) - 1);
+
+    let effect;
+    if (resistance >= 70) {
+      effect = 'ignored';
+    } else if (resistance >= 40) {
+      spirit.bond.loyalty = Math.max(0, spirit.bond.loyalty - 2);
+      effect = 'eroded';
+    } else if (resistance >= 10) {
+      spirit.bond.loyalty = Math.max(0, spirit.bond.loyalty - 5);
+      const intent = await extractDeityIntent(message, spirit.personality, 30);
+      if (intent.intent !== 'unclear' && Math.random() < 0.4) {
+        spirit._deityOrder = {
+          intent: intent.intent,
+          target: intent.target || null,
+          text: `[ENEMY INFLUENCE] ${intent.interpretation || message}`,
+          issuedAt: Date.now(),
+        };
+        effect = 'overridden';
+      } else {
+        effect = 'shaken';
+      }
+    } else {
+      spirit.bond.loyalty = Math.max(0, spirit.bond.loyalty - 8);
+      const intent = await extractDeityIntent(message, spirit.personality, 50);
+      spirit._deityOrder = {
+        intent: intent.intent,
+        target: intent.target || null,
+        text: `[DEFECTION] ${intent.interpretation || message}`,
+        issuedAt: Date.now(),
+      };
+      effect = 'defecting';
+    }
+
+    const event = {
+      type: 'spirit_dialog',
+      sourceId: playerId,
+      sourceName: attackerName,
+      targetId: spirit.id,
+      targetName: spirit.name,
+      dialogType: 'ENEMY_WHISPER',
+      text: message,
+      timestamp: Date.now(),
+    };
+    events.push(event);
+    results.push({ spiritId: spirit.id, name: spirit.name, resistance, effect });
+  }));
+
+  broadcast(gameState, events);
+  return { spirits: results, events };
 }

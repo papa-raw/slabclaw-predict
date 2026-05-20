@@ -6,7 +6,20 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    {
+      name: 'docs-static',
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          if (req.url === '/docs' || req.url === '/docs/') {
+            req.url = '/docs/index.html';
+          }
+          next();
+        });
+      },
+    },
+    react(),
+  ],
   resolve: {
     alias: {
       '@lib': path.resolve(__dirname, '../lib'),

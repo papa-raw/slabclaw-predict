@@ -19,8 +19,8 @@ function pickDeityNames() {
   const shuffled = [...DEITY_FIRST].sort(() => Math.random() - 0.5);
   const titles = [...DEITY_TITLE].sort(() => Math.random() - 0.5);
   return {
-    names: ['You', ...shuffled.slice(0, 5)],
-    titles: ['the Awakened', ...titles.slice(0, 5)],
+    names: shuffled.slice(0, 6),
+    titles: titles.slice(0, 6),
   };
 }
 
@@ -67,7 +67,7 @@ export async function createInitialGameState() {
 
     players[playerId] = {
       id: playerId,
-      name: isHuman ? 'You' : DEITY_NAMES[i],
+      name: DEITY_NAMES[i],
       deityTitle: DEITY_TITLES[i],
       walletAddress: null,
       hexesControlled: 1,
@@ -75,6 +75,8 @@ export async function createInitialGameState() {
       isBot: !isHuman,
       connected: false,
       lastSeen: Date.now(),
+      whisperCharges: { swarm: 1, enemy: 1 },
+      lastWhisperReset: Date.now(),
     };
 
     if (startHex) startHex.controller = playerId;
@@ -142,6 +144,7 @@ export async function createInitialGameState() {
         whispersReceived: 0,
         whispersOriginated: 0,
         reincarnationCount: 0,
+        enemyResistance: 50,
         previousNames: [],
         pastLifeMemories: [],
         memorableActions: [],

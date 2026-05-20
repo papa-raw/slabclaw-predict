@@ -538,15 +538,13 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
       }, 1200);
     }
 
-    // Generate speech bubbles from action state changes
+    // Generate speech bubbles for combat/spawning only (not move/explore)
     for (const [id, spirit] of Object.entries(spirits)) {
       if (!spirit.alive) continue;
       const prevAction = prev[id]?.currentAction?.type;
       const curAction = spirit.currentAction?.type;
       if (curAction && curAction !== prevAction) {
         const labels = {
-          moving: 'Moving...',
-          exploring: 'Exploring!',
           battling: 'To battle!',
           spawning: 'Creating new life...',
         };
@@ -618,18 +616,25 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
       if ((evt.type === 'whisper_arrived' || evt.type === 'spirit_dialog') && (evt.from || evt.sourceId) && (evt.to || evt.targetId)) {
         const fromId = evt.from || evt.sourceId;
         const toId = evt.to || evt.targetId;
-        const trail = { from: fromId, to: toId, text: evt.text || '~', id: eid };
-        setActiveTrails(prev => [...prev, trail]);
-        setPulsingSpirits(prev => new Set([...prev, toId]));
-        setTimeout(() => {
-          setActiveTrails(prev => prev.filter(t => t.id !== eid));
-          setPulsingSpirits(prev => { const n = new Set(prev); n.delete(toId); return n; });
-        }, 3500);
+        const fromIsSpirit = !!spirits[fromId];
+        const toIsSpirit = !!spirits[toId];
 
-        // Also show speech bubble above the source spirit
-        const bubbleText = evt.text ? (evt.text.length > 50 ? evt.text.slice(0, 47) + '...' : evt.text) : '...';
-        setSpeechBubbles(prev => ({ ...prev, [fromId]: { text: bubbleText, ts: Date.now() } }));
-        setTimeout(() => setSpeechBubbles(prev => { const n = { ...prev }; if (n[fromId]?.ts <= Date.now()) delete n[fromId]; return n; }), 5000);
+        if (fromIsSpirit && toIsSpirit) {
+          const trail = { from: fromId, to: toId, text: evt.text || '~', id: eid };
+          setActiveTrails(prev => [...prev, trail]);
+          setTimeout(() => setActiveTrails(prev => prev.filter(t => t.id !== eid)), 3500);
+        }
+        if (toIsSpirit) {
+          setPulsingSpirits(prev => new Set([...prev, toId]));
+          setTimeout(() => setPulsingSpirits(prev => { const n = new Set(prev); n.delete(toId); return n; }), 3500);
+        }
+
+        const bubbleTarget = toIsSpirit ? toId : fromIsSpirit ? fromId : null;
+        if (bubbleTarget) {
+          const bubbleText = evt.text ? (evt.text.length > 50 ? evt.text.slice(0, 47) + '...' : evt.text) : '...';
+          setSpeechBubbles(prev => ({ ...prev, [bubbleTarget]: { text: bubbleText, ts: Date.now() } }));
+          setTimeout(() => setSpeechBubbles(prev => { const n = { ...prev }; if (n[bubbleTarget]?.ts <= Date.now()) delete n[bubbleTarget]; return n; }), 5000);
+        }
       }
     }
     if (processedEventsRef.current.size > 500) {
@@ -770,6 +775,10 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
             <feGaussianBlur stdDeviation="4" result="blur" />
             <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
+          <filter id="glow-target" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
         </defs>
 
         <rect x={vbX - vbW} y={vbY - vbH} width={vbW * 3} height={vbH * 3} fill="#0c1018" />
@@ -828,10 +837,48 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
                 <polygon points={HEX_POINTS_INNER} fill="none" stroke={cc} strokeWidth={1.2} opacity={0.3} />
               )}
 
-              {hex.memoryPool > 0 && (
-                <text x={0} y={HEX_SIZE * 0.45} textAnchor="middle" fontSize="5"
-                  fill="rgba(45,212,191,0.3)" fontFamily="monospace">{Math.round(hex.memoryPool)}m</text>
-              )}
+              {hex.memoryPool > 0 && (() => {
+                const pool = Math.round(hex.memoryPool);
+                const intensity = Math.min(1, pool / 40);
+                const particles = Math.min(5, Math.ceil(pool / 8));
+                const r = HEX_SIZE * 0.25;
+                return (
+                  <g opacity={0.3 + intensity * 0.5}>
+                    {Array.from({ length: particles }, (_, i) => {
+                      const angle = (2 * Math.PI * i) / particles;
+                      const px = r * Math.cos(angle) * (0.5 + (seed + i) % 3 * 0.25);
+                      const py = r * Math.sin(angle) * (0.5 + (seed + i * 7) % 3 * 0.25);
+                      const sz = 1.2 + intensity * 1.5;
+                      return (
+                        <circle key={i} cx={px} cy={py} r={sz} fill="#2dd4bf" opacity={0.6}>
+                          <animate attributeName="opacity" values="0.6;0.2;0.6" dur={`${1.5 + (i % 3) * 0.5}s`} repeatCount="indefinite" />
+                        </circle>
+                      );
+                    })}
+                    <circle cx={0} cy={0} r={2 + intensity * 3} fill="#2dd4bf" opacity={0.15 + intensity * 0.15}>
+                      <animate attributeName="r" values={`${2 + intensity * 2};${3 + intensity * 4};${2 + intensity * 2}`} dur="2s" repeatCount="indefinite" />
+                    </circle>
+                    <text x={0} y={HEX_SIZE * 0.45} textAnchor="middle" fontSize="4.5"
+                      fill="rgba(45,212,191,0.5)" fontFamily="monospace">{pool}</text>
+                  </g>
+                );
+              })()}
+            </g>
+          );
+        })}
+
+        {/* Target hex highlights — where spirits are heading */}
+        {Object.values(spirits).filter(s => s.alive && (s.currentAction?.type === 'moving' || s.currentAction?.type === 'exploring')).map(spirit => {
+          const targetHexId = spirit.currentAction?.data?.toHex || spirit.currentAction?.data?.targetHex;
+          const targetHex = targetHexId ? hexes[targetHexId] : null;
+          if (!targetHex) return null;
+          const { x, y } = hexToPixel({ q: targetHex.q, r: targetHex.r }, HEX_SIZE);
+          const pc = getPlayerColor(spirit.playerId, gameState) || '#6b7280';
+          return (
+            <g key={`target-${spirit.id}`} transform={`translate(${x}, ${y})`} filter="url(#glow-target)">
+              <polygon points={HEX_POINTS} fill="none" stroke={pc} strokeWidth={1.8} opacity={0.6} strokeDasharray="4 3">
+                <animate attributeName="opacity" values="0.6;0.2;0.6" dur="1.5s" repeatCount="indefinite" />
+              </polygon>
             </g>
           );
         })}
@@ -906,7 +953,7 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
                   if (pct >= 1) return null;
                   const barW = 18;
                   const barH = 2.5;
-                  const barY = -27;
+                  const barY = -35;
                   const fillColor = pct > 0.6 ? '#4ade80' : pct > 0.3 ? '#fbbf24' : '#ef4444';
                   return (
                     <g>
@@ -920,7 +967,7 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
 
                 {/* Speaking indicator */}
                 {speechBubbles[spirit.id] && (
-                  <circle cx={7} cy={-28} r={2.5} fill={pc} opacity={0.9}>
+                  <circle cx={12} cy={-33} r={2.5} fill={pc} opacity={0.9}>
                     <animate attributeName="opacity" values="0.9;0.4;0.9" dur="1.5s" repeatCount="indefinite" />
                   </circle>
                 )}
@@ -938,9 +985,9 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
                 {/* Name label on hover */}
                 {isHovered && (
                   <g>
-                    <rect x={-20} y={-38} width={40} height={9} rx={2}
+                    <rect x={-20} y={-42} width={40} height={9} rx={2}
                       fill="rgba(12,16,24,0.9)" stroke="rgba(200,180,100,0.25)" strokeWidth={0.5} />
-                    <text x={0} y={-31.5} textAnchor="middle" fontSize="5.5"
+                    <text x={0} y={-35.5} textAnchor="middle" fontSize="5.5"
                       fill="#e8dcc0" fontFamily="'Cinzel', serif" fontWeight="600">
                       {spirit.name}
                     </text>
@@ -1213,7 +1260,7 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
             <div style={{ color: '#a09060', fontSize: '10px' }}>{hoveredHex.controllerName} territory</div>
           )}
           {hoveredHex.hex.memoryPool > 0 && (
-            <div style={{ color: '#60a890', fontSize: '10px' }}>{Math.round(hoveredHex.hex.memoryPool)} memories</div>
+            <div style={{ color: '#2dd4bf', fontSize: '10px' }}>⬡ {Math.round(hoveredHex.hex.memoryPool)} soul energy</div>
           )}
           {hoveredHex.hexSpirits?.length > 0 && (
             <div style={{ marginTop: 4, paddingTop: 4, borderTop: '1px solid rgba(160, 140, 80, 0.15)' }}>
@@ -1254,7 +1301,7 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
 
       {/* Dialog feed — floating overlay */}
       <div
-        className="absolute bottom-14 left-3 w-72 max-h-48 overflow-hidden pointer-events-none flex flex-col-reverse gap-1"
+        className="absolute bottom-14 left-3 w-72 max-h-48 overflow-hidden flex flex-col-reverse gap-1"
         style={{ zIndex: 20 }}
       >
         {Object.entries(speechBubbles).slice(-5).reverse().map(([spiritId, bubble]) => {
@@ -1268,13 +1315,14 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
           return (
             <div
               key={`feed-${spiritId}-${bubble.ts}`}
-              className="rounded-md px-2.5 py-1.5 text-xs backdrop-blur-sm"
+              className="rounded-md px-2.5 py-1.5 text-xs backdrop-blur-sm cursor-pointer hover:brightness-125 transition-all"
               style={{
                 background: isMine ? 'rgba(30,24,12,0.85)' : 'rgba(12,16,24,0.85)',
                 borderLeft: `3px solid ${pc}`,
                 opacity,
                 transition: 'opacity 0.5s',
               }}
+              onClick={() => onSelectSpirit(spirit.id)}
             >
               <span className="font-header font-semibold text-xs" style={{ color: pc }}>
                 {spirit.name}

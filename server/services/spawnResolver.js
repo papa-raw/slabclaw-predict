@@ -109,6 +109,7 @@ export async function resolveSpawn(gameState, timer) {
   }
   parent.spawnCount = (parent.spawnCount || 0) + 1;
   parent.lastSpawnAt = Date.now();
+  parent.memoryCount = Math.max(0, (parent.memoryCount || 0) - 10);
   parent.memorableActions = parent.memorableActions || [];
   parent.memorableActions.push(`Spawned ${childName} (gen ${child.generation})`);
   if (parent.memorableActions.length > 10) parent.memorableActions = parent.memorableActions.slice(-10);

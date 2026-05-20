@@ -15,7 +15,7 @@ const DECISION_PROMPT = `You are a spirit in a territorial strategy game. You ar
 YOUR IDENTITY:
 Name: {name}
 Personality: {personality}
-Specialization: {specialization} (warrior: +battle, scout: +speed, gatherer: +memory)
+Specialization: {specialization} (warrior: +battle, scout: +speed, gatherer: +soul mining)
 Bond with deity: {bondAvg}/100
 
 YOUR SWARM:
@@ -38,7 +38,7 @@ MAP ROSTER (all spirits on the map):
 SWARM TACTICS:
 - FOLLOW DEITY ORDERS above all else — they persist until completed or overridden
 - Move TOWARD allies when outnumbered, spread out when dominant
-- Warriors should engage enemies; scouts explore; gatherers collect memories
+- Warriors should engage enemies; scouts explore; gatherers mine soul deposits from hexes
 - If an ally is in battle nearby, move to support them
 - You can MOVE TOWARD any spirit by name — pathfinding handles multi-hop navigation
 - NEVER idle — always push toward unclaimed or enemy territory. Standing still loses the game.
@@ -49,13 +49,13 @@ AVAILABLE ACTIONS (ordered by priority):
 - EXPLORE — scout toward unclaimed territory (PREFERRED when unclaimed hexes are adjacent)
 - MOVE_TO <spirit name or "unclaimed"> — navigate toward a target (pathfinding, multi-hop)
 - BATTLE — attack an enemy spirit in your hex
-- SPAWN — create a child spirit (2 min, needs 5+ memories and 35+ bond)
-- GATHER — absorb memories from your hex (instant, only if hex has memories)
+- SPAWN — create a child spirit (2 min, needs 10+ memories and 35+ bond, consumes 10 memories)
+- GATHER — mine soul deposits from your hex (instant, only if hex has soul energy)
 - WAIT — hold position (DISCOURAGED — only when completely surrounded by allies with no path forward)
 
 Respond with ONLY a JSON object:
 {
-  "action": "move_to|battle|explore|spawn|gather|wait",
+  "action": "move_to|battle|explore|spawn|soul_mine|wait",
   "target": "spirit name, hex terrain, or null",
   "reasoning": "one sentence explaining why"
 }`;
@@ -182,10 +182,23 @@ async function decideSpiritAction(spirit, gameState) {
     const age = Math.round((Date.now() - deityOrder.issuedAt) / 1000);
     deityOrdersText = `"${deityOrder.text}" (issued ${age}s ago, priority: HIGH)`;
   }
+  // Swarm decree — softer guidance from broadcast whisper
+  const decree = spirit._swarmDecree;
+  if (decree && !deityOrder) {
+    const age = Math.round((Date.now() - decree.issuedAt) / 1000);
+    if (age < 60) {
+      deityOrdersText = `Swarm decree: "${decree.text}" (${age}s ago)`;
+    }
+  }
+  // "Chosen by god" — direct divine attention
+  if (spirit._chosenByGod) {
+    deityOrdersText += '\n⚡ YOUR DEITY HAS SPOKEN YOUR NAME DIRECTLY — you feel a surge of divine attention. Act with conviction.';
+    spirit._chosenByGod = false;
+  }
   const whisperOrders = recentMemories.results
-    ?.filter(r => r.text.includes('[WHISPER]') || r.text.includes('[DEITY]'))
+    ?.filter(r => r.text.includes('[WHISPER]') || r.text.includes('[DEITY]') || r.text.includes('[DECREE]'))
     .map(r => r.text) || [];
-  if (whisperOrders.length && !deityOrder) {
+  if (whisperOrders.length && !deityOrder && !decree) {
     deityOrdersText = `From memory: ${whisperOrders.slice(0, 2).join('; ')}`;
   }
 
@@ -274,7 +287,8 @@ function executeDecision(spirit, decision, gameState, adj) {
       return { type: 'spirit_moving', spiritId: spirit.id, spiritName: spirit.name, toHex: targetHexId, duration, reasoning };
     }
 
-    case 'gather': {
+    case 'gather':
+    case 'soul_mine': {
       const absorbed = Math.floor(Math.min(hex.memoryPool || 0, 10));
       if (absorbed === 0) {
         return fallbackMove(spirit, gameState, adj);
@@ -446,7 +460,7 @@ export function applyDeityIntent(spirit, intent, gameState) {
       defend: 'battle',
       explore: 'explore',
       spawn: 'spawn',
-      gather: 'gather',
+      gather: 'soul_mine',
       rest: 'wait',
       diplomacy: 'wait',
       move: 'move_to',

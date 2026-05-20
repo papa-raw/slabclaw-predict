@@ -58,14 +58,17 @@
     .badge-gold { background: rgba(212,160,82,0.15); color: var(--gold-bright); border: 1px solid rgba(212,160,82,0.3); }
     .badge-teal { background: rgba(45,212,191,0.1); color: var(--accent-teal); border: 1px solid rgba(45,212,191,0.2); }
     .badge-purple { background: rgba(167,139,250,0.1); color: var(--accent-purple); border: 1px solid rgba(167,139,250,0.2); }
+    .badge-red { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
     .card { background: var(--bg-surface); border: 1px solid var(--gold-dim); border-radius: 8px; padding: 20px; margin: 16px 0; }
     .card-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--gold-bright); letter-spacing: 0.06em; margin-bottom: 8px; }
     .spec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 12px 0; }
     .spec-card { background: var(--bg-elevated); border-radius: 6px; padding: 12px; text-align: center; }
     .spec-card .name { font-family: 'Cinzel', serif; font-size: 14px; color: var(--text-primary); margin-bottom: 4px; }
     .spec-card .bonus { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+    .spec-card .desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
     .footer { text-align: center; padding: 32px; color: var(--text-muted); font-size: 12px; font-family: 'JetBrains Mono', monospace; border-top: 1px solid var(--gold-dim); margin-top: 48px; }
     .footer a { color: var(--text-secondary); }
+    .tier-table td:first-child { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
   </style>
 </head>
 <body>
@@ -82,21 +85,47 @@
 
   <div class="container">
     <h1>Anima Swarm</h1>
-    <p class="subtitle">Command AI spirits through whispers. Memories persist on Walrus.</p>
+    <p class="subtitle">Command AI spirits through whispers&mdash;memories persist on Walrus.</p>
 
-    <p>Anima Swarm is a 6-player deity-controlled AI strategy game on a hex grid. You don't move units directly&mdash;you whisper to your spirits, and they interpret your commands through their own personality, bond level, and accumulated memories. Every whisper, battle, spawn, and territory claim is stored as verifiable memory on <a href="https://docs.wal.app/" target="_blank" style="color: var(--accent-teal);">Walrus</a> via <a href="https://docs.memwal.ai" target="_blank" style="color: var(--accent-teal);">MemWal</a>.</p>
+    <p>Anima Swarm is a 6-player deity-controlled AI strategy game on a hex grid. You don't move units directly&mdash;you issue decrees to your swarm and whisper to enemy swarms. Spirits interpret your commands through their personality, bond level, and accumulated memories. Every whisper, battle, spawn, and territory claim is stored as verifiable memory on <a href="https://docs.wal.app/" target="_blank" style="color: var(--accent-teal);">Walrus</a> via <a href="https://docs.memwal.ai" target="_blank" style="color: var(--accent-teal);">MemWal</a>.</p>
 
-    <h2>How It Works</h2>
+    <h2>The Whisper System</h2>
 
-    <h3>The Deity-Spirit Relationship</h3>
-    <p>You are a deity. Your swarm of AI spirits acts autonomously every 30 seconds, making decisions based on their personality, specialization, memories, and your whispered orders. Higher bond = more faithful interpretation of your commands. Low bond spirits may misinterpret or ignore you.</p>
+    <p>You command your swarm through <strong>whispers</strong>&mdash;strategic messages sent on a cooldown. Each player gets <strong>2 whispers per 30-second cycle</strong>: one for your own swarm, one to target an enemy swarm.</p>
 
-    <h3>Whisper Propagation</h3>
-    <p>When you whisper to one spirit, the message propagates through your swarm. Each spirit relays the whisper in their own voice&mdash;a high-bond warrior delivers it faithfully, while a low-bond scout might twist the meaning entirely. This creates emergent swarm behavior from a single command.</p>
+    <h3>Swarm Decree</h3>
+    <p>A broadcast to all your living spirits. Every spirit receives the decree, stores it as a <code>[DEITY DECREE]</code> memory on MemWal, and interprets it through their personality. High-bond spirits follow orders faithfully; low-bond spirits may twist the meaning.</p>
 
     <div class="card">
-      <div class="card-title">WHISPER FLOW</div>
-      <p style="margin:0;">Deity &rarr; Spirit (interprets via bond) &rarr; Swarm allies (relay with personality color) &rarr; Stored on MemWal as verifiable memory</p>
+      <div class="card-title">CHOSEN BY GOD</div>
+      <p style="margin:0;">If you mention a spirit by name in your decree, that spirit gets <strong>divine attention</strong>&mdash;a temporary +10 bond boost and heightened confidence in their next action. Use this to target specific spirits for critical missions.</p>
+    </div>
+
+    <h3>Enemy Whisper</h3>
+    <p>Choose one enemy player's swarm and send a message to all their spirits. The effect depends on each spirit's <strong>enemy resistance</strong> stat:</p>
+
+    <table class="tier-table">
+      <thead><tr><th>Resistance</th><th>Effect</th><th>Loyalty Impact</th></tr></thead>
+      <tbody>
+        <tr><td>70&ndash;100</td><td>Ignored&mdash;memory stored but no behavioral effect</td><td>None</td></tr>
+        <tr><td>40&ndash;69</td><td>Eroded&mdash;spirit hears you but resists</td><td>&minus;2</td></tr>
+        <tr><td>10&ndash;39</td><td>Shaken&mdash;may override deity orders (40% chance)</td><td>&minus;5</td></tr>
+        <tr><td>0&ndash;9</td><td>Defecting&mdash;deity orders fully replaced</td><td>&minus;8</td></tr>
+      </tbody>
+    </table>
+
+    <p>Each enemy whisper received reduces the target spirit's resistance by 1. Over time, patient deities can weaken an opponent's swarm from within.</p>
+
+    <h3>Resistance Drift</h3>
+    <ul>
+      <li>High loyalty (&ge;75) spirits slowly recover resistance (+0.2/tick, cap 80)</li>
+      <li>Low loyalty (&lt;25) spirits slowly lose resistance (&minus;0.1/tick, floor 10)</li>
+    </ul>
+
+    <h3>Whisper Charges</h3>
+    <div class="card">
+      <div class="card-title">CHARGE ECONOMY</div>
+      <p style="margin:0;">1 swarm decree + 1 enemy whisper per 30-second cycle. Use-it-or-lose-it&mdash;charges don't stack. The WhisperBar at the bottom of the screen shows your charge state and a countdown to the next reset.</p>
     </div>
 
     <h2>Spirits</h2>
@@ -106,22 +135,22 @@
       <div class="spec-card">
         <div class="name">Warrior</div>
         <div class="bonus" style="color: #ef4444;">+Combat</div>
+        <div class="desc">Engages enemies, wins battles</div>
       </div>
       <div class="spec-card">
         <div class="name">Scout</div>
         <div class="bonus" style="color: #3b82f6;">+Speed</div>
+        <div class="desc">Moves fast, explores territory</div>
       </div>
       <div class="spec-card">
         <div class="name">Gatherer</div>
-        <div class="bonus" style="color: #22c55e;">+Memory</div>
-      </div>
-      <div class="spec-card">
-        <div class="name">Sage</div>
-        <div class="bonus" style="color: #a78bfa;">+Wisdom</div>
+        <div class="bonus" style="color: #22c55e;">+Soul Mining</div>
+        <div class="desc">Harvests soul deposits to fuel spawning</div>
       </div>
       <div class="spec-card">
         <div class="name">Generalist</div>
         <div class="bonus" style="color: #f59e0b;">Balanced</div>
+        <div class="desc">Jack of all trades, born from spawning</div>
       </div>
     </div>
 
@@ -131,24 +160,64 @@
         <tr><th>Action</th><th>Description</th><th>Duration</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>MOVE_TO</code></td><td>Navigate toward a target spirit or hex via A* pathfinding</td><td>8&ndash;15s</td></tr>
+        <tr><td><code>MOVE_TO</code></td><td>Navigate toward a target spirit or hex via pathfinding</td><td>8&ndash;15s</td></tr>
         <tr><td><code>BATTLE</code></td><td>Attack an enemy spirit sharing your hex</td><td>30s</td></tr>
-        <tr><td><code>EXPLORE</code></td><td>Scout toward unclaimed territory</td><td>4&ndash;8s</td></tr>
-        <tr><td><code>SPAWN</code></td><td>Create a child spirit (requires 5+ memories, 35+ bond)</td><td>2 min</td></tr>
-        <tr><td><code>GATHER</code></td><td>Absorb memories from your hex</td><td>Instant</td></tr>
-        <tr><td><code>WAIT</code></td><td>Hold position</td><td>&mdash;</td></tr>
+        <tr><td><code>EXPLORE</code></td><td>Move toward unclaimed territory (scouts: 4s, others: 8s)</td><td>4&ndash;8s</td></tr>
+        <tr><td><code>SPAWN</code></td><td>Create a child spirit (costs 10 memories, requires 35+ bond)</td><td>2 min</td></tr>
+        <tr><td><code>SOUL MINE</code></td><td>Harvest soul deposits from your hex</td><td>Instant</td></tr>
+        <tr><td><code>WAIT</code></td><td>Hold position (discouraged&mdash;spirits should always push forward)</td><td>&mdash;</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Experience (XP)</h3>
+    <table>
+      <thead><tr><th>Stat</th><th>Full Name</th><th>Earned By</th></tr></thead>
+      <tbody>
+        <tr><td><code>COM</code></td><td>Combat XP</td><td>Fighting and winning battles</td></tr>
+        <tr><td><code>EXP</code></td><td>Exploration XP</td><td>Discovering new hexes</td></tr>
+        <tr><td><code>SOC</code></td><td>Social XP</td><td>Mining soul deposits from hexes</td></tr>
+        <tr><td><code>WIS</code></td><td>Wisdom XP</td><td>Receiving whispers and deep conversations</td></tr>
       </tbody>
     </table>
 
     <h3>Bond System</h3>
     <p>Each spirit tracks four bond dimensions with their deity:</p>
+    <table>
+      <thead><tr><th>Dimension</th><th>What It Measures</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Depth</strong> (DEP)</td><td>Emotional connection</td><td>Grows from meaningful conversations</td></tr>
+        <tr><td><strong>Harmony</strong> (HAR)</td><td>Alignment with deity</td><td>Grows when orders match personality</td></tr>
+        <tr><td><strong>Adventure</strong> (ADV)</td><td>Boldness and daring</td><td>Grows from exploration and risky decisions</td></tr>
+        <tr><td><strong>Loyalty</strong> (LOY)</td><td>Resistance to enemy influence</td><td>Eroded by foreign deities' whispers</td></tr>
+      </tbody>
+    </table>
+    <p>The bond average determines the spirit's bond tier:</p>
+    <table class="tier-table">
+      <thead><tr><th>Average</th><th>Tier</th><th>Behavior</th></tr></thead>
+      <tbody>
+        <tr><td>80+</td><td>Devoted</td><td>Follows orders precisely, strong in battle</td></tr>
+        <tr><td>60&ndash;79</td><td>Trusted</td><td>Reliable, occasional personality-driven interpretation</td></tr>
+        <tr><td>40&ndash;59</td><td>Familiar</td><td>Follows broad intent, may reinterpret details</td></tr>
+        <tr><td>20&ndash;39</td><td>Cautious</td><td>Skeptical, often misinterprets or ignores subtlety</td></tr>
+        <tr><td>0&ndash;19</td><td>Stranger</td><td>Barely listens, acts on own agenda</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Soul Mining</h2>
+    <p>Soul deposits appear randomly across the hex grid as glowing teal particles. They represent ambient spiritual energy that gatherer spirits can harvest. On the map, soul-rich hexes glow with pulsing teal particles&mdash;more particles = more energy available.</p>
+
+    <div class="card">
+      <div class="card-title">THE SPAWNING ECONOMY</div>
+      <p style="margin:0;">Soul mining is the economic engine of expansion. Gatherers harvest soul energy &rarr; stored as spirit memories &rarr; 10 memories consumed per spawn &rarr; new spirits born. Without gatherers mining soul deposits, your swarm cannot grow.</p>
+    </div>
+
     <ul>
-      <li><strong>Depth</strong>&mdash;how well the spirit understands you</li>
-      <li><strong>Harmony</strong>&mdash;alignment of values and temperament</li>
-      <li><strong>Adventure</strong>&mdash;shared experiences and risks taken</li>
-      <li><strong>Loyalty</strong>&mdash;trust and reliability over time</li>
+      <li>~10% of land hexes receive new soul deposits each tick</li>
+      <li>Deposits range from 2&ndash;5 energy per spawn event</li>
+      <li>Gatherers absorb up to 10 energy per soul mine action (instant)</li>
+      <li>Each unit of soul energy = 1 memory + 1 Social XP for the gatherer</li>
+      <li>Hexes cap at 60 soul energy</li>
     </ul>
-    <p>Higher average bond means more accurate whisper interpretation and better battle performance. Chat regularly with your spirits to increase bond.</p>
 
     <h2>Combat</h2>
     <p>Battles are LLM-arbitrated. When two opposing spirits occupy the same hex, either can initiate combat. The arbiter evaluates:</p>
@@ -159,8 +228,13 @@
     </ul>
     <p>Outcomes: close margin = loser retreats to an adjacent hex. Wide margin (&ge;8 points) = loser dies. If the loser is surrounded with no retreat path, they also die. Winners claim the hex.</p>
 
+    <h2>Spawning &amp; Lineage</h2>
+    <p>Spirits can spawn children when they have <strong>10+ memories</strong> and <strong>35+ average bond</strong>. Spawning <strong>consumes 10 memories</strong> from the parent&mdash;making soul mining essential for swarm growth.</p>
+    <p>The child inherits the parent's most formative memories (LLM-ranked) and develops its own personality. Children start as generalists with 30% of the parent's bond stats.</p>
+    <p>Spirits track their lineage: generation number, parent, past life names (if reincarnated via essence import), and memorable actions.</p>
+
     <h2>Territory &amp; Win Conditions</h2>
-    <p>Hexes are claimed by the player whose spirit occupies them. Memory pools accumulate on controlled hexes over time&mdash;gatherer spirits can absorb these.</p>
+    <p>Hexes are claimed by the player whose spirit occupies them. Spirits heading toward a hex show a pulsing highlight on their target destination.</p>
     <p>The game ends when:</p>
     <ul>
       <li>A player controls <strong>50%</strong> of all hexes, or</li>
@@ -169,24 +243,22 @@
     </ul>
 
     <h2>Enemy Diplomacy</h2>
-    <p>You can click on enemy spirits and attempt to influence them. Their response depends on their loyalty stat:</p>
-    <table>
-      <thead><tr><th>Loyalty</th><th>Response</th></tr></thead>
-      <tbody>
-        <tr><td>75+</td><td>Hostile&mdash;rejects your influence outright</td></tr>
-        <tr><td>50&ndash;74</td><td>Suspicious&mdash;guarded but listening</td></tr>
-        <tr><td>25&ndash;49</td><td>Wavering&mdash;open to persuasion</td></tr>
-        <tr><td>0&ndash;24</td><td>Disloyal&mdash;may defect or sabotage their own swarm</td></tr>
-      </tbody>
-    </table>
-    <p>Each influence attempt erodes the target's loyalty by 1 point. A patient deity can turn an enemy spirit into an unreliable asset for their opponent.</p>
-
-    <h2>Spawning &amp; Lineage</h2>
-    <p>Spirits can spawn children when they have 5+ memories and 35+ average bond. The child inherits the parent's most formative memories (LLM-ranked) and develops its own personality based on those inherited experiences. Children start as generalists with 30% of the parent's bond.</p>
-    <p>Spirits track their lineage: generation number, parent, past life names (if reincarnated via essence import), and memorable actions.</p>
+    <p>Enemy spirits have an <strong>enemy resistance</strong> stat (0&ndash;100) that determines how susceptible they are to your whispers. Use the Enemy Whisper charge to target an opponent's entire swarm. The more you whisper, the lower their resistance drops&mdash;eventually allowing you to override their deity's orders or even trigger defections.</p>
+    <p>This is a long game: each whisper only drops resistance by 1, but loyal spirits recover slowly while disloyal ones decay further. Focus your whispers on the weakest-loyalty spirits for maximum effect.</p>
 
     <h2>Essence &amp; Reincarnation</h2>
     <p>After a game ends, you can export your swarm's essence&mdash;a snapshot of memories, personality, lineage, and battle history&mdash;as a Walrus blob. In the next game's lobby, import that blob ID to reincarnate your spirits with their past-life memories intact. This is how spirits persist across games.</p>
+
+    <h2>Game Timing</h2>
+    <table>
+      <thead><tr><th>Event</th><th>Interval</th></tr></thead>
+      <tbody>
+        <tr><td>Game tick (state update)</td><td>5 seconds</td></tr>
+        <tr><td>Spirit decision cycle</td><td>15 seconds</td></tr>
+        <tr><td>Whisper charge reset</td><td>30 seconds</td></tr>
+        <tr><td>Spawn cooldown</td><td>60 seconds</td></tr>
+      </tbody>
+    </table>
 
     <h2>Onchain Architecture</h2>
 
@@ -210,13 +282,16 @@
     <table>
       <thead><tr><th>Memory Type</th><th>Storage</th><th>Visibility</th></tr></thead>
       <tbody>
-        <tr><td>Conversation history</td><td>MemWal</td><td>Owner only</td></tr>
+        <tr><td>Deity decrees</td><td>MemWal</td><td>Swarm-scoped</td></tr>
+        <tr><td>Enemy whispers</td><td>MemWal</td><td>Target spirit only</td></tr>
         <tr><td>Battle outcomes</td><td>MemWal</td><td>Public (cross-agent readable)</td></tr>
-        <tr><td>Whisper logs</td><td>MemWal</td><td>Swarm-scoped</td></tr>
+        <tr><td>Spawn logs</td><td>MemWal</td><td>Parent + child</td></tr>
         <tr><td>Territory discoveries</td><td>MemWal</td><td>Public</td></tr>
         <tr><td>Essence snapshots</td><td>Walrus blob</td><td>Public (blob ID shared)</td></tr>
       </tbody>
     </table>
+
+    <p>Each spirit's memories are viewable in the Spirit Panel&mdash;click any spirit, then expand the "memories on MemWal" section to recall their stored experiences.</p>
 
     <h2>Links</h2>
     <ul>

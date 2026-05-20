@@ -10,6 +10,7 @@ import SpiritPanel from './components/SpiritPanel.jsx';
 import EssenceExport from './components/EssenceExport.jsx';
 import OnboardingHints from './components/OnboardingHints.jsx';
 import OnchainFooter from './components/OnchainFooter.jsx';
+import WhisperBar from './components/WhisperBar.jsx';
 import { getAvatarUrl } from '@lib/avatarUrl.js';
 
 function getSessionPlayerId() {
@@ -29,7 +30,6 @@ export default function App() {
   const [claimedPlayerId, setClaimedPlayerId] = useState(null);
   const [selectedSpirit, setSelectedSpirit] = useState(null);
   const [events, setEvents] = useState([]);
-  const [spiritMessages, setSpiritMessages] = useState({});
   const [whisperTrails, setWhisperTrails] = useState([]);
   const [chainOps, setChainOps] = useState([]);
   const [chainInfo, setChainInfo] = useState(null);
@@ -386,16 +386,6 @@ export default function App() {
                   gameState={gameState}
                   playerId={playerId}
                   onClose={() => setSelectedSpirit(null)}
-                  messages={spiritMessages[selectedSpirit] || []}
-                  onMessages={(updater) => setSpiritMessages(prev => ({
-                    ...prev,
-                    [selectedSpirit]: typeof updater === 'function'
-                      ? updater(prev[selectedSpirit] || [])
-                      : updater,
-                  }))}
-                  onWhispers={(trails) => setWhisperTrails(trails)}
-                  onChainOps={addChainOps}
-                  chainInfo={chainInfo}
                 />
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
@@ -454,6 +444,7 @@ export default function App() {
         </div>
       </main>
 
+      <WhisperBar playerId={playerId} gameState={gameState} />
       <OnchainFooter chainInfo={chainInfo} />
 
       {/* Onboarding */}

@@ -4,9 +4,12 @@ import { chatWithSpirit, chatWithEnemySpirit } from '../services/spiritDialogueS
 import { applyBondAction } from '../services/bondService.js';
 import { applyDeityIntent, issueRallyCommand } from '../services/spiritDecisionService.js';
 import { readEssence, getStorageMode } from '../services/walrusService.js';
+import { recallMemoriesServer } from '../services/memwalServer.js';
+import { getKey } from '../services/keyStore.js';
 import { applyEssence } from '../services/essenceService.js';
 import { generateAvatarBackground } from '../services/avatarService.js';
 import { pauseGame, resumeGame } from '../services/tickEngine.js';
+import { broadcastSwarmWhisper, broadcastEnemyWhisper } from '../services/whisperService.js';
 
 const PACKAGE_ID = process.env.PACKAGE_ID || '0xb0f9ba3da143c92225ada477204a57fd61bae3f2c5c70e8593ce29eac309da21';
 const ADMIN_CAP = process.env.ADMIN_CAP_ID || '0x87faef3092e7568ecac9c9e2475828ed521bace50f3747e87abb07dc585a6f88';
@@ -207,6 +210,74 @@ router.post('/chat', async (req, res) => {
     });
   } catch (err) {
     console.error('[chat] Error:', err.message, err.stack?.split('\n').slice(0, 3).join('\n'));
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/game/whisper — swarm decree or enemy whisper (2 per 30s cycle)
+router.post('/whisper', async (req, res) => {
+  const { playerId, type, message, targetPlayerId } = req.body;
+  const state = getGameState();
+  if (!state) return res.status(404).json({ error: 'No active game' });
+  if (!playerId || !type || !message?.trim()) return res.status(400).json({ error: 'Missing fields' });
+  if (type !== 'swarm' && type !== 'enemy') return res.status(400).json({ error: 'type must be swarm or enemy' });
+
+  const player = state.players[playerId];
+  if (!player) return res.status(404).json({ error: 'Player not found' });
+
+  if (!player.whisperCharges) player.whisperCharges = { swarm: 0, enemy: 0 };
+  if (player.whisperCharges[type] <= 0) {
+    const resetIn = 30 - Math.floor((Date.now() - (player.lastWhisperReset || 0)) / 1000);
+    return res.status(429).json({ error: 'No charges left', resetIn: Math.max(0, resetIn) });
+  }
+
+  player.whisperCharges[type] -= 1;
+
+  try {
+    if (type === 'swarm') {
+      console.log(`[whisper:swarm] ${player.name}: "${message.slice(0, 60)}"`);
+      const result = await broadcastSwarmWhisper({ playerId, message: message.trim(), gameState: state });
+      broadcastStateChange(state);
+      res.json({ type: 'swarm', spirits: result.spirits, charges: player.whisperCharges });
+    } else {
+      if (!targetPlayerId || !state.players[targetPlayerId]) {
+        player.whisperCharges[type] += 1;
+        return res.status(400).json({ error: 'Invalid targetPlayerId' });
+      }
+      console.log(`[whisper:enemy] ${player.name} → ${state.players[targetPlayerId].name}: "${message.slice(0, 60)}"`);
+      const result = await broadcastEnemyWhisper({
+        playerId, targetPlayerId, message: message.trim(), gameState: state,
+      });
+      broadcastStateChange(state);
+      res.json({ type: 'enemy', spirits: result.spirits, charges: player.whisperCharges });
+    }
+  } catch (err) {
+    console.error('[whisper] Error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/game/spirit/:id/memories — recall a spirit's stored memories
+router.get('/spirit/:id/memories', async (req, res) => {
+  const state = getGameState();
+  if (!state) return res.status(404).json({ error: 'No active game' });
+
+  const spirit = state.spirits[req.params.id];
+  if (!spirit) return res.status(404).json({ error: 'Spirit not found' });
+
+  try {
+    const key = getKey(spirit.id);
+    const result = await recallMemoriesServer(
+      spirit.memwalNamespace, '', 50, key, spirit.memwalAccountId
+    );
+    res.json({
+      spiritId: spirit.id,
+      name: spirit.name,
+      memories: result.results || [],
+      count: spirit.memoryCount || 0,
+    });
+  } catch (err) {
+    console.error('[memories] Error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });

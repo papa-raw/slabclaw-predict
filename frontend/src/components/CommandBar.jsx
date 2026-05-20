@@ -313,14 +313,21 @@ function EventEntry({ evt, gs }) {
       );
 
     case 'spirit_dialog': {
-      const isEnemy = evt.dialogType === 'TAUNT';
+      const dtype = evt.dialogType;
+      const isDecree = dtype === 'DECREE';
+      const isEnemyWhisper = dtype === 'ENEMY_WHISPER';
+      const isEnemy = dtype === 'TAUNT' || isEnemyWhisper;
+      const borderColor = isDecree ? 'border-amber-500/40' : isEnemy ? 'border-red-500/40' : 'border-cyan-500/30';
+      const headColor = isDecree ? 'text-amber-300/80' : isEnemy ? 'text-red-300/80' : 'text-cyan-300/70';
+      const bodyColor = isDecree ? 'text-amber-400/50' : isEnemy ? 'text-red-400/50' : 'text-cyan-400/50';
+      const icon = isDecree ? '⚡' : isEnemy ? '🗡' : '💬';
       return (
-        <div className={`mb-1 border-l-2 ${isEnemy ? 'border-orange-500/40' : 'border-cyan-500/30'} pl-2`}>
-          <div className={`text-sm ${isEnemy ? 'text-orange-300/80' : 'text-cyan-300/70'} flex justify-between`}>
-            <span>{isEnemy ? '🗡' : '💬'} {evt.sourceName} → {evt.targetName}</span>
+        <div className={`mb-1 border-l-2 ${borderColor} pl-2`}>
+          <div className={`text-sm ${headColor} flex justify-between`}>
+            <span>{icon} {evt.sourceName} → {evt.targetName}</span>
             {timeLabel && <span className="text-gray-400 text-xs ml-2 flex-shrink-0">{timeLabel}</span>}
           </div>
-          <div className={`text-sm ${isEnemy ? 'text-orange-400/50' : 'text-cyan-400/50'} italic leading-tight mt-0.5`}>
+          <div className={`text-sm ${bodyColor} italic leading-tight mt-0.5`}>
             "{evt.text}"
           </div>
         </div>
