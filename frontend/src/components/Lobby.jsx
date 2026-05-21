@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import WalletConnect from './WalletConnect.jsx';
 import EssenceImport from './EssenceImport.jsx';
+import RosterPicker from './RosterPicker.jsx';
 import OnchainFooter from './OnchainFooter.jsx';
 import { getAvatarUrl } from '@lib/avatarUrl.js';
 
@@ -57,6 +58,7 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
   const [confirmedBlobId, setConfirmedBlobId] = useState(null);
   const [essencePreview, setEssencePreview] = useState(null);
   const [fadeIn, setFadeIn] = useState(false);
+  const [selectedSpiritIds, setSelectedSpiritIds] = useState([]);
 
   useEffect(() => {
     requestAnimationFrame(() => setFadeIn(true));
@@ -69,6 +71,7 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         playerId,
+        ...(selectedSpiritIds.length > 0 ? { selectedSpiritIds } : {}),
         ...(confirmedBlobId ? { blobId: confirmedBlobId } : {}),
       }),
     });
@@ -255,14 +258,24 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
             <div className={`anima-panel transition-all duration-300 ${confirmedBlobId ? 'ring-1 ring-purple-500/30' : ''}`}>
               <div className="anima-panel-header flex items-center justify-between">
                 <span>Your Swarm</span>
-                {confirmedBlobId && (
-                  <span
-                    className="text-xs font-mono px-2 py-0.5 rounded-full border"
-                    style={{ background: 'rgba(168,85,247,0.15)', borderColor: 'rgba(168,85,247,0.3)', color: '#c084fc' }}
-                  >
-                    ✦ Reincarnated
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {selectedSpiritIds.length > 0 && (
+                    <span
+                      className="text-xs font-mono px-2 py-0.5 rounded-full border"
+                      style={{ background: 'rgba(212,160,82,0.15)', borderColor: 'rgba(212,160,82,0.3)', color: 'var(--gold-bright)' }}
+                    >
+                      ✦ Roster loaded
+                    </span>
+                  )}
+                  {confirmedBlobId && (
+                    <span
+                      className="text-xs font-mono px-2 py-0.5 rounded-full border"
+                      style={{ background: 'rgba(168,85,247,0.15)', borderColor: 'rgba(168,85,247,0.3)', color: '#c084fc' }}
+                    >
+                      ✦ Reincarnated
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="anima-panel-body">
                 <div className="grid grid-cols-3 gap-2 mb-3">
@@ -311,8 +324,28 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
                   })}
                 </div>
 
-                {/* Essence Import — inside swarm panel */}
+                {/* Roster Picker */}
                 <div style={{ borderTop: '1px solid var(--gold-dim)', paddingTop: '10px' }}>
+                  <RosterPicker
+                    onSelectionChange={setSelectedSpiritIds}
+                    selectedIds={selectedSpiritIds}
+                  />
+                </div>
+
+                {/* Divider between roster and essence */}
+                <div className="flex items-center gap-3 my-2 px-2" style={{ color: 'var(--text-muted)' }}>
+                  <div className="flex-1 h-px" style={{ background: 'var(--gold-dim)' }} />
+                  <span className="text-xs font-mono italic whitespace-nowrap">or import essence</span>
+                  <div className="flex-1 h-px" style={{ background: 'var(--gold-dim)' }} />
+                </div>
+
+                {/* Essence Import — inside swarm panel */}
+                <div style={{
+                  paddingTop: '4px',
+                  opacity: selectedSpiritIds.length > 0 ? 0.4 : 1,
+                  pointerEvents: selectedSpiritIds.length > 0 ? 'none' : 'auto',
+                  transition: 'opacity 0.3s ease',
+                }}>
                   <EssenceImport onEssenceConfirmed={handleEssenceConfirmed} confirmedBlobId={confirmedBlobId} />
                 </div>
               </div>

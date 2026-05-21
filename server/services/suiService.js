@@ -76,6 +76,62 @@ export async function collectSpawnFee(recipientAddress) {
   return _collectSpawnFeeReal(recipientAddress);
 }
 
+/**
+ * Mint a v2 Spirit NFT with all fields, transferred to recipient.
+ */
+export async function mintSpiritV2(name, personalityHash, generation, parentId, specialization, memwalAccountId, avatarBlobId, recipient) {
+  if (!PACKAGE_ID) {
+    const mockId = `0x${_mockObjectId('spirit-v2', name)}`;
+    console.log(`[sui:mock] mintSpiritV2 name=${name} spec=${specialization} → ${mockId}`);
+    return mockId;
+  }
+  return _mintSpiritV2Real(name, personalityHash, generation, parentId, specialization, memwalAccountId, avatarBlobId, recipient);
+}
+
+/**
+ * Update spirit stats post-game.
+ */
+export async function updateSpiritPostGame(spiritObjectId, essenceBlobId, status, kills, hexes, bondDepth, bondLoyalty, gamesPlayed) {
+  if (!PACKAGE_ID) {
+    console.log(`[sui:mock] updateSpiritPostGame spirit=${spiritObjectId} status=${status} kills=${kills}`);
+    return spiritObjectId;
+  }
+  return _updateSpiritPostGameReal(spiritObjectId, essenceBlobId, status, kills, hexes, bondDepth, bondLoyalty, gamesPlayed);
+}
+
+/**
+ * Mark a spirit as ghost.
+ */
+export async function markSpiritGhost(spiritObjectId) {
+  if (!PACKAGE_ID) {
+    console.log(`[sui:mock] markSpiritGhost spirit=${spiritObjectId}`);
+    return spiritObjectId;
+  }
+  return _markSpiritGhostReal(spiritObjectId);
+}
+
+/**
+ * Reincarnate a spirit (status → alive, increment count).
+ */
+export async function reincarnateSpirit(spiritObjectId) {
+  if (!PACKAGE_ID) {
+    console.log(`[sui:mock] reincarnateSpirit spirit=${spiritObjectId}`);
+    return spiritObjectId;
+  }
+  return _reincarnateSpiritReal(spiritObjectId);
+}
+
+/**
+ * Query owned Spirit NFTs for a wallet address.
+ */
+export async function queryOwnedSpirits(walletAddress) {
+  if (!PACKAGE_ID) {
+    console.log(`[sui:mock] queryOwnedSpirits wallet=${walletAddress?.slice(0, 10)}... → []`);
+    return [];
+  }
+  return _queryOwnedSpiritsReal(walletAddress);
+}
+
 // ── Mock helpers ──────────────────────────────────────────────────────────────
 
 function _mockObjectId(prefix, seed) {
@@ -244,5 +300,151 @@ async function _collectSpawnFeeReal(recipientAddress) {
     await _executeTransaction(tx);
   } catch (err) {
     console.error('[sui:real] collectSpawnFee failed:', err.message);
+  }
+}
+
+// ── v2 Real implementations ──────────────────────────────────────────────────
+
+async function _mintSpiritV2Real(name, personalityHash, generation, parentId, specialization, memwalAccountId, avatarBlobId, recipient) {
+  try {
+    const { Transaction } = await import('@mysten/sui/transactions');
+    const ADMIN_CAP_ID = process.env.ADMIN_CAP_ID;
+    if (!ADMIN_CAP_ID) { console.warn('[sui:real] ADMIN_CAP_ID not set'); return null; }
+
+    const tx = new Transaction();
+    tx.moveCall({
+      target: `${PACKAGE_ID}::spirit::mint_v2`,
+      arguments: [
+        tx.object(ADMIN_CAP_ID),
+        tx.pure.vector('u8', Array.from(Buffer.from(name, 'utf-8'))),
+        tx.pure.vector('u8', Array.from(Buffer.from(personalityHash || '', 'utf-8'))),
+        tx.pure.u64(generation),
+        tx.pure.option('address', parentId || null),
+        tx.pure.vector('u8', Array.from(Buffer.from(specialization || '', 'utf-8'))),
+        tx.pure.vector('u8', Array.from(Buffer.from(memwalAccountId || '', 'utf-8'))),
+        tx.pure.vector('u8', Array.from(Buffer.from(avatarBlobId || '', 'utf-8'))),
+        tx.pure.address(recipient),
+        tx.object('0x6'),
+      ],
+    });
+
+    return await _executeTransaction(tx);
+  } catch (err) {
+    console.error('[sui:real] mintSpiritV2 failed:', err.message);
+    return null;
+  }
+}
+
+async function _updateSpiritPostGameReal(spiritObjectId, essenceBlobId, status, kills, hexes, bondDepth, bondLoyalty, gamesPlayed) {
+  try {
+    const { Transaction } = await import('@mysten/sui/transactions');
+    const ADMIN_CAP_ID = process.env.ADMIN_CAP_ID;
+    if (!ADMIN_CAP_ID) return null;
+
+    const tx = new Transaction();
+    tx.moveCall({
+      target: `${PACKAGE_ID}::spirit::update_post_game`,
+      arguments: [
+        tx.object(ADMIN_CAP_ID),
+        tx.object(spiritObjectId),
+        tx.pure.vector('u8', Array.from(Buffer.from(essenceBlobId || '', 'utf-8'))),
+        tx.pure.u8(status),
+        tx.pure.u64(kills),
+        tx.pure.u64(hexes),
+        tx.pure.u64(bondDepth),
+        tx.pure.u64(bondLoyalty),
+        tx.pure.u64(gamesPlayed),
+      ],
+    });
+
+    return await _executeTransaction(tx);
+  } catch (err) {
+    console.error('[sui:real] updateSpiritPostGame failed:', err.message);
+    return null;
+  }
+}
+
+async function _markSpiritGhostReal(spiritObjectId) {
+  try {
+    const { Transaction } = await import('@mysten/sui/transactions');
+    const ADMIN_CAP_ID = process.env.ADMIN_CAP_ID;
+    if (!ADMIN_CAP_ID) return null;
+
+    const tx = new Transaction();
+    tx.moveCall({
+      target: `${PACKAGE_ID}::spirit::mark_ghost`,
+      arguments: [tx.object(ADMIN_CAP_ID), tx.object(spiritObjectId)],
+    });
+
+    return await _executeTransaction(tx);
+  } catch (err) {
+    console.error('[sui:real] markSpiritGhost failed:', err.message);
+    return null;
+  }
+}
+
+async function _reincarnateSpiritReal(spiritObjectId) {
+  try {
+    const { Transaction } = await import('@mysten/sui/transactions');
+    const ADMIN_CAP_ID = process.env.ADMIN_CAP_ID;
+    if (!ADMIN_CAP_ID) return null;
+
+    const tx = new Transaction();
+    tx.moveCall({
+      target: `${PACKAGE_ID}::spirit::reincarnate`,
+      arguments: [tx.object(ADMIN_CAP_ID), tx.object(spiritObjectId)],
+    });
+
+    return await _executeTransaction(tx);
+  } catch (err) {
+    console.error('[sui:real] reincarnateSpirit failed:', err.message);
+    return null;
+  }
+}
+
+async function _queryOwnedSpiritsReal(walletAddress) {
+  try {
+    const res = await fetch(SUI_RPC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1,
+        method: 'suix_getOwnedObjects',
+        params: [
+          walletAddress,
+          { filter: { StructType: `${PACKAGE_ID}::spirit::Spirit` }, options: { showContent: true, showType: true } },
+          null, 50,
+        ],
+      }),
+    });
+    const json = await res.json();
+    if (json.error) { console.error('[sui:real] queryOwnedSpirits RPC error:', json.error); return []; }
+
+    return (json.result?.data || []).map(obj => {
+      const fields = obj.data?.content?.fields || {};
+      return {
+        objectId: obj.data?.objectId,
+        name: fields.name ? Buffer.from(fields.name, 'base64').toString('utf-8') : '',
+        personalityHash: fields.personality_hash || '',
+        generation: Number(fields.generation || 0),
+        createdAt: Number(fields.created_at || 0),
+        owner: fields.owner || walletAddress,
+        parentId: fields.parent_id || null,
+        specialization: fields.specialization ? Buffer.from(fields.specialization, 'base64').toString('utf-8') : '',
+        memwalAccountId: fields.memwal_account_id ? Buffer.from(fields.memwal_account_id, 'base64').toString('utf-8') : '',
+        essenceBlobId: fields.essence_blob_id ? Buffer.from(fields.essence_blob_id, 'base64').toString('utf-8') : '',
+        avatarBlobId: fields.avatar_blob_id ? Buffer.from(fields.avatar_blob_id, 'base64').toString('utf-8') : '',
+        status: Number(fields.status || 0),
+        gamesPlayed: Number(fields.games_played || 0),
+        totalKills: Number(fields.total_kills || 0),
+        totalHexesClaimed: Number(fields.total_hexes_claimed || 0),
+        bondDepth: Number(fields.bond_depth || 0),
+        bondLoyalty: Number(fields.bond_loyalty || 0),
+        reincarnationCount: Number(fields.reincarnation_count || 0),
+      };
+    });
+  } catch (err) {
+    console.error('[sui:real] queryOwnedSpirits failed:', err.message);
+    return [];
   }
 }

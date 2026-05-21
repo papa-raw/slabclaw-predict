@@ -7,7 +7,6 @@ import WalletConnect from './components/WalletConnect.jsx';
 import PlayerHud from './components/PlayerHud.jsx';
 import Lobby from './components/Lobby.jsx';
 import SpiritPanel from './components/SpiritPanel.jsx';
-import EssenceExport from './components/EssenceExport.jsx';
 import OnboardingHints from './components/OnboardingHints.jsx';
 import OnchainFooter from './components/OnchainFooter.jsx';
 import WhisperBar from './components/WhisperBar.jsx';
@@ -35,12 +34,32 @@ export default function App() {
   const [chainInfo, setChainInfo] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [rightTab, setRightTab] = useState('spirit');
+  const [persistStatus, setPersistStatus] = useState('idle');
+  const [persistResults, setPersistResults] = useState(null);
   const wsRef = useRef(null);
   const chainOpIdRef = useRef(0);
 
   useEffect(() => {
     fetch('/api/game/chain-info').then(r => r.json()).then(setChainInfo).catch(() => {});
   }, []);
+
+  // Auto-persist swarm state when game finishes
+  useEffect(() => {
+    if (gameState?.status !== 'finished' || persistStatus !== 'idle') return;
+    setPersistStatus('persisting');
+    const pid = claimedPlayerId || getSessionPlayerId();
+    fetch('/api/game/end-persist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: pid }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        setPersistResults(data);
+        setPersistStatus('done');
+      })
+      .catch(() => setPersistStatus('error'));
+  }, [gameState?.status, persistStatus, claimedPlayerId]);
 
   useEffect(() => {
     if (!walletAddress) { setClaimedPlayerId(null); return; }
@@ -243,7 +262,35 @@ export default function App() {
             <span>☽ {totalDeaths} fallen</span>
           </div>
 
-          <EssenceExport gameState={gameState} playerId={playerId} />
+          <div className="rounded-lg p-3 text-center" style={{ background: 'var(--bg-surface)', border: '1px solid var(--gold-dim)' }}>
+            {persistStatus === 'persisting' && (
+              <p className="text-sm font-mono" style={{ color: 'var(--text-secondary)' }}>
+                Persisting swarm to Walrus + Sui...
+              </p>
+            )}
+            {persistStatus === 'done' && persistResults && (
+              <div className="space-y-1">
+                <p className="text-sm font-mono" style={{ color: 'var(--gold-bright)' }}>
+                  Swarm persisted
+                </p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  {persistResults.roster?.minted?.length || 0} minted, {persistResults.roster?.updated?.length || 0} updated
+                  {persistResults.journal ? ' · Journal saved' : ''}
+                  {persistResults.graveyard ? ` · ${persistResults.graveyard.added} ghost(s) added` : ''}
+                </p>
+              </div>
+            )}
+            {persistStatus === 'error' && (
+              <p className="text-sm font-mono" style={{ color: '#ef4444' }}>
+                Persist failed — your spirits are safe locally
+              </p>
+            )}
+            {persistStatus === 'idle' && (
+              <p className="text-sm font-mono" style={{ color: 'var(--text-muted)' }}>
+                Preparing to save...
+              </p>
+            )}
+          </div>
 
           <button
             onClick={() => fetch('/api/game/restart', { method: 'POST' })}

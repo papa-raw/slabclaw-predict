@@ -6805,3 +6805,838 @@ BUILD STEP                          RUN AFTER
 3. **Test names describe behavior, not implementation.** "allows movement to adjacent empty hex" not "calls validateMovement with correct args".
 4. **Deterministic tests only.** No random seeds, no Date.now() in assertions. All tests must pass on every run.
 5. **No network calls.** All tests run offline. No test hits MemWal relayer, Walrus testnet, or Anthropic API.
+
+## 9. Swarm Persistence Redesign — Spirit NFTs + Ghosts + Deity Reputation
+
+> **SUPERSEDES:** All essence-related logic in essenceService.js, EssenceExport.jsx, EssenceImport.jsx, and the `/api/essence/*` routes. Those files remain for reference but the v2 persistence system replaces them entirely.
+
+### 9.0 Problem Statement
+
+The current essence system fails at its core goal—making cross-game persistence feel meaningful:
+
+| Problem | Current behavior | Impact |
+|---------|-----------------|--------|
+| Clunky save flow | Player manually copies a Walrus blob ID string | Players forget, lose their save, or never bother |
+| Single spirit reincarnation | Only 1 of 3 spirits gets past-life data | 2/3 of your swarm starts generic every game |
+| Negligible carryover | 20% XP + 15% bond = barely noticeable | Reincarnation doesn't feel like it matters |
+| No wallet link | Essence is a free-floating blob ID | Nothing ties your save history to your Sui address |
+| Demo-unfriendly | Need two full games to show persistence | Judges can't see the differentiator in a 5-min video |
+| Memory disconnect | MemWal memories don't actually transfer | The Walrus track differentiator (persistent memory) is cosmetic |
+
+### 9.1 Design Overview — Three Layers
+
+The redesign replaces the single-blob essence system with three interlocking persistence layers, each stored differently:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  LAYER 1: SPIRIT ROSTER (Sui Owned Objects)                      │
+│  Your spirits are NFTs. After a game ends, surviving spirits     │
+│  stay in your wallet. Next game, you pick which ones to bring.   │
+│  Dead spirits that you don't reincarnate become ghosts.          │
+├──────────────────────────────────────────────────────────────────┤
+│  LAYER 2: GHOST GRAVEYARD (Walrus + Server)                      │
+│  Dead spirits from all past games become neutral NPCs on the     │
+│  hex map. Any player can recruit them through dialogue.           │
+│  Ghosts carry fragments of their past-life memories.             │
+├──────────────────────────────────────────────────────────────────┤
+│  LAYER 3: DEITY JOURNAL (Walrus Blob per Player)                 │
+│  Player-level persistence: playstyle fingerprint, win/loss        │
+│  record, bond averages, reputation. Spirits react to your         │
+│  reputation — a ruthless deity's new spirits start wary.          │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Why three layers:** Layer 1 solves the save/load UX (wallet = save file). Layer 2 creates an ever-growing game world where past games haunt future ones (the "holy shit" demo moment). Layer 3 makes cross-game persistence visible at the player level, not just the spirit level.
+
+### 9.2 Layer 1 — Spirit Roster (Sui NFTs)
+
+#### 9.2.1 Move Contract: Spirit v2
+
+The existing `spirit.move` needs new fields. Since Move objects can't be modified after deployment without upgrading the package, this requires a contract upgrade.
+
+**New `Spirit` struct:**
+
+```move
+public struct Spirit has key, store {
+    id: UID,
+    name: vector<u8>,
+    personality_hash: vector<u8>,
+    generation: u64,
+    created_at: u64,
+    owner: address,
+    parent_id: Option<ID>,
+    // ── v2 additions ──
+    specialization: vector<u8>,         // "warrior" | "scout" | "gatherer" | "sage"
+    memwal_account_id: vector<u8>,      // MemWal account object ID (UTF-8)
+    essence_blob_id: vector<u8>,        // Walrus blob ID of last game's essence snapshot
+    avatar_blob_id: vector<u8>,         // Walrus blob ID of spirit avatar image
+    status: u8,                         // 0 = alive, 1 = dead, 2 = ghost (entered graveyard)
+    games_played: u64,                  // total games this spirit has participated in
+    total_kills: u64,                   // lifetime kills across all games
+    total_hexes_claimed: u64,           // lifetime territory claims
+    bond_depth: u64,                    // last game's bond depth (0-100, stored as u64)
+    bond_loyalty: u64,                  // last game's bond loyalty
+    reincarnation_count: u64,           // how many times this spirit has been reborn
+}
+```
+
+**New entry functions:**
+
+```move
+/// Update spirit stats after a game ends. AdminCap required.
+public entry fun update_post_game(
+    _: &AdminCap,
+    spirit: &mut Spirit,
+    essence_blob_id: vector<u8>,
+    status: u8,
+    kills: u64,
+    hexes: u64,
+    bond_depth: u64,
+    bond_loyalty: u64,
+    games_played: u64,
+) {
+    spirit.essence_blob_id = essence_blob_id;
+    spirit.status = status;
+    spirit.total_kills = spirit.total_kills + kills;
+    spirit.total_hexes_claimed = spirit.total_hexes_claimed + hexes;
+    spirit.bond_depth = bond_depth;
+    spirit.bond_loyalty = bond_loyalty;
+    spirit.games_played = games_played;
+}
+
+/// Mark a spirit as ghost (entered the graveyard). AdminCap required.
+public entry fun mark_ghost(
+    _: &AdminCap,
+    spirit: &mut Spirit,
+) {
+    spirit.status = 2;
+}
+
+/// Reincarnate: reset status to alive, increment reincarnation count.
+public entry fun reincarnate(
+    _: &AdminCap,
+    spirit: &mut Spirit,
+) {
+    spirit.status = 0;
+    spirit.reincarnation_count = spirit.reincarnation_count + 1;
+}
+
+/// Mint v2 spirit with all new fields.
+public entry fun mint_v2(
+    cap: &AdminCap,
+    name: vector<u8>,
+    personality_hash: vector<u8>,
+    generation: u64,
+    parent_id: Option<ID>,
+    specialization: vector<u8>,
+    memwal_account_id: vector<u8>,
+    avatar_blob_id: vector<u8>,
+    recipient: address,
+    clock: &Clock,
+    ctx: &mut TxContext,
+) {
+    let spirit = Spirit {
+        id: object::new(ctx),
+        name,
+        personality_hash,
+        generation,
+        created_at: clock::timestamp_ms(clock),
+        owner: recipient,
+        parent_id,
+        specialization,
+        memwal_account_id,
+        avatar_blob_id,
+        essence_blob_id: vector::empty(),
+        status: 0,
+        games_played: 0,
+        total_kills: 0,
+        total_hexes_claimed: 0,
+        bond_depth: 0,
+        bond_loyalty: 0,
+        reincarnation_count: 0,
+    };
+    transfer::transfer(spirit, recipient);
+}
+```
+
+#### 9.2.2 Roster Flow (Frontend)
+
+**Lobby changes — roster picker replaces EssenceImport:**
+
+1. When a player connects their wallet in the lobby, the server queries their owned `Spirit` objects via `suiClient.getOwnedObjects({ owner, filter: { StructType: '${PACKAGE_ID}::spirit::Spirit' } })`.
+2. The lobby shows a **Roster Panel** (replaces the current "Your Swarm" + EssenceImport):
+   - Top section: "YOUR SPIRIT ROSTER" — grid of all owned Spirit NFTs with avatar, name, specialization, lifetime stats, status badge (alive/dead).
+   - Selection area: player drags/clicks up to 3 spirits into "STARTING SWARM" slots. Dead spirits can be reincarnated (costs nothing, just resets status) or left as ghosts.
+   - Bottom: "FILL REMAINING" — any empty slots (if player has < 3 spirits, or chooses < 3) get fresh random spirits generated by the server.
+3. When the player clicks "Awaken", the selected spirit IDs are sent to `POST /api/game/ready` along with `{ selectedSpiritIds: [id1, id2, id3] }`.
+4. The server loads each Spirit NFT's onchain data + MemWal memories and initializes the in-game spirit state with carryover bonuses.
+
+**New player first game:** Player has no spirits. All 3 slots say "New Spirit" with a generated name/personality. After the game ends, they receive 3 Spirit NFTs minted to their wallet.
+
+**Reincarnation (within roster):** A spirit with `status: 1 (dead)` can be selected for the starting swarm. Selecting it triggers a `reincarnate()` Move call (sets status back to 0, increments reincarnation_count). The spirit enters the game with:
+
+| Stat | Carryover | Reasoning |
+|------|-----------|-----------|
+| XP (all types) | 40% of lifetime total | Meaningful enough to feel different from a fresh spirit |
+| Bond | 30% of last-game bond | They remember you but the relationship needs rebuilding |
+| Memories | Top 5 MemWal memories by relevance | The spirit quotes past-life events in dialogue |
+| Avatar | Inherited | Visual continuity across games |
+| Name | Inherited (with "Reborn" tag in UI) | Identity persistence |
+| Specialization | Inherited | Role persistence |
+
+**Spirits not selected for the roster:** Any spirit the player owns but doesn't bring into the game stays in their wallet untouched. They can be used in future games.
+
+#### 9.2.3 Post-Game: Minting + Updating
+
+When a game ends (`gameState.status === 'finished'`):
+
+1. **For each surviving spirit of the human player:**
+   - Compute an essence snapshot (JSON) and store on Walrus → get `essenceBlobId`
+   - If the spirit has no onchain NFT yet (first game): call `mint_v2()` to create the NFT, transfer to player's wallet
+   - If the spirit already has an onchain NFT: call `update_post_game()` with new stats
+   - Store final MemWal memories (the spirit's most impactful moments from this game)
+
+2. **For each dead spirit of the human player:**
+   - Same essence snapshot + Walrus store
+   - If NFT exists: call `update_post_game()` with `status: 1` (dead)
+   - The spirit now appears in the player's roster as dead—they can reincarnate it next game or leave it for the ghost system
+
+3. **For spirits the player chooses to release to the graveyard** (explicit action, not automatic):
+   - Call `mark_ghost()` on the NFT → `status: 2`
+   - The spirit's essence blob ID + memories become available to the Graveyard system
+   - The NFT stays in the player's wallet (they "own the ghost") but it's flagged as ghost status
+
+#### 9.2.4 Server-Side: rosterService.js (NEW)
+
+```javascript
+// server/services/rosterService.js
+
+/**
+ * Load a player's Spirit NFT roster from Sui.
+ * @param {string} walletAddress - Sui address
+ * @returns {Promise<SpiritNFT[]>}
+ */
+export async function loadRoster(walletAddress) { ... }
+
+/**
+ * Initialize in-game spirit state from selected NFTs.
+ * Applies carryover bonuses, loads MemWal memories.
+ * @param {string[]} selectedSpiritIds - onchain object IDs
+ * @param {string} playerId - in-game player ID
+ * @param {object} gameState
+ * @returns {Promise<void>}
+ */
+export async function initializeFromRoster(selectedSpiritIds, playerId, gameState) { ... }
+
+/**
+ * Post-game: update NFTs, mint new ones, store essence snapshots.
+ * @param {object} gameState
+ * @param {string} playerId
+ * @returns {Promise<{ minted: string[], updated: string[], essenceBlobIds: string[] }>}
+ */
+export async function persistPostGame(gameState, playerId) { ... }
+```
+
+### 9.3 Layer 2 — Ghost Graveyard
+
+#### 9.3.1 Concept
+
+Every spirit that dies and isn't reincarnated by its owner becomes a **ghost** — a neutral NPC that haunts the hex map in future games. Ghosts are not controlled by any player. They exist as fragments of past games, carrying memory shards from their previous life.
+
+**Why this matters for judging:** This is the single most demonstrable "memories persist" moment. A judge playing game 2 encounters a spirit from game 1, and that ghost *remembers* things that happened. It quotes dialogue. It references battles. The memories are verifiable on Walrus.
+
+#### 9.3.2 Ghost Spawning
+
+At game initialization:
+1. Server reads the **Graveyard Registry** — a Walrus blob that maps ghost spirit IDs to their essence blob IDs.
+2. Server selects up to **5 ghosts** for the current map (weighted by: recency of death, drama of death, memory richness).
+3. Each ghost is placed on a random unclaimed hex with terrain matching their past life's preferred biome (warriors → volcanic/mountain, scouts → forest/grassland, gatherers → coastal/tundra).
+4. Ghosts are added to `gameState.spirits` with `playerId: 'ghost'` and `alive: true`.
+
+#### 9.3.3 Ghost Behavior
+
+Ghosts are autonomous NPCs with limited behavior:
+
+| Behavior | Description |
+|----------|-------------|
+| **Wander** | Move to an adjacent hex every 3-5 ticks (random). Don't claim territory. |
+| **Speak** | When a player's spirit enters the ghost's hex, the ghost initiates dialogue. It draws from its MemWal past-life memories to say something relevant ("I remember this place... the last deity who commanded me sent me to die here.") |
+| **Recruitability** | A player can whisper to a ghost (uses their swarm decree charge). If the ghost's past-life loyalty was low (< 30), it joins easily. If loyalty was high (> 70), it resists ("I served another deity. Why should I follow you?"). Medium loyalty = persuasion check via LLM. |
+| **Combat** | Ghosts don't initiate combat. If attacked, they fight back at 60% of their past-life stats. |
+| **Memory fragments** | Ghosts periodically emit "memory fragment" events visible on the map — floating text snippets from their past life. Other spirits can observe these. |
+
+#### 9.3.4 Recruiting a Ghost
+
+When a player successfully recruits a ghost:
+1. The ghost's `playerId` changes to the recruiting player's ID.
+2. The ghost gains the player as their new deity — bond starts at `{ depth: 20, harmony: 10, adventure: 30, loyalty: 15 }` (wary but curious).
+3. The ghost retains all past-life memories — they remember their previous deity and may reference them ("The one before you... they were kinder" or "The one before you left me to die").
+4. The ghost counts toward the recruiting player's spirit count and territory claims.
+5. Onchain: the ghost NFT's owner doesn't change (original player still owns it), but the in-game state reflects the new allegiance. This is a gameplay mechanic, not a transfer.
+
+#### 9.3.5 Graveyard Registry
+
+**Storage:** A single Walrus blob (JSON), updated after each game.
+
+```json
+{
+  "version": 1,
+  "updatedAt": 1716200000000,
+  "ghosts": [
+    {
+      "spiritNftId": "0x...",
+      "ownerAddress": "0x...",
+      "essenceBlobId": "WALRUS_BLOB_ID",
+      "name": "Ember",
+      "specialization": "warrior",
+      "deathGame": "game-1716100000000",
+      "deathCause": "battle",
+      "killedBy": "Drift",
+      "lastDeityName": "Pyraxis the Smoldering",
+      "pastLifeLoyalty": 45,
+      "pastLifeBondAvg": 52,
+      "memwalNamespace": "swarm-player-1",
+      "memwalAccountId": "0x...",
+      "avatarBlobId": "WALRUS_BLOB_ID",
+      "memorableQuote": "I fought for the burning lands, and the burning lands consumed me."
+    }
+  ]
+}
+```
+
+**Server file:** `server/services/graveyardService.js`
+
+```javascript
+/**
+ * Load ghosts from the Graveyard Registry (Walrus blob).
+ * @returns {Promise<Ghost[]>}
+ */
+export async function loadGraveyard() { ... }
+
+/**
+ * Add dead spirits to the graveyard after a game ends.
+ * @param {object[]} deadSpirits - spirits with status=dead that owner released
+ * @param {object} gameState
+ * @returns {Promise<string>} updated graveyard blob ID
+ */
+export async function addToGraveyard(deadSpirits, gameState) { ... }
+
+/**
+ * Select ghosts for a new game map.
+ * @param {number} count - max ghosts to spawn (default 5)
+ * @returns {Promise<GhostInit[]>}
+ */
+export async function selectGhostsForGame(count = 5) { ... }
+
+/**
+ * Handle ghost recruitment attempt.
+ * @param {string} ghostSpiritId
+ * @param {string} recruitingPlayerId
+ * @param {string} whisperMessage
+ * @param {object} gameState
+ * @returns {Promise<{ success: boolean, dialogue: string }>}
+ */
+export async function attemptRecruitment(ghostSpiritId, recruitingPlayerId, whisperMessage, gameState) { ... }
+```
+
+#### 9.3.6 Ghost Decision Service
+
+Ghosts need their own lightweight decision loop, separate from player-controlled spirits:
+
+```javascript
+// In spiritDecisionService.js, add ghost handling:
+
+async function decideGhostAction(ghost, gameState) {
+  // Ghosts are simpler than player spirits:
+  // 1. If a player spirit is on the same hex → initiate dialogue (memory-driven)
+  // 2. If alone → wander to adjacent hex (random, 30% chance per tick)
+  // 3. If attacked → fight back (reactive only)
+  // 4. Every ~10 ticks → emit a memory fragment event
+}
+```
+
+### 9.4 Layer 3 — Deity Journal (Player Reputation)
+
+#### 9.4.1 Concept
+
+The Deity Journal is a player-level persistence blob stored on Walrus, linked to the player's Sui wallet address. It tracks the deity's cumulative reputation across all games. Spirits react to this reputation — a deity known for sacrificing spirits will find new spirits start with lower loyalty.
+
+#### 9.4.2 Data Structure
+
+```json
+{
+  "version": 1,
+  "walletAddress": "0x...",
+  "deityName": "Pyraxis the Smoldering",
+  "updatedAt": 1716200000000,
+  "gamesPlayed": 5,
+  "wins": 2,
+  "losses": 3,
+  "totalSpiritsCommanded": 18,
+  "totalSpiritsLost": 7,
+  "totalSpiritsReincarnated": 3,
+  "totalSpiritsGhosted": 4,
+  "playstyle": {
+    "aggressionRatio": 0.65,
+    "whisperFrequency": 42,
+    "dominantThemes": ["combat", "exploration"],
+    "specTendency": "warrior",
+    "deityArchetype": "Warlord"
+  },
+  "bondAverages": {
+    "depth": 55,
+    "harmony": 40,
+    "adventure": 68,
+    "loyalty": 35
+  },
+  "reputation": {
+    "benevolence": 35,
+    "ruthlessness": 72,
+    "wisdom": 48,
+    "loyalty": 28
+  },
+  "memorableDeeds": [
+    "Sacrificed Ember to hold the volcanic pass against three enemy spirits",
+    "Recruited the ghost of Drift, who had served an enemy deity",
+    "Won a game without losing a single spirit"
+  ],
+  "gameHistory": [
+    {
+      "gameId": "game-1716100000000",
+      "result": "victory",
+      "spiritsAlive": 4,
+      "spiritsLost": 1,
+      "hexesControlled": 25,
+      "essenceBlobId": "WALRUS_BLOB_ID"
+    }
+  ],
+  "blobId": "CURRENT_BLOB_ID"
+}
+```
+
+#### 9.4.3 Reputation Effects
+
+When a player starts a new game, the server reads their Deity Journal from Walrus and applies reputation modifiers to their starting spirits:
+
+| Reputation dimension | Effect on new spirits | Threshold |
+|---------------------|----------------------|-----------|
+| **Benevolence > 60** | +10 starting loyalty, +5 harmony | Spirits trust a kind deity |
+| **Ruthlessness > 70** | -10 starting loyalty, +5 adventure | Spirits fear a harsh deity |
+| **Wisdom > 60** | +5 starting depth | Spirits respect a wise deity |
+| **Loyalty < 30** (deity abandons spirits) | -15 starting loyalty, ghosts resist harder | "Your last spirits haunt the graveyard..." |
+| **Win rate > 60%** | +5 all bond stats | Spirits want to serve a winner |
+| **Win rate < 20%** | -5 loyalty | Spirits doubt a losing deity |
+
+These modifiers apply to fresh spirits only (not returning roster spirits, who already have bond history).
+
+Reputation also affects the LLM prompt for spirit decisions:
+```
+DEITY REPUTATION:
+Your deity, {deityName}, is known as a {archetype}.
+They have commanded {totalSpirits} spirits across {gamesPlayed} games.
+{ruthlessness > 70 ? "Many spirits have fallen under their command. Tread carefully." : ""}
+{benevolence > 60 ? "They are known for protecting their swarm. You feel safe." : ""}
+{loyalty < 30 ? "They have a habit of abandoning spirits to the graveyard. You are wary." : ""}
+```
+
+#### 9.4.4 Deity Archetype Derivation
+
+Computed from reputation dimensions:
+
+| Archetype | Condition |
+|-----------|-----------|
+| Warlord | ruthlessness > 65 AND aggressionRatio > 0.5 |
+| Shepherd | benevolence > 65 AND totalSpiritsLost/totalSpiritsCommanded < 0.2 |
+| Sage | wisdom > 60 AND dominantThemes includes "influence" |
+| Tyrant | ruthlessness > 70 AND loyalty < 30 |
+| Phoenix | reincarnation_count(all spirits) / totalSpiritsLost > 0.6 |
+| Wanderer | gamesPlayed < 3 (default for new players) |
+| Balanced | no extreme dimensions |
+
+#### 9.4.5 Server-Side: deityJournalService.js (NEW)
+
+```javascript
+// server/services/deityJournalService.js
+
+/**
+ * Load deity journal from Walrus by wallet address.
+ * @param {string} walletAddress
+ * @returns {Promise<DeityJournal | null>}
+ */
+export async function loadDeityJournal(walletAddress) { ... }
+
+/**
+ * Update deity journal after a game ends.
+ * @param {string} walletAddress
+ * @param {object} gameState
+ * @param {string} playerId
+ * @returns {Promise<string>} new blob ID
+ */
+export async function updateDeityJournal(walletAddress, gameState, playerId) { ... }
+
+/**
+ * Compute reputation modifiers for starting spirits.
+ * @param {DeityJournal} journal
+ * @returns {BondModifiers}
+ */
+export function computeReputationModifiers(journal) { ... }
+
+/**
+ * Generate the LLM prompt fragment for deity reputation.
+ * @param {DeityJournal} journal
+ * @returns {string}
+ */
+export function buildReputationPrompt(journal) { ... }
+```
+
+#### 9.4.6 Deity Journal Registry
+
+Unlike per-spirit essence (which is stored per blob ID), deity journals need to be discoverable by wallet address. Two options:
+
+**Option A (chosen): Server-side index**
+- The server maintains a `_data/deity-journals.json` mapping `walletAddress → blobId`.
+- On game end, the server updates the journal blob on Walrus and updates the local index.
+- Simple, works for hackathon scope. No onchain registry needed.
+
+**Option B (future): Onchain registry**
+- A Move shared object mapping `address → DeityJournal` (as a Table).
+- Full decentralization. Out of scope for hackathon.
+
+### 9.5 API Routes
+
+#### 9.5.1 New Routes
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/roster/:walletAddress` | Load player's Spirit NFT roster from Sui |
+| POST | `/api/game/ready` (modified) | Accept `selectedSpiritIds` array instead of `blobId` |
+| POST | `/api/game/end-persist` | Post-game: mint/update NFTs, store essence, update journal |
+| POST | `/api/ghost/recruit` | Attempt to recruit a ghost NPC |
+| GET | `/api/deity-journal/:walletAddress` | Load deity journal for profile display |
+| GET | `/api/graveyard` | List all available ghosts |
+
+#### 9.5.2 Modified Routes
+
+**`POST /api/game/ready` (modified)**
+
+Current body: `{ playerId, blobId? }`
+New body: `{ playerId, selectedSpiritIds?: string[] }`
+
+- If `selectedSpiritIds` provided: load those NFTs, apply carryover, initialize spirits
+- If empty/missing: generate fresh random spirits (current behavior)
+
+**`POST /api/game/end-persist` (NEW)**
+
+Called when game ends. Body: `{ playerId }`
+
+Response:
+```json
+{
+  "minted": ["0x..."],
+  "updated": ["0x..."],
+  "ghosted": ["0x..."],
+  "deityJournalBlobId": "WALRUS_BLOB_ID",
+  "graveyardUpdated": true
+}
+```
+
+#### 9.5.3 Deprecated Routes
+
+| Route | Status |
+|-------|--------|
+| `POST /api/essence/export` | DEPRECATED — replaced by `/api/game/end-persist` |
+| `POST /api/essence/import` | DEPRECATED — replaced by roster flow from wallet |
+| `POST /api/essence/confirm` | DEPRECATED — no longer needed |
+| `GET /api/essence/lineage` | DEPRECATED — lineage is now per-spirit on Sui (parent_id chain) |
+
+### 9.6 Frontend Changes
+
+#### 9.6.1 Lobby Redesign
+
+**Current lobby:** Title + Awaken button (left) | Your Swarm grid + EssenceImport (right)
+
+**New lobby:** Title + Awaken button (left) | Roster Picker (right)
+
+**RosterPicker.jsx (NEW)** — replaces EssenceImport inside the swarm panel:
+
+```
+┌─────────────────────────────────────────────┐
+│  YOUR SPIRIT ROSTER              3/5 owned  │
+├─────────────────────────────────────────────┤
+│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐  │
+│  │Ember│ │Drift│ │ Moss │ │Shade│ │(New)│  │
+│  │ ⚔ W │ │ ⌖ S │ │ ◈ G │ │💀 W│ │  ?  │  │
+│  │85 XP│ │42 XP│ │63 XP│ │DEAD │ │     │  │
+│  └──┬──┘ └──┬──┘ └──┬──┘ └──┬──┘ └─────┘  │
+│     │       │       │       │               │
+│  ┌──▼──────▼───────▼───────┐               │
+│  │  STARTING SWARM (3 max)  │  ◄ drag here  │
+│  │  [Ember]  [Moss]  [NEW]  │               │
+│  └──────────────────────────┘               │
+│                                             │
+│  Dead spirits: reincarnate or release       │
+│  ┌────────────────────────────────────────┐ │
+│  │ 💀 Shade (warrior) — died in battle    │ │
+│  │ [Reincarnate ✦] [Release to Graveyard] │ │
+│  └────────────────────────────────────────┘ │
+│                                             │
+│  DEITY REPUTATION                           │
+│  Warlord · 2W/3L · 65% aggression          │
+│  Spirits start wary (-10 loyalty)           │
+└─────────────────────────────────────────────┘
+```
+
+#### 9.6.2 Game Over Screen
+
+**Current:** EssenceExport with blob ID copy.
+
+**New:** Automatic persist + results.
+
+```
+┌─────────────────────────────────────────────┐
+│  GAME OVER — VICTORY                        │
+├─────────────────────────────────────────────┤
+│  Your spirits have been saved to your wallet│
+│                                             │
+│  ✓ Ember (warrior) — survived, 4 kills     │
+│  ✓ Moss (gatherer) — survived, 12 hexes    │
+│  ✗ Drift (scout) — died in battle           │
+│    [Reincarnate Next Game] [Release Ghost]  │
+│                                             │
+│  DEITY JOURNAL UPDATED                      │
+│  Warlord · 3W/3L · reputation stored on    │
+│  Walrus                                     │
+│                                             │
+│  [Play Again]                               │
+└─────────────────────────────────────────────┘
+```
+
+No more blob ID copying. Everything persists automatically to wallet + Walrus.
+
+#### 9.6.3 In-Game: Ghost Encounters
+
+When a player's spirit moves to a hex containing a ghost:
+
+1. The SpiritPanel shows a ghost encounter card with the ghost's name, avatar, and a memory fragment.
+2. The player can use their swarm decree to whisper to the ghost (recruitment attempt).
+3. The dialogue feeds into the LLM with the ghost's past-life memories as context.
+4. Success → ghost joins swarm, failure → ghost delivers a haunting line and wanders away.
+
+### 9.7 Data Flow Diagrams
+
+#### 9.7.1 New Player — First Game
+
+```
+Player connects wallet (no Spirit NFTs)
+    ↓
+Server: loadRoster(wallet) → empty array
+    ↓
+Lobby: "No spirits yet. Your first swarm will be generated."
+    ↓
+Player clicks Awaken → POST /api/game/ready { playerId, selectedSpiritIds: [] }
+    ↓
+Server: generates 3 fresh spirits (current gameInit.js behavior)
+    ↓
+Game plays out...
+    ↓
+Game ends → POST /api/game/end-persist { playerId }
+    ↓
+Server:
+  1. For each spirit → computeEssence() → storeEssence() → get blobId
+  2. For each spirit → mint_v2() NFT → transfer to player wallet
+  3. For dead spirits → prompt player: reincarnate or ghost?
+  4. updateDeityJournal() → store on Walrus
+  5. addToGraveyard() for any ghosted spirits
+```
+
+#### 9.7.2 Returning Player — Has Roster
+
+```
+Player connects wallet (has 5 Spirit NFTs)
+    ↓
+Server: loadRoster(wallet) → 5 spirits with onchain stats
+    ↓
+Lobby: RosterPicker shows all 5, player picks 3
+    ↓
+Player clicks Awaken → POST /api/game/ready { playerId, selectedSpiritIds: [id1, id2, id3] }
+    ↓
+Server: initializeFromRoster()
+  1. For each selected spirit → load onchain data
+  2. If status=dead → reincarnate() Move call
+  3. Apply carryover: 40% XP, 30% bond
+  4. Load top 5 MemWal memories → inject into spirit personality context
+  5. Load Deity Journal → apply reputation modifiers to fresh spirits
+    ↓
+Game plays with returning spirits + reputation effects
+```
+
+#### 9.7.3 Ghost Encounter
+
+```
+Player spirit moves to hex with ghost
+    ↓
+Server: ghost detects cohabitation → initiates dialogue
+    ↓
+LLM prompt includes:
+  - Ghost's past-life personality
+  - Ghost's MemWal memories (top 3 by relevance to current context)
+  - Ghost's death context ("killed by Drift in volcanic terrain")
+  - Ghost's past deity name
+    ↓
+Ghost speaks → event broadcast to frontend
+    ↓
+Player uses swarm decree → "Join my swarm, Ember. I will not abandon you."
+    ↓
+POST /api/ghost/recruit { ghostSpiritId, playerId, message }
+    ↓
+Server: attemptRecruitment()
+  - Check ghost's pastLifeLoyalty
+  - Low (<30) → auto-join
+  - Medium (30-70) → LLM persuasion check
+  - High (>70) → very difficult, requires specific memory reference
+    ↓
+Success → ghost.playerId = recruitingPlayer, bond starts low
+Failure → ghost wanders away, cooldown before retry
+```
+
+### 9.8 Implementation Plan
+
+Scoped to remaining build period (now through Jun 21, 2026).
+
+#### Phase 1: Spirit NFT Roster (3-4 days)
+
+| Task | Files | Effort |
+|------|-------|--------|
+| Upgrade spirit.move with v2 fields | `contracts/anima_swarm/sources/spirit.move` | 2h |
+| Deploy upgraded package to testnet | CLI | 1h |
+| Build rosterService.js | `server/services/rosterService.js` (NEW) | 4h |
+| Update suiService.js with v2 tx builders | `server/services/suiService.js` | 3h |
+| Modify /api/game/ready to accept selectedSpiritIds | `server/routes/game.js` | 2h |
+| Add /api/roster/:walletAddress route | `server/routes/game.js` | 2h |
+| Build RosterPicker.jsx | `frontend/src/components/RosterPicker.jsx` (NEW) | 4h |
+| Replace EssenceImport with RosterPicker in Lobby | `frontend/src/components/Lobby.jsx` | 2h |
+| Post-game persist flow | `server/services/rosterService.js` | 4h |
+| Replace EssenceExport with auto-persist UI | `frontend/src/components/GameOver.jsx` (NEW) | 3h |
+
+#### Phase 2: Ghost System (2-3 days)
+
+| Task | Files | Effort |
+|------|-------|--------|
+| Build graveyardService.js | `server/services/graveyardService.js` (NEW) | 4h |
+| Ghost spawning in gameInit.js | `server/services/gameInit.js` | 3h |
+| Ghost decision logic | `server/services/spiritDecisionService.js` | 3h |
+| Ghost recruitment route + logic | `server/routes/game.js`, `graveyardService.js` | 3h |
+| Ghost dialogue (LLM prompt with past-life memories) | `server/services/spiritDialogueService.js` | 3h |
+| Ghost UI (encounter card, memory fragments on map) | `frontend/src/components/SpiritPanel.jsx`, `HexMap.jsx` | 4h |
+
+#### Phase 3: Deity Journal (1-2 days)
+
+| Task | Files | Effort |
+|------|-------|--------|
+| Build deityJournalService.js | `server/services/deityJournalService.js` (NEW) | 3h |
+| Journal storage (Walrus) + local index | `walrusService.js` | 2h |
+| Reputation modifier application in gameInit | `server/services/gameInit.js` | 2h |
+| Reputation prompt injection in spiritDecisionService | `server/services/spiritDecisionService.js` | 2h |
+| Deity profile display in lobby | `frontend/src/components/RosterPicker.jsx` | 2h |
+| GET /api/deity-journal route | `server/routes/game.js` | 1h |
+
+#### Phase 4: Polish + Demo (1-2 days)
+
+| Task | Files | Effort |
+|------|-------|--------|
+| Seed graveyard with 5 pre-made ghosts for demo | `_data/graveyard-seed.json` | 1h |
+| Demo script: show ghost encounter in 5-min video | Script only | 2h |
+| Explorer page: add ghost viewer + deity journal viewer | `frontend/public/explorer/index.html` | 3h |
+| Clean up deprecated essence routes (mark as v1 legacy) | `server/routes/essence.js` | 1h |
+
+### 9.9 Migration Path
+
+The v1 essence system continues to work during development. The migration is:
+
+1. **Phase 1 ships:** Roster flow becomes primary. EssenceImport still works as fallback (player can paste a blob ID to load legacy essence).
+2. **Phase 2 ships:** Ghosts appear in games. No migration needed — ghosts are additive.
+3. **Phase 3 ships:** Deity journal starts tracking from first game with journal enabled. No historical backfill.
+4. **Phase 4:** EssenceImport/EssenceExport components moved to `/legacy/` or removed from main UI.
+
+### 9.10 Walrus Storage Budget
+
+| Data type | Size estimate | Frequency | Storage |
+|-----------|--------------|-----------|---------|
+| Spirit essence snapshot | ~2-5 KB JSON | Per spirit per game | Walrus blob, 5 epochs |
+| Graveyard registry | ~10-50 KB JSON | Updated per game | Walrus blob, 5 epochs (single blob, overwritten) |
+| Deity journal | ~2-5 KB JSON | Updated per game per player | Walrus blob, 5 epochs |
+| Spirit avatar | ~50-100 KB WebP | Once per spirit | Walrus blob, 5 epochs |
+| MemWal memories | Handled by MemWal | Per spirit per tick | MemWal relayer |
+
+Total per game (1 human player, 3 spirits): ~20-30 KB new Walrus data. Well within testnet free tier.
+
+### 9.11 Demo Script Integration
+
+The 5-minute demo video should showcase persistence in this order:
+
+1. **0:00-0:30** — Show empty wallet, start first game, spirits generated fresh
+2. **0:30-2:00** — Play game 1: whisper to spirits, fight battles, claim territory
+3. **2:00-2:30** — Game ends: show spirits automatically saved to wallet as NFTs
+4. **2:30-3:00** — Start game 2: show Roster Picker with returning spirits, pick 2 + 1 new
+5. **3:00-3:30** — Show returning spirit quoting a memory from game 1 ("I remember the volcanic pass...")
+6. **3:30-4:00** — Encounter a ghost from game 1 on the map: "I served Pyraxis. They left me to die."
+7. **4:00-4:30** — Recruit the ghost: "Join me. I won't abandon you like they did."
+8. **4:30-5:00** — Show deity journal: reputation, archetype, lifetime stats — all on Walrus
+
+**Key demo moment (3:30-4:00):** The ghost encounter. This is the judge-winning moment. A spirit from a previous game, carrying real memories stored on Walrus, speaking to the player. This is what "persistent verifiable memory" looks like in practice.
+
+### 9.12 Risk Assessment
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|------------|
+| Contract upgrade fails | Low | High | Test on devnet first; keep v1 mint as fallback |
+| Walrus testnet slow/down | Medium | Medium | Local cache (existing mock mode) handles gracefully |
+| NFT minting costs gas | Low | Low | Testnet gas is free; mainnet = small SUI amount |
+| Ghost LLM calls expensive | Medium | Low | Ghost dialogue uses Haiku (cheap), not Opus |
+| Roster query slow (many NFTs) | Low | Low | Paginate, cache for session |
+| Graveyard grows too large | Low | Low | Cap at 100 ghosts; age out oldest |
+| Demo can't show 2-game persistence | Medium | High | Seed graveyard with pre-made ghosts; pre-play game 1 before recording |
+
+### 9.13 Success Metrics
+
+| Metric | Target | Measurement |
+|--------|--------|-------------|
+| Save flow friction | Zero manual steps | Player never copies a blob ID |
+| Cross-game memory visibility | Ghost quotes past-life memory in <30s of encounter | Timed during demo |
+| Judge "wow" factor | Ghost encounter + deity reputation in demo | Qualitative |
+| Carryover feels meaningful | Returning spirits noticeably stronger than fresh | 40% XP + 30% bond visible in stats |
+| Walrus integration depth | 3 distinct data types on Walrus (essence, graveyard, journal) | Auditable |
+| MemWal integration depth | Ghost memories recalled via MemWal semantic search | Verifiable |
+
+---
+
+### Session Log — 2026-05-21
+
+**PRD §9 Implementation — 3-Layer Swarm Persistence**
+
+Built the complete persistence redesign replacing the blob-ID-copy-paste essence flow:
+
+**Backend (4 new services, 2 modified routes):**
+- `rosterService.js` (272 lines) — loadRoster, initializeFromRoster (40% XP / 30% bond carryover), persistPostGame
+- `graveyardService.js` (319 lines) — graveyard CRUD, ghost selection (up to 5 per game), attemptRecruitment (3-tier: auto-join/LLM/hard-LLM), buildGhostInitState
+- `deityJournalService.js` (383 lines) — Walrus-backed deity journal, archetype derivation (7 archetypes), reputation modifiers for starting bond
+- `suiService.js` — added mintSpiritV2, updateSpiritPostGame, markSpiritGhost, reincarnateSpirit, queryOwnedSpirits (all with mock mode)
+- `game.js` routes — 5 new endpoints: GET /api/roster/:walletAddress, POST /api/game/end-persist, POST /api/ghost/recruit, GET /api/deity-journal/:walletAddress, GET /api/graveyard
+- `gameInit.js` — ghost spawning on unclaimed non-ocean hexes
+- `spiritDecisionService.js` — ghost AI (wander + speak), deity reputation in decision prompts
+
+**Frontend (1 new component, 3 modified):**
+- `RosterPicker.jsx` (209 lines) — 3-column spirit card grid, click-to-select max 3, gold highlight, status dots
+- `Lobby.jsx` — RosterPicker above EssenceImport with "or import essence" divider
+- `App.jsx` — auto-persist on game over (replaces manual EssenceExport), persist status indicator
+- `HexMap.jsx` — ghost rendering (purple, 0.7 opacity, ethereal aura pulse)
+- `SpiritPanel.jsx` — ghost encounter card (past-life info, memorable quote, recruitment input)
+
+**Contract:**
+- `spirit.move` v2 — 17-field Spirit struct, 5 entry functions (mint_v2, update_post_game, mark_ghost, reincarnate, set_avatar)
+
+**Data:**
+- `_data/graveyard.json` — 6 seed ghosts with lore, death causes, memorable quotes
+- `essence.js` marked LEGACY/DEPRECATED
+
+All builds pass (Move, Vite, Node). 15 files changed, ~1636 insertions. Uncommitted.

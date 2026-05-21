@@ -35,6 +35,8 @@ DEITY ORDERS:
 PAST LIVES:
 {pastLifeContext}
 
+{deityReputation}
+
 MAP ROSTER (all spirits on the map):
 {mapRoster}
 
@@ -73,7 +75,24 @@ export function runSpiritDecisions(gameState) {
 
     spirit._lastDecision = now;
 
-    // Fire-and-forget: decision resolves async, pushes events via WebSocket
+    // Ghosts use a separate, simpler decision path
+    if (spirit._isGhost) {
+      decideGhostAction(spirit, gameState).then(event => {
+        if (event) {
+          gameState.actionHistory = gameState.actionHistory || [];
+          gameState.actionHistory.push({
+            type: event.type.replace('spirit_', ''),
+            playerId: spirit.playerId,
+            spiritId: spirit.id,
+            timestamp: Date.now(),
+            data: event,
+          });
+          broadcast(gameState, [event]);
+        }
+      }).catch(() => {});
+      continue;
+    }
+
     decideSpiritAction(spirit, gameState).then(event => {
       if (event) {
         gameState.actionHistory = gameState.actionHistory || [];
@@ -89,7 +108,6 @@ export function runSpiritDecisions(gameState) {
     }).catch(() => {});
   }
 
-  // Returns nothing — decisions arrive asynchronously via broadcast
   return [];
 }
 
@@ -216,6 +234,23 @@ async function decideSpiritAction(spirit, gameState) {
     pastLifeContext = 'No past lives — this is your first existence.';
   }
 
+  // Build deity reputation context from journal stored during game ready
+  let deityReputation = '';
+  const journal = gameState._deityJournal;
+  if (journal && journal.gamesPlayed > 0) {
+    const rep = journal.reputation || {};
+    const archetype = journal.playstyle?.deityArchetype || 'Unknown';
+    const deityName = journal.deityName || 'your deity';
+    const lines = [`DEITY REPUTATION:`, `Your deity, ${deityName}, is known as a ${archetype}.`];
+    if (rep.benevolence > 70) lines.push(`${deityName} protects their spirits — few are lost.`);
+    else if (rep.benevolence < 30) lines.push(`${deityName} treats spirits as expendable.`);
+    if (rep.ruthlessness > 70) lines.push(`${deityName} is feared for their aggression.`);
+    if (rep.wisdom > 70) lines.push(`${deityName} speaks often, guiding with whispers.`);
+    if (rep.loyalty > 70) lines.push(`Fallen spirits are often reborn under ${deityName}.`);
+    else if (rep.loyalty < 30) lines.push(`${deityName} lets fallen spirits fade to nothing.`);
+    deityReputation = lines.join('\n');
+  }
+
   const prompt = DECISION_PROMPT
     .replace('{name}', spirit.name)
     .replace('{personality}', spirit.personality)
@@ -231,6 +266,7 @@ async function decideSpiritAction(spirit, gameState) {
     .replace('{spawnReady}', spawnCheck.ready ? 'YES' : `NO (${spawnCheck.reasons.join(', ')})`)
     .replace('{deityOrders}', deityOrdersText)
     .replace('{pastLifeContext}', pastLifeContext)
+    .replace('{deityReputation}', deityReputation)
     .replace('{mapRoster}', mapRoster || 'No other spirits visible');
 
   if (!spirit.personalityProfile) {
@@ -701,4 +737,83 @@ function fallbackMove(spirit, gameState, adj) {
     data: { toHex: target.id },
   };
   return { type: 'spirit_moving', spiritId: spirit.id, toHex: target.id, duration };
+}
+
+async function decideGhostAction(spirit, gameState) {
+  const hex = gameState.map.hexes[spirit.hexId];
+  if (!hex) return null;
+  const adj = neighbors({ q: hex.q, r: hex.r });
+
+  // Ghosts wander randomly toward unclaimed or less-populated hexes
+  // They never claim territory, never battle, never spawn
+  const roll = Math.random();
+
+  // 40% chance: speak to a nearby living spirit (creates encounter opportunity)
+  if (roll < 0.4) {
+    const nearbyIds = [
+      ...hex.spiritIds,
+      ...adj.flatMap(a => {
+        const h = gameState.map.hexes[hexId(a.q, a.r)];
+        return h ? h.spiritIds : [];
+      }),
+    ];
+    const nearby = nearbyIds
+      .filter(id => id !== spirit.id)
+      .map(id => gameState.spirits[id])
+      .filter(s => s?.alive && !s._isGhost);
+
+    if (nearby.length > 0) {
+      const target = nearby[Math.floor(Math.random() * nearby.length)];
+      const ghostData = spirit._ghostData || {};
+      const phrases = [
+        `I remember... ${ghostData.lastDeityName || 'another world'}...`,
+        `${target.name}... do you hear the echoes too?`,
+        `I was ${spirit.name} once. Perhaps I still am.`,
+        `The ${ghostData.deathCause || 'end'} was not the last word.`,
+        ghostData.memorableQuote || `I wander between what was and what could be.`,
+      ];
+      const text = phrases[Math.floor(Math.random() * phrases.length)];
+
+      const event = {
+        type: 'spirit_dialog',
+        sourceId: spirit.id,
+        sourceName: spirit.name,
+        targetId: target.id,
+        targetName: target.name,
+        dialogType: 'GHOST_WHISPER',
+        text,
+        timestamp: Date.now(),
+      };
+      broadcast(gameState, [event]);
+      return event;
+    }
+  }
+
+  // 60% chance (or no nearby spirits): wander to an adjacent hex
+  const validAdj = adj
+    .map(a => gameState.map.hexes[hexId(a.q, a.r)])
+    .filter(h => h && h.terrain !== 'ocean');
+
+  if (!validAdj.length) return null;
+
+  // Prefer unclaimed hexes, avoid player-heavy hexes
+  const unclaimed = validAdj.filter(h => !h.controller);
+  const target = unclaimed.length > 0
+    ? unclaimed[Math.floor(Math.random() * unclaimed.length)]
+    : validAdj[Math.floor(Math.random() * validAdj.length)];
+
+  const duration = 20_000; // ghosts drift slowly
+  startTimer(gameState, {
+    type: 'movement',
+    spiritId: spirit.id,
+    duration,
+    data: { fromHex: spirit.hexId, toHex: target.id, isGhostWander: true },
+  });
+  spirit.currentAction = {
+    type: 'moving',
+    startedAt: Date.now(),
+    completesAt: Date.now() + duration,
+    data: { toHex: target.id },
+  };
+  return { type: 'spirit_moving', spiritId: spirit.id, spiritName: spirit.name, toHex: target.id, duration, reasoning: 'Ghost wandering' };
 }

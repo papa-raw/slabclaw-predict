@@ -16,14 +16,38 @@ import LineageSection from './LineageSection.jsx';
  */
 export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
   const isMine = spirit?.playerId === playerId;
+  const isGhost = spirit?._isGhost || spirit?.playerId === 'ghost';
   const [memories, setMemories] = useState([]);
   const [loadingMem, setLoadingMem] = useState(false);
   const [showMemories, setShowMemories] = useState(false);
+  const [recruitMsg, setRecruitMsg] = useState('');
+  const [recruitResult, setRecruitResult] = useState(null);
+  const [recruiting, setRecruiting] = useState(false);
 
   useEffect(() => {
     setMemories([]);
     setShowMemories(false);
+    setRecruitResult(null);
+    setRecruitMsg('');
   }, [spirit?.id]);
+
+  async function handleRecruit() {
+    if (!recruitMsg.trim() || recruiting) return;
+    setRecruiting(true);
+    try {
+      const res = await fetch('/api/ghost/recruit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ghostSpiritId: spirit.id, playerId, message: recruitMsg.trim() }),
+      });
+      const data = await res.json();
+      setRecruitResult(data);
+    } catch {
+      setRecruitResult({ success: false, dialogue: 'Connection lost...' });
+    } finally {
+      setRecruiting(false);
+    }
+  }
 
   useEffect(() => {
     if (!showMemories || !spirit?.id) return;
@@ -100,7 +124,8 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
                 )}
               </div>
               <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                <span style={{ color: SPEC_COLORS[spirit.specialization] || '#6b7280' }}>{SPEC_ICONS[spirit.specialization] || '◉'}</span> {spirit.specialization} · gen {spirit.generation} · {getBondTierName(bondAvg)} ({bondAvg})
+                {isGhost && <span style={{ color: '#a855f7' }}>☽ Ghost · </span>}
+                <span style={{ color: SPEC_COLORS[spirit.specialization] || '#6b7280' }}>{SPEC_ICONS[spirit.specialization] || '◉'}</span> {spirit.specialization}{!isGhost && <> · gen {spirit.generation} · {getBondTierName(bondAvg)} ({bondAvg})</>}
               </p>
               {spirit.memwalAccountId ? (
                 <a
@@ -261,14 +286,79 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
           )}
         </div>
 
-        <div className="pt-2">
-          <p className="text-xs italic text-center" style={{ color: 'var(--text-muted)' }}>
-            {isMine
-              ? 'Use the Whisper Bar below to decree to your swarm'
-              : 'Use the Enemy Whisper to influence this swarm'
-            }
-          </p>
-        </div>
+        {isGhost ? (
+          <div className="pt-2 border-t border-purple-800/30">
+            <div className="rounded-lg p-3 space-y-2" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)' }}>
+              <div className="text-xs font-mono tracking-wider" style={{ color: '#a855f7' }}>GHOST ENCOUNTER</div>
+              {spirit._ghostData?.memorableQuote && (
+                <p className="text-sm italic leading-relaxed" style={{ color: '#c084fc' }}>
+                  "{spirit._ghostData.memorableQuote}"
+                </p>
+              )}
+              <div className="grid grid-cols-2 gap-1 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+                <span>Former deity: {spirit._ghostData?.lastDeityName || 'unknown'}</span>
+                <span>Death: {spirit._ghostData?.deathCause || 'unknown'}</span>
+                <span>Killed by: {spirit._ghostData?.killedBy || 'unknown'}</span>
+                <span>Loyalty: {spirit._ghostData?.pastLifeLoyalty ?? '?'}/100</span>
+              </div>
+
+              {recruitResult ? (
+                <div className="text-sm rounded p-2" style={{
+                  background: recruitResult.success ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                  border: `1px solid ${recruitResult.success ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                  color: recruitResult.success ? '#4ade80' : '#fca5a5',
+                }}>
+                  <p className="font-mono text-xs mb-1">{recruitResult.success ? 'RECRUITED' : 'REFUSED'}</p>
+                  <p className="italic">"{recruitResult.dialogue}"</p>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={recruitMsg}
+                    onChange={e => setRecruitMsg(e.target.value)}
+                    placeholder="Whisper to recruit..."
+                    maxLength={200}
+                    className="flex-1 px-2 py-1.5 rounded text-sm font-body"
+                    style={{
+                      background: 'var(--bg-elevated)',
+                      border: '1px solid rgba(168,85,247,0.3)',
+                      color: 'var(--text-primary)',
+                      outline: 'none',
+                    }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && recruitMsg.trim() && !recruiting) {
+                        e.preventDefault();
+                        handleRecruit();
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={handleRecruit}
+                    disabled={!recruitMsg.trim() || recruiting}
+                    className="px-3 py-1.5 rounded font-mono text-xs transition-colors disabled:opacity-40"
+                    style={{
+                      background: 'rgba(168,85,247,0.2)',
+                      border: '1px solid rgba(168,85,247,0.4)',
+                      color: '#c084fc',
+                    }}
+                  >
+                    {recruiting ? '...' : 'Recruit'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="pt-2">
+            <p className="text-xs italic text-center" style={{ color: 'var(--text-muted)' }}>
+              {isMine
+                ? 'Use the Whisper Bar below to decree to your swarm'
+                : 'Use the Enemy Whisper to influence this swarm'
+              }
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

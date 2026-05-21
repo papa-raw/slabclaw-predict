@@ -2,6 +2,7 @@ import { createHexGrid, getStartingPositions } from '../../lib/hexGrid.js';
 import { SEED_SPIRITS } from '../../lib/seedSpirits.js';
 import { setKey } from './keyStore.js';
 import { getCachedAvatarBlobId } from './avatarService.js';
+import { selectGhostsForGame } from './graveyardService.js';
 import crypto from 'crypto';
 
 const DEITY_FIRST = [
@@ -161,9 +162,33 @@ export async function createInitialGameState() {
     }
   }
 
+  // Spawn ghosts from the graveyard on unclaimed hexes
+  const ghostSpirits = selectGhostsForGame(5);
+  const unclaimedHexes = Object.values(map.hexes).filter(
+    h => !h.controller && h.terrain !== 'ocean' && !usedHexIds.has(h.id)
+  );
+  const shuffledUnclaimed = [...unclaimedHexes].sort(() => Math.random() - 0.5);
+
+  for (let g = 0; g < ghostSpirits.length && g < shuffledUnclaimed.length; g++) {
+    const ghost = ghostSpirits[g];
+    const hex = shuffledUnclaimed[g];
+    ghost.hexId = hex.id;
+    hex.spiritIds.push(ghost.id);
+    usedHexIds.add(hex.id);
+
+    const delegateKey = { privateKey: crypto.randomBytes(32).toString('hex') };
+    setKey(ghost.id, delegateKey.privateKey);
+
+    spirits[ghost.id] = ghost;
+  }
+
+  if (ghostSpirits.length > 0) {
+    console.log(`[gameInit] Placed ${Math.min(ghostSpirits.length, shuffledUnclaimed.length)} ghost(s) on the map`);
+  }
+
   return {
     id: `game-${Date.now()}`,
-    status: 'lobby', // starts in lobby, transitions to active when player connects
+    status: 'lobby',
     startedAt: Date.now(),
     tickInterval: 5000,
     map,

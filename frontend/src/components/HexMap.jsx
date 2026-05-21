@@ -897,7 +897,8 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
             const isDying = dyingSpirits.has(spirit.id);
             if (!spirit.alive && !isDying) return null;
 
-            const pc = getPlayerColor(spirit.playerId, gameState) || '#6b7280';
+            const isGhost = spirit._isGhost || spirit.playerId === 'ghost';
+            const pc = isGhost ? '#a855f7' : (getPlayerColor(spirit.playerId, gameState) || '#6b7280');
             const spec = spirit.specialization || 'generalist';
 
             const isHovered = hoveredSpirit === spirit.id;
@@ -931,12 +932,20 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
                   transform: `translate(${sx}px, ${sy + 5}px)`,
                   transition: 'transform 0.6s ease-in-out, opacity 1s',
                   cursor: spirit.alive ? 'pointer' : 'default',
-                  opacity: isDying ? 0 : 1,
+                  opacity: isDying ? 0 : isGhost ? 0.7 : 1,
                 }}
                 onClick={(e) => { e.stopPropagation(); if (spirit.alive && !dragRef.current?.dragged) onSelectSpirit(spirit.id); }}
                 onMouseEnter={() => setHoveredSpirit(spirit.id)}
                 onMouseLeave={() => setHoveredSpirit(null)}
               >
+                {/* Ghost ethereal aura */}
+                {isGhost && (
+                  <ellipse cx={0} cy={-10} rx={12} ry={16} fill="none"
+                    stroke="#a855f7" strokeWidth={0.8} opacity={0.35}
+                    strokeDasharray="4 3"
+                    style={{ animation: 'pulse 3s ease-in-out infinite' }} />
+                )}
+
                 {/* Hover glow ring */}
                 {isHovered && !isSelected && (
                   <ellipse cx={0} cy={-10} rx={10} ry={14} fill="none"

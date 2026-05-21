@@ -10,6 +10,10 @@ import { applyEssence } from '../services/essenceService.js';
 import { generateAvatarBackground } from '../services/avatarService.js';
 import { pauseGame, resumeGame } from '../services/tickEngine.js';
 import { broadcastSwarmWhisper, broadcastEnemyWhisper } from '../services/whisperService.js';
+import { loadRoster, initializeFromRoster, persistPostGame } from '../services/rosterService.js';
+import { loadDeityJournal, updateDeityJournal, computeReputationModifiers } from '../services/deityJournalService.js';
+import { loadGraveyard, addToGraveyard, attemptRecruitment } from '../services/graveyardService.js';
+import { queryOwnedSpirits, updateSpiritPostGame, markSpiritGhost } from '../services/suiService.js';
 
 const PACKAGE_ID = process.env.PACKAGE_ID || '0xb0f9ba3da143c92225ada477204a57fd61bae3f2c5c70e8593ce29eac309da21';
 const ADMIN_CAP = process.env.ADMIN_CAP_ID || '0x87faef3092e7568ecac9c9e2475828ed521bace50f3747e87abb07dc585a6f88';
@@ -79,7 +83,7 @@ router.post('/claim-slot', (req, res) => {
 });
 
 router.post('/ready', async (req, res) => {
-  const { playerId, importedEssence, blobId } = req.body;
+  const { playerId, importedEssence, blobId, selectedSpiritIds } = req.body;
   const state = getGameState();
   if (!state) return res.status(404).json({ error: 'No active game' });
 
@@ -90,8 +94,16 @@ router.post('/ready', async (req, res) => {
   player.connected = true;
   player.lastSeen = Date.now();
 
-  // Apply imported essence if blobId is provided
-  if (blobId) {
+  // v2: Initialize from Spirit NFT roster
+  if (selectedSpiritIds?.length > 0) {
+    try {
+      await initializeFromRoster(selectedSpiritIds, playerId, state);
+      console.log(`[game/ready] Initialized ${selectedSpiritIds.length} spirits from roster for ${playerId}`);
+    } catch (err) {
+      console.warn('[game/ready] Roster init failed, using defaults:', err.message);
+    }
+  } else if (blobId) {
+    // Legacy v1: Apply imported essence by blob ID
     try {
       const essence = await readEssence(blobId);
       essence.blobId = blobId;
@@ -101,7 +113,6 @@ router.post('/ready', async (req, res) => {
       console.warn(`[game/ready] Could not apply essence blob ${blobId}:`, err.message);
     }
   } else if (importedEssence) {
-    // Legacy: accept raw essence object directly
     try {
       applyEssence(state, importedEssence, playerId);
     } catch (err) {
@@ -109,17 +120,37 @@ router.post('/ready', async (req, res) => {
     }
   }
 
+  // Apply deity reputation modifiers to fresh (non-roster) spirits
+  if (player.walletAddress) {
+    try {
+      const journal = await loadDeityJournal(player.walletAddress);
+      if (journal) {
+        const mods = computeReputationModifiers(journal);
+        for (const spirit of Object.values(state.spirits)) {
+          if (spirit.playerId === playerId && !spirit._fromRoster) {
+            spirit.bond.depth = Math.min(100, Math.max(0, spirit.bond.depth + mods.depth));
+            spirit.bond.harmony = Math.min(100, Math.max(0, spirit.bond.harmony + mods.harmony));
+            spirit.bond.adventure = Math.min(100, Math.max(0, spirit.bond.adventure + mods.adventure));
+            spirit.bond.loyalty = Math.min(100, Math.max(0, spirit.bond.loyalty + mods.loyalty));
+          }
+        }
+        state._deityJournal = journal;
+        console.log(`[game/ready] Applied deity reputation mods for ${player.walletAddress.slice(0, 10)}...`);
+      }
+    } catch (err) {
+      console.warn('[game/ready] Deity journal load failed:', err.message);
+    }
+  }
+
   const connectedCount = Object.values(state.players).filter(p => p.connected).length;
   if (connectedCount >= 1 && state.status === 'lobby') {
     state.status = 'active';
     state.startedAt = Date.now();
-    // Generate avatars for spirits that don't have one (new souls only — imported keep theirs)
     for (const spirit of Object.values(state.spirits)) {
       if (!spirit.avatarBlobId) {
         generateAvatarBackground(spirit, state);
       }
     }
-    // Push state_change to all WS clients so lobby transitions seamlessly
     broadcastStateChange(state);
   }
 
@@ -348,6 +379,136 @@ router.get('/chain-info', (req, res) => {
     },
     stats: { totalMemories, totalSpirits },
   });
+});
+
+// ── v2 Persistence Routes ────────────────────────────────────────────────────
+
+// GET /api/roster/:walletAddress — load Spirit NFTs from wallet
+router.get('/roster/:walletAddress', async (req, res) => {
+  const { walletAddress } = req.params;
+  if (!walletAddress) return res.status(400).json({ error: 'Missing walletAddress' });
+
+  try {
+    const spirits = await queryOwnedSpirits(walletAddress);
+    res.json({ walletAddress, spirits, count: spirits.length });
+  } catch (err) {
+    console.error('[roster] Error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/game/end-persist — persist all game results (spirits, journal, graveyard)
+router.post('/end-persist', async (req, res) => {
+  const { playerId } = req.body;
+  const state = getGameState();
+  if (!state) return res.status(404).json({ error: 'No active game' });
+
+  const player = state.players[playerId];
+  if (!player) return res.status(404).json({ error: 'Player not found' });
+
+  const results = { roster: null, journal: null, graveyard: null, onchain: [] };
+
+  try {
+    // 1. Persist roster (mint new spirits, store essence for all)
+    results.roster = await persistPostGame(state, playerId);
+
+    // 2. Update onchain spirit stats for returning NFTs
+    for (const updated of (results.roster?.updated || [])) {
+      try {
+        await updateSpiritPostGame(
+          updated.objectId,
+          updated.essenceBlobId || '',
+          updated.status,
+          updated.kills,
+          updated.hexesClaimed,
+          0, 0, // bondDepth/bondLoyalty — computed from game state
+          updated.gamesPlayed,
+        );
+        if (!updated.alive) {
+          await markSpiritGhost(updated.objectId);
+        }
+        results.onchain.push({ objectId: updated.objectId, status: 'ok' });
+      } catch (err) {
+        console.warn(`[end-persist] Onchain update failed for ${updated.objectId}:`, err.message);
+        results.onchain.push({ objectId: updated.objectId, status: 'failed', error: err.message });
+      }
+    }
+
+    // 3. Update deity journal
+    if (player.walletAddress) {
+      try {
+        results.journal = await updateDeityJournal(player.walletAddress, state, playerId);
+      } catch (err) {
+        console.warn('[end-persist] Deity journal update failed:', err.message);
+      }
+    }
+
+    // 4. Add dead spirits to graveyard
+    const deadSpirits = Object.values(state.spirits).filter(
+      s => s.playerId === playerId && !s.alive && !s._isGhost
+    );
+    if (deadSpirits.length > 0) {
+      try {
+        await addToGraveyard(deadSpirits, state);
+        results.graveyard = { added: deadSpirits.length };
+      } catch (err) {
+        console.warn('[end-persist] Graveyard update failed:', err.message);
+      }
+    }
+
+    console.log(`[end-persist] Complete for ${playerId}: ${results.roster?.minted?.length || 0} minted, ${results.roster?.updated?.length || 0} updated, ${deadSpirits.length} ghosted`);
+    res.json(results);
+  } catch (err) {
+    console.error('[end-persist] Error:', err.message);
+    res.status(500).json({ error: err.message, partial: results });
+  }
+});
+
+// POST /api/ghost/recruit — attempt to recruit a ghost spirit
+router.post('/ghost/recruit', async (req, res) => {
+  const { ghostSpiritId, playerId, message } = req.body;
+  const state = getGameState();
+  if (!state) return res.status(404).json({ error: 'No active game' });
+  if (!ghostSpiritId || !playerId || !message?.trim()) {
+    return res.status(400).json({ error: 'Missing ghostSpiritId, playerId, or message' });
+  }
+
+  try {
+    const result = await attemptRecruitment(ghostSpiritId, playerId, message.trim(), state);
+    if (result.success) {
+      broadcastStateChange(state);
+    }
+    res.json(result);
+  } catch (err) {
+    console.error('[ghost/recruit] Error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/deity-journal/:walletAddress — load deity journal
+router.get('/deity-journal/:walletAddress', async (req, res) => {
+  const { walletAddress } = req.params;
+  if (!walletAddress) return res.status(400).json({ error: 'Missing walletAddress' });
+
+  try {
+    const journal = await loadDeityJournal(walletAddress);
+    if (!journal) return res.json({ walletAddress, journal: null, exists: false });
+    res.json({ walletAddress, journal, exists: true });
+  } catch (err) {
+    console.error('[deity-journal] Error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/graveyard — list all ghosts
+router.get('/graveyard', (req, res) => {
+  try {
+    const graveyard = loadGraveyard();
+    res.json(graveyard);
+  } catch (err) {
+    console.error('[graveyard] Error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;

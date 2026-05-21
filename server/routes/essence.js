@@ -1,5 +1,7 @@
 /**
- * essence.js — API routes for SwarmEssence export/import/confirm.
+ * essence.js — LEGACY (v1) API routes for SwarmEssence export/import/confirm.
+ * DEPRECATED: Replaced by v2 persistence system (PRD §9) — rosterService,
+ * graveyardService, deityJournalService. Routes kept for backward compat.
  *
  * POST /api/essence/export   — compute essence from game state + store on Walrus
  * POST /api/essence/import   — read essence from Walrus + return preview
