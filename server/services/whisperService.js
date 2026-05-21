@@ -96,18 +96,22 @@ export async function extractDeityIntent(message, spiritPersonality, bond) {
  * If a spirit's name is mentioned, they get "chosen by god" status.
  */
 export async function broadcastSwarmWhisper({ playerId, message, gameState }) {
-  const spirits = Object.values(gameState.spirits).filter(
+  const allSpirits = Object.values(gameState.spirits).filter(
     s => s.playerId === playerId && s.alive
   );
-  if (!spirits.length) return { spirits: [], events: [] };
+  if (!allSpirits.length) return { spirits: [], events: [] };
 
-  const spiritNames = spirits.map(s => s.name.toLowerCase());
+  const captains = allSpirits.filter(s => s.tier === 'captain' || s.tier === 'hero');
+  const spiritNames = allSpirits.map(s => s.name.toLowerCase());
   const mentionedName = spiritNames.find(n => message.toLowerCase().includes(n));
 
   const events = [];
   const results = [];
 
-  await Promise.allSettled(spirits.map(async (spirit) => {
+  // Deity whispers propagate to captains/heroes only — they relay to swarmlings via command radius
+  const targets = captains.length > 0 ? captains : allSpirits;
+
+  await Promise.allSettled(targets.map(async (spirit) => {
     const key = getKey(spirit.id);
     const isChosen = mentionedName && spirit.name.toLowerCase() === mentionedName;
 
@@ -136,6 +140,11 @@ export async function broadcastSwarmWhisper({ playerId, message, gameState }) {
       text: intent.interpretation || message,
       issuedAt: Date.now(),
     };
+
+    // Captains relay orders to swarmlings — set _captainOrder for swarmlingAI to pick up
+    if (spirit.tier === 'captain' || spirit.tier === 'hero') {
+      spirit._captainOrder = intent.intent;
+    }
 
     spirit.whispersReceived = (spirit.whispersReceived || 0) + 1;
 

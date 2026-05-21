@@ -2,3 +2,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes dmgFloat {
+  0% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  20% { transform: translate(-50%, -10px) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -40px) scale(0.8); }
+}

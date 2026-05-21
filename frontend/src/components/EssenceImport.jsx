@@ -50,9 +50,6 @@ export default function EssenceImport({ onEssenceConfirmed, confirmedBlobId }) {
 
   return (
     <div className="space-y-3">
-        <div className="text-xs font-mono tracking-wider" style={{ color: 'var(--text-secondary)' }}>
-          IMPORT ESSENCE
-        </div>
           {isConfirmed ? (
             <p className="text-sm text-amber-400 font-mono text-center py-2">
               ✓ Essence loaded — your spirits carry memories of past lives

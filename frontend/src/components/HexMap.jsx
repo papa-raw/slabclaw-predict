@@ -1,6 +1,9 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { hexToPixel } from '@lib/hexMath.js';
 import { getPlayerColor } from '@lib/terrainTypes.js';
+import { AFFINITIES, CAPTAIN_CLASSES } from '@lib/classSystem.js';
+import VFXOverlay from '../vfx/VFXOverlay.jsx';
+import SpiritSprite from './SpiritSprite.jsx';
 
 const HEX_SIZE = 40;
 const MIN_ZOOM = 0.4;
@@ -23,12 +26,7 @@ function createRng(seed) {
   return () => { s = (s * 16807 + 12345) % 2147483647; return (s & 0x7fffffff) / 2147483647; };
 }
 
-function adj(hex, amount) {
-  const r = Math.max(0, Math.min(255, parseInt(hex.slice(1, 3), 16) + amount));
-  const g = Math.max(0, Math.min(255, parseInt(hex.slice(3, 5), 16) + amount));
-  const b = Math.max(0, Math.min(255, parseInt(hex.slice(5, 7), 16) + amount));
-  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-}
+// adj moved to SpiritSprite.jsx
 
 function hexPoly(size) {
   const pts = [];
@@ -201,300 +199,7 @@ function TerrainDetail({ type, seed }) {
   }
 }
 
-const WALK_FRAMES = [
-  { leftStep: 3, rightStep: -3, bounce: -1.5 },
-  { leftStep: 1, rightStep: -1, bounce: 0 },
-  { leftStep: -3, rightStep: 3, bounce: -1.5 },
-  { leftStep: -1, rightStep: 1, bounce: 0 },
-];
-const ATTACK_FRAMES = [
-  { weaponAngle: -35, lunge: -2, bounce: 0 },
-  { weaponAngle: 65, lunge: 6, bounce: -2 },
-  { weaponAngle: 35, lunge: 3, bounce: -1 },
-  { weaponAngle: 0, lunge: 0, bounce: 0 },
-];
-const IDLE_FRAMES = [
-  { bounce: 0 },
-  { bounce: -0.5 },
-];
-
-function getAnimData(animState, frame) {
-  if (animState === 'walk') return WALK_FRAMES[frame % 4];
-  if (animState === 'attack') return ATTACK_FRAMES[frame % 4];
-  return IDLE_FRAMES[Math.floor(frame / 4) % 2];
-}
-
-function SpiritSprite({ spec, color, animState = 'idle', animFrame = 0, facing = 1 }) {
-  const dk = adj(color, -50);
-  const lt = adj(color, 60);
-  const skin = '#e8c8a0';
-  const skinDk = '#c8a078';
-  const hair = '#4a3828';
-  const outline = '#1a1420';
-  const metalLt = '#c0c8d8';
-  const metalDk = '#707888';
-  const wood = '#5a3a1a';
-
-  const f = getAnimData(animState, animFrame);
-  const lStep = f.leftStep || 0;
-  const rStep = f.rightStep || 0;
-  const bounce = f.bounce || 0;
-  const lunge = f.lunge || 0;
-  const wAngle = f.weaponAngle || 0;
-  const isSpawning = animState === 'spawn';
-
-  const spawnGlow = isSpawning ? (
-    <circle cx={0} cy={-14} r={16} fill="none" stroke={lt} strokeWidth={0.8} opacity={0.3}>
-      <animate attributeName="r" values="14;20;14" dur="2s" repeatCount="indefinite" />
-      <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite" />
-    </circle>
-  ) : null;
-
-  switch (spec) {
-    case 'warrior':
-      return (
-        <g transform={`scale(${facing}, 1)`}>
-          {spawnGlow}
-          <ellipse cx={0} cy={2} rx={8} ry={2.5} fill="#000" opacity={0.25} />
-          {/* Left leg + boot */}
-          <g transform={`translate(${lStep}, 0)`}>
-            <rect x={-5.5} y={-2} width={4} height={3} rx={0.8} fill={outline} />
-            <rect x={-5} y={-1.5} width={3.5} height={2} rx={0.5} fill={metalDk} />
-            <rect x={-4.5} y={-7} width={3.5} height={5.5} fill={dk} stroke={outline} strokeWidth={0.6} />
-          </g>
-          {/* Right leg + boot */}
-          <g transform={`translate(${rStep}, 0)`}>
-            <rect x={1.5} y={-2} width={4} height={3} rx={0.8} fill={outline} />
-            <rect x={2} y={-1.5} width={3.5} height={2} rx={0.5} fill={metalDk} />
-            <rect x={1} y={-7} width={3.5} height={5.5} fill={dk} stroke={outline} strokeWidth={0.6} />
-          </g>
-          {/* Upper body — bounces + lunges */}
-          <g transform={`translate(${lunge}, ${bounce})`}>
-            <rect x={-6.5} y={-15} width={13} height={8.5} rx={1.5} fill={color} stroke={outline} strokeWidth={0.8} />
-            <rect x={-5} y={-14.5} width={10} height={3} rx={0.5} fill={lt} opacity={0.2} />
-            <ellipse cx={-7} cy={-13} rx={3} ry={2.5} fill={color} stroke={outline} strokeWidth={0.7} />
-            <ellipse cx={7} cy={-13} rx={3} ry={2.5} fill={color} stroke={outline} strokeWidth={0.7} />
-            <rect x={-6} y={-7.5} width={12} height={2} rx={0.5} fill="#3a2a18" stroke={outline} strokeWidth={0.5} />
-            <rect x={-1.2} y={-7.5} width={2.4} height={2} rx={0.5} fill="#8a7030" />
-            <rect x={-2} y={-17} width={4} height={2.5} fill={skin} />
-            <circle cx={0} cy={-21.5} r={5.5} fill={skin} stroke={outline} strokeWidth={0.8} />
-            <path d="M-5.5,-22 Q-6,-28 0,-30 Q6,-28 5.5,-22" fill={metalDk} stroke={outline} strokeWidth={0.7} />
-            <rect x={-5} y={-23.5} width={10} height={2.8} rx={0.5} fill={metalLt} stroke={outline} strokeWidth={0.5} />
-            <rect x={-6} y={-22} width={12} height={1.5} fill={metalDk} />
-            <rect x={-3} y={-22} width={6} height={1.2} fill={outline} rx={0.3} />
-            <rect x={-2.2} y={-21.8} width={1.5} height={0.8} rx={0.2} fill="#ff6040" opacity={0.8} />
-            <rect x={0.7} y={-21.8} width={1.5} height={0.8} rx={0.2} fill="#ff6040" opacity={0.8} />
-            <rect x={-0.6} y={-31} width={1.2} height={5} rx={0.4} fill={color} stroke={outline} strokeWidth={0.4} />
-            {/* Shield (left arm) */}
-            <path d="M-10,-16 L-10,-8 Q-10,-4 -7.5,-3 Q-5,-4 -5,-8 L-5,-16 Z" fill={dk} stroke={outline} strokeWidth={0.7} />
-            <path d="M-9.5,-15.5 L-9.5,-8.5 Q-9.5,-5 -7.5,-4 L-7.5,-15.5 Z" fill={color} opacity={0.4} />
-            <circle cx={-7.5} cy={-10.5} r={1.5} fill={lt} opacity={0.5} />
-            {/* Sword arm — rotates for attack */}
-            <g transform={`rotate(${wAngle}, 9.9, -9)`}>
-              <rect x={9} y={-25} width={1.8} height={16} rx={0.3} fill={metalLt} stroke={outline} strokeWidth={0.5} />
-              <rect x={9} y={-26} width={1.8} height={2} rx={0.5} fill={metalLt} />
-              <rect x={7.5} y={-10} width={4.8} height={2} rx={0.5} fill={wood} stroke={outline} strokeWidth={0.4} />
-              <rect x={8.5} y={-8.5} width={2.8} height={3.5} rx={0.3} fill="#3a2820" />
-              {animState === 'attack' && animFrame % 4 === 1 && (
-                <line x1={10} y1={-26} x2={10} y2={-30} stroke="#fff" strokeWidth={1.2} opacity={0.8} />
-              )}
-            </g>
-          </g>
-        </g>
-      );
-
-    case 'scout':
-      return (
-        <g transform={`scale(${facing}, 1)`}>
-          {spawnGlow}
-          <ellipse cx={0} cy={2} rx={7} ry={2.2} fill="#000" opacity={0.25} />
-          <g transform={`translate(${lStep}, 0)`}>
-            <rect x={-4} y={-1.5} width={3.5} height={2.5} rx={0.8} fill="#3a2a18" stroke={outline} strokeWidth={0.5} />
-            <rect x={-3.5} y={-7} width={3} height={5.5} fill={dk} stroke={outline} strokeWidth={0.5} />
-          </g>
-          <g transform={`translate(${rStep}, 0)`}>
-            <rect x={0.5} y={-1.5} width={3.5} height={2.5} rx={0.8} fill="#3a2a18" stroke={outline} strokeWidth={0.5} />
-            <rect x={0.5} y={-7} width={3} height={5.5} fill={dk} stroke={outline} strokeWidth={0.5} />
-          </g>
-          <g transform={`translate(${lunge}, ${bounce})`}>
-            <path d="M-4,-14.5 Q-6,-8 -8,-2 Q-5,1 -3,-2 Q-2,-6 -4,-14.5 Z" fill={dk} opacity={0.6} stroke={outline} strokeWidth={0.4} />
-            <rect x={-5} y={-14.5} width={10} height={8} rx={1} fill={color} stroke={outline} strokeWidth={0.7} />
-            <rect x={-4.5} y={-7.5} width={9} height={1.5} rx={0.3} fill="#3a2a18" stroke={outline} strokeWidth={0.4} />
-            <rect x={3} y={-8} width={2.5} height={3} rx={0.5} fill="#4a3a20" stroke={outline} strokeWidth={0.3} />
-            <rect x={-6} y={-13.5} width={2} height={6} rx={0.8} fill={color} stroke={outline} strokeWidth={0.5} />
-            <rect x={4} y={-13.5} width={2} height={6} rx={0.8} fill={color} stroke={outline} strokeWidth={0.5} />
-            <rect x={-1.5} y={-16.5} width={3} height={2.5} fill={skin} />
-            <path d="M-3,-16 Q0,-14.5 3,-16 Q3,-15 0,-13.5 Q-3,-15 -3,-16 Z" fill={color} stroke={outline} strokeWidth={0.4} />
-            <circle cx={0} cy={-21} r={5} fill={skin} stroke={outline} strokeWidth={0.7} />
-            <path d="M-5.5,-21 Q-6,-28 0,-30 Q6,-28 5.5,-21 Q3,-19 0,-19.5 Q-3,-19 -5.5,-21 Z" fill={color} stroke={outline} strokeWidth={0.6} />
-            <path d="M-4.5,-21 Q-5,-27 0,-28.5 Q5,-27 4.5,-21 Q2,-19.5 0,-20 Q-2,-19.5 -4.5,-21 Z" fill={dk} opacity={0.3} />
-            <ellipse cx={-1.8} cy={-20.8} rx={1} ry={0.7} fill={outline} />
-            <ellipse cx={1.8} cy={-20.8} rx={1} ry={0.7} fill={outline} />
-            <rect x={-1.5} y={-21} width={0.6} height={0.4} rx={0.2} fill="#80d0ff" />
-            <rect x={1.5} y={-21} width={0.6} height={0.4} rx={0.2} fill="#80d0ff" />
-            {/* Quiver on back */}
-            <rect x={3.5} y={-17} width={2.5} height={6} rx={0.5} fill="#4a2a10" stroke={outline} strokeWidth={0.4} />
-            <line x1={4} y1={-17.5} x2={4} y2={-19} stroke={metalLt} strokeWidth={0.4} />
-            <line x1={5} y1={-17.5} x2={5} y2={-18.5} stroke={metalLt} strokeWidth={0.4} />
-            {/* Bow arm — rotates for attack */}
-            <g transform={`rotate(${wAngle * 0.6}, -8, -10)`}>
-              <g transform="translate(-8, -14)">
-                <path d="M0,-8 Q-3,-4 0,4 Q-2,-4 0,-8 Z" fill={wood} stroke={outline} strokeWidth={0.5} />
-                <line x1={0} y1={-8} x2={0} y2={4} stroke="#888" strokeWidth={0.4} />
-              </g>
-            </g>
-            {/* Arrow flies on strike frame */}
-            {animState === 'attack' && (animFrame % 4 === 1 || animFrame % 4 === 2) && (
-              <g>
-                <line x1={-6} y1={-14} x2={-6 + (animFrame % 4 === 1 ? 10 : 18)} y2={-14} stroke={metalLt} strokeWidth={0.8} />
-                <polygon points={`${-6 + (animFrame % 4 === 1 ? 10 : 18)},-15 ${-4 + (animFrame % 4 === 1 ? 10 : 18)},-14 ${-6 + (animFrame % 4 === 1 ? 10 : 18)},-13`} fill={metalLt} />
-              </g>
-            )}
-          </g>
-        </g>
-      );
-
-    case 'gatherer':
-      return (
-        <g transform={`scale(${facing}, 1)`}>
-          {spawnGlow}
-          <ellipse cx={0} cy={2} rx={7} ry={2.2} fill="#000" opacity={0.25} />
-          <g transform={`translate(${lStep * 0.6}, 0)`}>
-            <rect x={-4} y={-1} width={3} height={2} rx={0.5} fill="#4a3a20" stroke={outline} strokeWidth={0.4} />
-          </g>
-          <g transform={`translate(${rStep * 0.6}, 0)`}>
-            <rect x={1} y={-1} width={3} height={2} rx={0.5} fill="#4a3a20" stroke={outline} strokeWidth={0.4} />
-          </g>
-          <g transform={`translate(${lunge}, ${bounce})`}>
-            <path d="M-6,-14.5 Q-7,-7 -7.5,-1 L-4,1 L4,1 L7.5,-1 Q7,-7 6,-14.5 Z" fill={color} stroke={outline} strokeWidth={0.7} />
-            <path d="M-5.5,-8 Q0,-6.5 5.5,-8" fill="none" stroke="#8a7050" strokeWidth={1.2} />
-            <ellipse cx={6.5} cy={-9} rx={3} ry={3.5} fill="#5a3a18" stroke={outline} strokeWidth={0.5} />
-            <path d="M-6,-14 Q-9,-10 -8,-7" fill="none" stroke={color} strokeWidth={3} strokeLinecap="round" />
-            <path d="M6,-14 Q9,-10 8,-7" fill="none" stroke={color} strokeWidth={3} strokeLinecap="round" />
-            <circle cx={-8} cy={-7} r={1.5} fill={skin} stroke={outline} strokeWidth={0.4} />
-            <circle cx={8} cy={-7} r={1.5} fill={skin} stroke={outline} strokeWidth={0.4} />
-            {/* Staff — rotates for attack, orb flares */}
-            <g transform={`rotate(${wAngle * 0.5}, -9.25, -5)`}>
-              <rect x={-10} y={-28} width={1.5} height={27} rx={0.5} fill={wood} stroke={outline} strokeWidth={0.4} />
-              <circle cx={-9.25} cy={-28.5} r={2.5} fill="#40b070" stroke={outline} strokeWidth={0.5} opacity={0.8} />
-              <circle cx={-9.25} cy={-28.5} r={1.3} fill="#80f0a0" opacity={0.5} />
-              {animState === 'attack' && animFrame % 4 === 1 && (
-                <circle cx={-9.25} cy={-28.5} r={6} fill="#40b070" opacity={0.3}>
-                  <animate attributeName="r" values="3;8;3" dur="0.3s" repeatCount="1" />
-                  <animate attributeName="opacity" values="0.5;0;0.5" dur="0.3s" repeatCount="1" />
-                </circle>
-              )}
-            </g>
-            <rect x={-1.5} y={-16.5} width={3} height={2.5} fill={skin} />
-            <circle cx={0} cy={-21} r={5.2} fill={skin} stroke={outline} strokeWidth={0.7} />
-            <ellipse cx={0} cy={-24.5} rx={8.5} ry={2.2} fill={color} stroke={outline} strokeWidth={0.6} />
-            <path d="M-4.5,-24.5 Q-4,-30 0,-32 Q4,-30 4.5,-24.5 Z" fill={dk} stroke={outline} strokeWidth={0.5} />
-            <ellipse cx={0} cy={-24.5} rx={4} ry={1.5} fill={color} opacity={0.5} />
-            <ellipse cx={-1.8} cy={-20.5} rx={1} ry={0.8} fill={outline} />
-            <ellipse cx={1.8} cy={-20.5} rx={1} ry={0.8} fill={outline} />
-            <rect x={-1.5} y={-20.7} width={0.5} height={0.4} fill="#fff" />
-            <rect x={1.5} y={-20.7} width={0.5} height={0.4} fill="#fff" />
-            <path d="M-1.5,-18.5 Q0,-17.5 1.5,-18.5" fill="none" stroke={outline} strokeWidth={0.5} />
-          </g>
-        </g>
-      );
-
-    case 'sage':
-      return (
-        <g transform={`scale(${facing}, 1)`}>
-          {spawnGlow}
-          <ellipse cx={0} cy={2} rx={8} ry={2.5} fill="#000" opacity={0.25} />
-          <g transform={`translate(${lunge}, ${bounce})`}>
-            <path d="M-7,-14 L-8.5,-1 Q-6,2 0,2.5 Q6,2 8.5,-1 L7,-14 Z" fill={color} stroke={outline} strokeWidth={0.7} />
-            <line x1={0} y1={-13} x2={0} y2={1} stroke={dk} strokeWidth={0.5} opacity={0.4} />
-            <path d="M-7,-14 Q-11,-9 -10,-5 L-7,-6 Z" fill={dk} stroke={outline} strokeWidth={0.5} />
-            <path d="M7,-14 Q11,-9 10,-5 L7,-6 Z" fill={dk} stroke={outline} strokeWidth={0.5} />
-            <circle cx={-9} cy={-5.5} r={1.5} fill={skin} stroke={outline} strokeWidth={0.3} />
-            <circle cx={9} cy={-5.5} r={1.5} fill={skin} stroke={outline} strokeWidth={0.3} />
-            <path d="M-5,-14 Q0,-12 5,-14 Q5,-15.5 0,-16 Q-5,-15.5 -5,-14 Z" fill="#8a6030" stroke={outline} strokeWidth={0.4} />
-            <circle cx={0} cy={-14.5} r={1} fill="#ffd040" opacity={0.8} />
-            <rect x={-1.5} y={-18} width={3} height={2.5} fill={skin} />
-            <circle cx={0} cy={-22.5} r={5.5} fill={skin} stroke={outline} strokeWidth={0.7} />
-            <path d="M-7,-24 L0,-38 L7,-24 Z" fill={color} stroke={outline} strokeWidth={0.7} />
-            <path d="M-7.5,-24 L7.5,-24 Q7,-22.5 0,-22 Q-7,-22.5 -7.5,-24 Z" fill={dk} stroke={outline} strokeWidth={0.5} />
-            <circle cx={0} cy={-32} r={1.5} fill="#ffd040" opacity={0.9} />
-            <path d="M-3.5,-22.5 Q-2,-21.5 -0.5,-22.5" fill="none" stroke={outline} strokeWidth={0.8} />
-            <path d="M0.5,-22.5 Q2,-21.5 3.5,-22.5" fill="none" stroke={outline} strokeWidth={0.8} />
-            <rect x={-2.5} y={-22.5} width={0.6} height={0.4} fill="#6040ff" />
-            <rect x={1.9} y={-22.5} width={0.6} height={0.4} fill="#6040ff" />
-            <path d="M-2,-19.5 Q-2.5,-16 -1,-14 Q0,-13 1,-14 Q2.5,-16 2,-19.5" fill="#c0b8a0" stroke={outline} strokeWidth={0.3} opacity={0.7} />
-            {/* Staff — raises for cast, orb bursts */}
-            <g transform={`rotate(${wAngle * 0.7}, 11.4, -5)`}>
-              <rect x={10.5} y={-32} width={1.8} height={30} rx={0.5} fill={wood} stroke={outline} strokeWidth={0.4} />
-              <circle cx={11.4} cy={-33} r={3.5} fill="#5080d8" stroke={outline} strokeWidth={0.6} opacity={0.8} />
-              <circle cx={11.4} cy={-33} r={2} fill="#80b8ff" opacity={0.5} />
-            </g>
-            {/* Magic burst on strike frame */}
-            {animState === 'attack' && animFrame % 4 === 1 && (
-              <g>
-                <circle cx={11.4} cy={-36} r={8} fill="none" stroke="#80b8ff" strokeWidth={1.5} opacity={0.6} />
-                <circle cx={11.4} cy={-36} r={4} fill="#80b8ff" opacity={0.4} />
-                {[0, 60, 120, 180, 240, 300].map(a => (
-                  <line key={a} x1={11.4 + 5 * Math.cos(a * Math.PI / 180)} y1={-36 + 5 * Math.sin(a * Math.PI / 180)}
-                    x2={11.4 + 9 * Math.cos(a * Math.PI / 180)} y2={-36 + 9 * Math.sin(a * Math.PI / 180)}
-                    stroke="#b0d8ff" strokeWidth={0.8} opacity={0.7} />
-                ))}
-              </g>
-            )}
-          </g>
-        </g>
-      );
-
-    case 'generalist':
-    default:
-      return (
-        <g transform={`scale(${facing}, 1)`}>
-          {spawnGlow}
-          <ellipse cx={0} cy={2} rx={7.5} ry={2.3} fill="#000" opacity={0.25} />
-          <g transform={`translate(${lStep}, 0)`}>
-            <rect x={-5} y={-1.5} width={3.5} height={2.5} rx={0.6} fill={outline} />
-            <rect x={-4.5} y={-1} width={3} height={1.5} rx={0.4} fill={metalDk} />
-            <rect x={-4} y={-7} width={3} height={5.5} fill={dk} stroke={outline} strokeWidth={0.5} />
-          </g>
-          <g transform={`translate(${rStep}, 0)`}>
-            <rect x={1.5} y={-1.5} width={3.5} height={2.5} rx={0.6} fill={outline} />
-            <rect x={2} y={-1} width={3} height={1.5} rx={0.4} fill={metalDk} />
-            <rect x={1} y={-7} width={3} height={5.5} fill={dk} stroke={outline} strokeWidth={0.5} />
-          </g>
-          <g transform={`translate(${lunge}, ${bounce})`}>
-            <path d="M-5,-14.5 Q-8,-8 -9.5,-1 Q-7,2 -4,1 Q-3,-5 -4,-14.5 Z" fill={dk} stroke={outline} strokeWidth={0.4} opacity={0.7} />
-            <path d="M5,-14.5 Q8,-8 9.5,-1 Q7,2 4,1 Q3,-5 4,-14.5 Z" fill={dk} stroke={outline} strokeWidth={0.4} opacity={0.5} />
-            <rect x={-5.5} y={-14.5} width={11} height={8} rx={1.2} fill={color} stroke={outline} strokeWidth={0.7} />
-            <circle cx={0} cy={-11} r={2} fill={dk} stroke={lt} strokeWidth={0.4} opacity={0.5} />
-            <path d="M-0.8,-12 L0,-13 L0.8,-12 L0,-9.5 Z" fill={lt} opacity={0.5} />
-            <ellipse cx={-6} cy={-13} rx={2.5} ry={2} fill={color} stroke={outline} strokeWidth={0.5} />
-            <ellipse cx={6} cy={-13} rx={2.5} ry={2} fill={color} stroke={outline} strokeWidth={0.5} />
-            <rect x={-5} y={-7.5} width={10} height={1.8} rx={0.3} fill="#2a1a08" stroke={outline} strokeWidth={0.4} />
-            <rect x={-1} y={-7.5} width={2} height={1.8} rx={0.3} fill="#8a7030" />
-            <rect x={-1.5} y={-16.5} width={3} height={2.5} fill={skin} />
-            <circle cx={0} cy={-21} r={5.2} fill={skin} stroke={outline} strokeWidth={0.7} />
-            <path d="M-5.5,-21.5 Q-6,-28 0,-30 Q6,-28 5.5,-21.5" fill={hair} stroke={outline} strokeWidth={0.5} />
-            <path d="M-4,-24.5 L-3,-26.5 L-1,-24.5 L0,-27 L1,-24.5 L3,-26.5 L4,-24.5" fill="none" stroke="#ffd040" strokeWidth={0.8} />
-            <circle cx={0} cy={-27} r={0.8} fill="#ffd040" opacity={0.9} />
-            <ellipse cx={-1.8} cy={-20.8} rx={1} ry={0.8} fill={outline} />
-            <ellipse cx={1.8} cy={-20.8} rx={1} ry={0.8} fill={outline} />
-            <rect x={-1.5} y={-21} width={0.5} height={0.4} fill="#f0d080" />
-            <rect x={1.5} y={-21} width={0.5} height={0.4} fill="#f0d080" />
-            <rect x={-1} y={-18.5} width={2} height={0.5} rx={0.2} fill={skinDk} />
-            {/* Sword arm — rotates for attack */}
-            <g transform={`rotate(${wAngle}, 8.75, -9)`}>
-              <rect x={8} y={-22} width={1.5} height={14} rx={0.3} fill={metalLt} stroke={outline} strokeWidth={0.4} />
-              <rect x={6.5} y={-9} width={4.5} height={1.8} rx={0.5} fill="#8a7030" stroke={outline} strokeWidth={0.3} />
-              <rect x={7.5} y={-7.5} width={2.5} height={3} rx={0.3} fill="#3a2820" stroke={outline} strokeWidth={0.3} />
-              {animState === 'attack' && animFrame % 4 === 1 && (
-                <line x1={8.75} y1={-22} x2={8.75} y2={-26} stroke="#fff" strokeWidth={1} opacity={0.8} />
-              )}
-            </g>
-          </g>
-        </g>
-      );
-  }
-}
+// Animation frames & getAnimData moved to SpiritSprite.jsx
 
 export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSelectSpirit, onHexCommand, gameState, whisperTrails = [], events = [] }) {
   const hexArray = useMemo(() => Object.values(hexes), [hexes]);
@@ -509,9 +214,12 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
   const [battleEffects, setBattleEffects] = useState([]);
   const [spawnEffects, setSpawnEffects] = useState([]);
   const [claimFlashes, setClaimFlashes] = useState([]);
+  const [decreeWaves, setDecreeWaves] = useState([]);
   const [rallyPoint, setRallyPoint] = useState(null);
   const prevSpiritsRef = useRef({});
   const processedEventsRef = useRef(new Set());
+  const vfxRef = useRef(null);
+  const gameContainerRef = useRef(null);
 
   // --- Animation system: 8fps frame counter for retro sprite feel ---
   const [animTick, setAnimTick] = useState(0);
@@ -536,6 +244,19 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
       setTimeout(() => {
         setDyingSpirits(p => { const n = new Set(p); newlyDead.forEach(id => n.delete(id)); return n; });
       }, 1200);
+
+      // Canvas VFX death dissolve
+      if (vfxRef.current) {
+        for (const id of newlyDead) {
+          const spirit = prev[id];
+          if (!spirit) continue;
+          const h = hexes[spirit.hexId];
+          if (!h) continue;
+          const p = hexToPixel({ q: h.q, r: h.r }, HEX_SIZE);
+          const pc = getPlayerColor(spirit.playerId, gameState) || '#6b7280';
+          vfxRef.current.death(p.x, p.y, pc);
+        }
+      }
     }
 
     // Generate speech bubbles for combat/spawning only (not move/explore)
@@ -586,9 +307,44 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
         if (bh) {
           const p = hexToPixel({ q: bh.q, r: bh.r }, HEX_SIZE);
           const winner = spirits[evt.winnerId];
+          const loser = spirits[evt.loserId];
           const pc = winner ? (getPlayerColor(winner.playerId, gameState) || '#dc3545') : '#dc3545';
-          setBattleEffects(prev => [...prev, { id: eid, pos: p, color: pc, fatal: evt.loserOutcome === 'died', margin: evt.margin || 0 }]);
+          const fatal = evt.loserOutcome === 'died';
+          setBattleEffects(prev => [...prev, { id: eid, pos: p, color: pc, fatal, margin: evt.margin || 0 }]);
           setTimeout(() => setBattleEffects(prev => prev.filter(e => e.id !== eid)), 2000);
+
+          // Canvas VFX explosion
+          if (vfxRef.current) {
+            const affinity = winner?.affinity || undefined;
+            vfxRef.current.explosion(p.x, p.y, { fatal, affinity });
+            vfxRef.current.damageNumber(p.x, p.y, evt.margin || Math.floor(Math.random() * 30 + 10), { critical: fatal });
+            if (fatal && loser) {
+              const lh = hexes[loser.hexId || evt.hexId];
+              if (lh) {
+                const lp = hexToPixel({ q: lh.q, r: lh.r }, HEX_SIZE);
+                const dirX = lp.x - p.x;
+                const dirY = lp.y - p.y;
+                vfxRef.current.blood(p.x, p.y, dirX || 1, dirY || 0);
+              }
+            }
+          }
+        }
+      }
+
+      if (evt.type === 'swarmling_battle' && evt.hexId) {
+        const bh = hexes[evt.hexId];
+        if (bh) {
+          const p = hexToPixel({ q: bh.q, r: bh.r }, HEX_SIZE);
+          const winner = spirits[evt.winnerId];
+          const pc = winner ? (getPlayerColor(winner.playerId, gameState) || '#dc3545') : '#dc3545';
+          setBattleEffects(prev => [...prev, { id: eid, pos: p, color: pc, fatal: evt.killed, margin: evt.damage || 0 }]);
+          setTimeout(() => setBattleEffects(prev => prev.filter(e => e.id !== eid)), 1500);
+
+          if (vfxRef.current) {
+            const affinity = winner?.affinity || undefined;
+            vfxRef.current.explosion(p.x, p.y, { fatal: evt.killed, affinity, scale: 0.6 });
+            vfxRef.current.damageNumber(p.x, p.y, evt.damage || 0, { critical: evt.killed });
+          }
         }
       }
 
@@ -600,6 +356,29 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
           const pc = parent ? (getPlayerColor(parent.playerId, gameState) || '#22c55e') : '#22c55e';
           setSpawnEffects(prev => [...prev, { id: eid, pos: p, color: pc, gen: evt.generation || 1 }]);
           setTimeout(() => setSpawnEffects(prev => prev.filter(e => e.id !== eid)), 2500);
+
+          if (vfxRef.current) {
+            const spawnedSpirit = evt.spiritId ? spirits[evt.spiritId] : null;
+            vfxRef.current.spawn(p.x, p.y, pc, { affinity: spawnedSpirit?.affinity || evt.affinity });
+          }
+        }
+      }
+
+      if (evt.type === 'promotion' && evt.hexId) {
+        const ph = hexes[evt.hexId];
+        if (ph) {
+          const p = hexToPixel({ q: ph.q, r: ph.r }, HEX_SIZE);
+          const pc = evt.toTier === 'hero' ? '#f0c040' : '#60a5fa';
+          setSpawnEffects(prev => [...prev, { id: eid, pos: p, color: pc, gen: 0 }]);
+          setTimeout(() => setSpawnEffects(prev => prev.filter(e => e.id !== eid)), 3000);
+
+          if (vfxRef.current) {
+            const promoSpirit = evt.spiritId ? spirits[evt.spiritId] : null;
+            vfxRef.current.spawn(p.x, p.y, pc, { affinity: promoSpirit?.affinity || evt.affinity });
+            if (evt.toTier === 'hero') {
+              vfxRef.current.explosion(p.x, p.y, { fatal: false, scale: 1.5 });
+            }
+          }
         }
       }
 
@@ -624,6 +403,31 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
           setActiveTrails(prev => [...prev, trail]);
           setTimeout(() => setActiveTrails(prev => prev.filter(t => t.id !== eid)), 3500);
         }
+
+        // Decree/enemy whisper broadcast wave — emanates from target spirit
+        if (!fromIsSpirit && toIsSpirit && (evt.dialogType === 'DECREE' || evt.dialogType === 'ENEMY_WHISPER')) {
+          const targetSpirit = spirits[toId];
+          if (targetSpirit) {
+            const tHex = hexes[targetSpirit.hexId];
+            if (tHex) {
+              const isDecree = evt.dialogType === 'DECREE';
+              setDecreeWaves(prev => [...prev, {
+                id: eid,
+                hexId: tHex.id,
+                q: tHex.q, r: tHex.r,
+                color: isDecree ? '#d4a052' : '#ef4444',
+                ts: Date.now(),
+              }]);
+              setTimeout(() => setDecreeWaves(prev => prev.filter(w => w.id !== eid)), 2000);
+
+              if (vfxRef.current) {
+                const wp = hexToPixel({ q: tHex.q, r: tHex.r }, HEX_SIZE);
+                vfxRef.current.whisper(wp.x, wp.y, { decree: isDecree });
+              }
+            }
+          }
+        }
+
         if (toIsSpirit) {
           setPulsingSpirits(prev => new Set([...prev, toId]));
           setTimeout(() => setPulsingSpirits(prev => { const n = new Set(prev); n.delete(toId); return n; }), 3500);
@@ -751,7 +555,8 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
   const vbY = baseCy - vbH / 2 + pan.y;
 
   return (
-    <div className="relative w-full h-full" style={{ background: '#0c1018' }}>
+    <div ref={gameContainerRef} className="relative w-full h-full" style={{ background: '#0c1018' }}>
+      <VFXOverlay ref={vfxRef} svgRef={svgRef} containerRef={gameContainerRef} />
       <svg
         ref={svgRef}
         viewBox={`${vbX} ${vbY} ${vbW} ${vbH}`}
@@ -885,26 +690,83 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
 
         {hexArray.flatMap(hex => {
           const { x, y } = hexToPixel({ q: hex.q, r: hex.r }, HEX_SIZE);
-          const hexSpirits = hex.spiritIds.map(id => spirits[id]).filter(Boolean);
+          const hexSpirits = hex.spiritIds.map(id => spirits[id]).filter(s => s && s.alive);
+          if (hexSpirits.length === 0) return [];
 
-          return hexSpirits.map((spirit, i) => {
-            if (spirit.hexId !== hex.id) return null;
-            const angle = (2 * Math.PI * i) / Math.max(hexSpirits.length, 1);
-            const spread = hexSpirits.length === 1 ? 0 : HEX_SIZE * 0.3;
+          const heroes = hexSpirits.filter(s => s.tier === 'hero');
+          const captains = hexSpirits.filter(s => s.tier === 'captain');
+          const swarmlings = hexSpirits.filter(s => s.tier === 'swarmling');
+          const featured = [...heroes, ...captains];
+
+          const elements = [];
+
+          // --- Swarmling cluster: colored dots grouped by player ---
+          if (swarmlings.length > 0) {
+            const byPlayer = {};
+            for (const sw of swarmlings) {
+              (byPlayer[sw.playerId] = byPlayer[sw.playerId] || []).push(sw);
+            }
+            const playerGroups = Object.entries(byPlayer);
+            playerGroups.forEach(([pid, group], gi) => {
+              const pc = getPlayerColor(pid, gameState) || '#6b7280';
+              const affColor = AFFINITIES[group[0]?.affinity]?.glow || pc;
+              const count = group.length;
+              const baseAngle = (2 * Math.PI * gi) / Math.max(playerGroups.length, 1);
+              const groupOffset = playerGroups.length > 1 ? HEX_SIZE * 0.22 : 0;
+              const gx = x + groupOffset * Math.cos(baseAngle);
+              const gy = y + groupOffset * Math.sin(baseAngle);
+
+              if (count <= 3) {
+                group.forEach((sw, si) => {
+                  const a = (2 * Math.PI * si) / Math.max(count, 1);
+                  const r = count === 1 ? 0 : 5;
+                  elements.push(
+                    <g key={sw.id} style={{ transform: `translate(${gx + r * Math.cos(a)}px, ${gy + r * Math.sin(a)}px)`, cursor: 'pointer' }}
+                      onClick={e => { e.stopPropagation(); onSelectSpirit(sw.id); }}
+                      onMouseEnter={() => setHoveredSpirit(sw.id)}
+                      onMouseLeave={() => setHoveredSpirit(null)}>
+                      <circle cx={0} cy={0} r={3} fill={affColor} stroke={pc} strokeWidth={0.8} opacity={0.9} />
+                      {hoveredSpirit === sw.id && (
+                        <text x={0} y={-6} textAnchor="middle" fontSize="4" fill="#e8dcc0" fontFamily="'Cinzel', serif">{sw.name}</text>
+                      )}
+                    </g>
+                  );
+                });
+              } else {
+                elements.push(
+                  <g key={`swarm-${pid}-${hex.id}`} style={{ transform: `translate(${gx}px, ${gy}px)` }}
+                    onClick={e => { e.stopPropagation(); if (group[0]) onSelectSpirit(group[0].id); }}>
+                    <circle cx={0} cy={0} r={6 + Math.min(count, 15) * 0.3} fill={affColor} opacity={0.25}>
+                      <animate attributeName="r" values={`${5 + count * 0.2};${7 + count * 0.3};${5 + count * 0.2}`} dur="2s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx={0} cy={0} r={4} fill={affColor} stroke={pc} strokeWidth={1} opacity={0.85} />
+                    <text x={0} y={1.5} textAnchor="middle" fontSize="5" fill="#fff" fontWeight="bold" fontFamily="monospace">{count}</text>
+                  </g>
+                );
+              }
+            });
+          }
+
+          // --- Captains & Heroes: full sprites ---
+          featured.forEach((spirit, i) => {
+            const angle = (2 * Math.PI * i) / Math.max(featured.length, 1);
+            const spread = featured.length === 1 && swarmlings.length === 0 ? 0
+              : featured.length === 1 ? HEX_SIZE * 0.15 : HEX_SIZE * 0.3;
             const sx = x + spread * Math.cos(angle);
-            const sy = y + spread * Math.sin(angle);
+            const sy = y + spread * Math.sin(angle) + 5;
             const isSelected = spirit.id === selectedSpirit;
             const isDying = dyingSpirits.has(spirit.id);
-            if (!spirit.alive && !isDying) return null;
 
             const isGhost = spirit._isGhost || spirit.playerId === 'ghost';
             const pc = isGhost ? '#a855f7' : (getPlayerColor(spirit.playerId, gameState) || '#6b7280');
             const spec = spirit.specialization || 'generalist';
+            const affData = AFFINITIES[spirit.affinity];
+            const affColor = affData?.glow || pc;
+            const classData = spirit.captainClass ? CAPTAIN_CLASSES[spirit.captainClass] : null;
 
             const isHovered = hoveredSpirit === spirit.id;
             const isMine = spirit.playerId === playerId;
 
-            // --- Movement detection + facing ---
             const prevHex = prevHexPositions.current[spirit.id];
             const now = Date.now();
             if (prevHex && prevHex !== spirit.hexId) {
@@ -924,12 +786,14 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
             const isSpawning = spirit.currentAction?.type === 'spawning';
             const animState = isBattling ? 'attack' : isMoving ? 'walk' : isSpawning ? 'spawn' : 'idle';
             const face = spiritFacing.current[spirit.id] || 1;
+            const isHero = spirit.tier === 'hero';
+            const scale = isHero ? 1.3 : 1;
 
-            return (
+            elements.push(
               <g
                 key={spirit.id}
                 style={{
-                  transform: `translate(${sx}px, ${sy + 5}px)`,
+                  transform: `translate(${sx}px, ${sy}px) scale(${scale})`,
                   transition: 'transform 0.6s ease-in-out, opacity 1s',
                   cursor: spirit.alive ? 'pointer' : 'default',
                   opacity: isDying ? 0 : isGhost ? 0.7 : 1,
@@ -938,72 +802,123 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
                 onMouseEnter={() => setHoveredSpirit(spirit.id)}
                 onMouseLeave={() => setHoveredSpirit(null)}
               >
-                {/* Ghost ethereal aura */}
+                {/* Captain aura ring */}
+                {classData && !isDying && (
+                  <circle cx={0} cy={-10} r={14} fill="none" stroke={affColor} strokeWidth={0.6} opacity={0.25}>
+                    <animate attributeName="opacity" values="0.25;0.12;0.25" dur="3s" repeatCount="indefinite" />
+                  </circle>
+                )}
+
+                {/* Hero glow */}
+                {isHero && !isDying && (
+                  <ellipse cx={0} cy={-16} rx={22} ry={26} fill={affColor} opacity={0.08}>
+                    <animate attributeName="opacity" values="0.08;0.15;0.08" dur="2s" repeatCount="indefinite" />
+                  </ellipse>
+                )}
+
                 {isGhost && (
-                  <ellipse cx={0} cy={-10} rx={12} ry={16} fill="none"
+                  <ellipse cx={0} cy={-16} rx={18} ry={22} fill="none"
                     stroke="#a855f7" strokeWidth={0.8} opacity={0.35}
                     strokeDasharray="4 3"
                     style={{ animation: 'pulse 3s ease-in-out infinite' }} />
                 )}
 
-                {/* Hover glow ring */}
                 {isHovered && !isSelected && (
-                  <ellipse cx={0} cy={-10} rx={10} ry={14} fill="none"
+                  <ellipse cx={0} cy={-16} rx={16} ry={20} fill="none"
                     stroke={isMine ? '#f0c040' : pc} strokeWidth={1} opacity={0.4} strokeDasharray="3 2" />
                 )}
 
-                <SpiritSprite spec={spec} color={pc} animState={animState} animFrame={animTick} facing={face} />
+                <SpiritSprite spec={spec} color={pc} animState={animState} animFrame={animTick} facing={face} affinity={spirit.affinity} />
 
-                {/* HP bar */}
+                {/* Affinity indicator dot */}
+                {affData && (
+                  <circle cx={-12} cy={-34} r={2.5} fill={affData.color} opacity={0.7} />
+                )}
+
+                {/* Class icon */}
+                {classData && (
+                  <text x={12} y={-32} textAnchor="middle" fontSize="6" opacity={0.8}>{classData.icon}</text>
+                )}
+
+                {/* Hero title */}
+                {isHero && spirit.heroTitle && (
+                  <text x={0} y={-48} textAnchor="middle" fontSize="5" fill="#f0c040" fontFamily="'Cinzel', serif" fontWeight="700" opacity={0.9}>
+                    {spirit.heroTitle}
+                  </text>
+                )}
+
+                {/* Portrait + HP bar */}
                 {spirit.alive && (() => {
                   const maxHp = spirit.maxHp || 100;
                   const hp = spirit.hp != null ? spirit.hp : maxHp;
                   const pct = Math.max(0, Math.min(1, hp / maxHp));
-                  if (pct >= 1) return null;
-                  const barW = 18;
-                  const barH = 2.5;
-                  const barY = -35;
+                  const barW = 20;
+                  const barH = 3;
+                  const barY = -38;
+                  const avatarR = 6;
+                  const avatarX = -barW / 2 - avatarR - 2;
+                  const avatarY = barY + barH / 2;
+                  const charMap = { flame: 'fire_knight', tide: 'water_priestess', stone: 'ground_monk', wind: 'wind_hashashin', growth: 'leaf_ranger', shadow: 'crystal_mauler' };
+                  const charName = charMap[spirit.affinity] || 'metal_bladekeeper';
+                  const portraitSrc = `/sprites/${charName}/portrait.png`;
                   const fillColor = pct > 0.6 ? '#4ade80' : pct > 0.3 ? '#fbbf24' : '#ef4444';
                   return (
                     <g>
-                      <rect x={-barW / 2} y={barY} width={barW} height={barH} rx={1}
-                        fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.15)" strokeWidth={0.3} />
-                      <rect x={-barW / 2 + 0.5} y={barY + 0.5} width={(barW - 1) * pct} height={barH - 1} rx={0.5}
-                        fill={fillColor} opacity={0.9} />
+                      <defs>
+                        <clipPath id={`avatar-clip-${spirit.id}`}>
+                          <circle cx={avatarX} cy={avatarY} r={avatarR} />
+                        </clipPath>
+                      </defs>
+                      <circle cx={avatarX} cy={avatarY} r={avatarR + 0.5} fill="rgba(0,0,0,0.5)" stroke={affColor} strokeWidth={0.5} />
+                      <image
+                        href={portraitSrc}
+                        x={avatarX - avatarR}
+                        y={avatarY - avatarR}
+                        width={avatarR * 2}
+                        height={avatarR * 2}
+                        clipPath={`url(#avatar-clip-${spirit.id})`}
+                        style={{ imageRendering: 'pixelated' }}
+                      />
+                      {pct < 1 && (
+                        <>
+                          <rect x={-barW / 2} y={barY} width={barW} height={barH} rx={1}
+                            fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.15)" strokeWidth={0.3} />
+                          <rect x={-barW / 2 + 0.5} y={barY + 0.5} width={(barW - 1) * pct} height={barH - 1} rx={0.5}
+                            fill={fillColor} opacity={0.9} />
+                        </>
+                      )}
                     </g>
                   );
                 })()}
 
-                {/* Speaking indicator */}
                 {speechBubbles[spirit.id] && (
-                  <circle cx={12} cy={-33} r={2.5} fill={pc} opacity={0.9}>
+                  <circle cx={16} cy={-38} r={3} fill={pc} opacity={0.9}>
                     <animate attributeName="opacity" values="0.9;0.4;0.9" dur="1.5s" repeatCount="indefinite" />
                   </circle>
                 )}
 
                 {isSelected && (
                   <g>
-                    <rect x={-8} y={-26} width={16} height={28} rx={2}
+                    <rect x={-14} y={-34} width={28} height={38} rx={3}
                       fill="none" stroke="#f0c040" strokeWidth={1.5} strokeDasharray="4 2" opacity={0.7}>
                       <animate attributeName="stroke-dashoffset" values="0;-12" dur="1.5s" repeatCount="indefinite" />
                     </rect>
-                    <polygon points="-3,-28 0,-31 3,-28" fill="#f0c040" opacity={0.8} />
+                    <polygon points="-4,-36 0,-40 4,-36" fill="#f0c040" opacity={0.8} />
                   </g>
                 )}
 
-                {/* Name label on hover */}
-                {isHovered && (
+                {/* Name label */}
+                {(isHovered || isSelected) && (
                   <g>
-                    <rect x={-20} y={-42} width={40} height={9} rx={2}
+                    <rect x={-22} y={-44} width={44} height={10} rx={2}
                       fill="rgba(12,16,24,0.9)" stroke="rgba(200,180,100,0.25)" strokeWidth={0.5} />
-                    <text x={0} y={-35.5} textAnchor="middle" fontSize="5.5"
+                    <text x={0} y={-37} textAnchor="middle" fontSize="5.5"
                       fill="#e8dcc0" fontFamily="'Cinzel', serif" fontWeight="600">
                       {spirit.name}
                     </text>
                   </g>
                 )}
 
-                {/* Battle ring effect */}
                 {isBattling && !isDying && (
                   <circle cx={0} cy={-10} r={12} fill="none" stroke="#ff4040" strokeWidth={0.8} opacity={0.4}>
                     <animate attributeName="r" values="10;14;10" dur="1.2s" repeatCount="indefinite" />
@@ -1015,19 +930,11 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
                     <animate attributeName="r" values="8;12;8" dur="2s" repeatCount="indefinite" />
                   </circle>
                 )}
-                {!spirit.currentAction?.type && spirit.generation > 0 && !isDying && !isHovered && (
-                  <text x={0} y={-28} textAnchor="middle" fontSize="5" fill="#a080e0" fontFamily="monospace" opacity={0.6}>
-                    G{spirit.generation}
-                  </text>
-                )}
-                {spirit.generation > 0 && !isDying && isHovered && (
-                  <text x={0} y={-42} textAnchor="middle" fontSize="4" fill="#a080e0" fontFamily="monospace" opacity={0.7}>
-                    gen {spirit.generation}
-                  </text>
-                )}
               </g>
             );
           });
+
+          return elements;
         })}
 
         {/* Speech bubbles removed — dialog shown in feed overlay */}
@@ -1081,6 +988,23 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
               <animate attributeName="r" values="5;18" dur="1s" repeatCount="2" />
               <animate attributeName="opacity" values="0.6;0" dur="1s" repeatCount="2" />
             </circle>
+          );
+        })}
+
+        {/* Decree / Enemy whisper broadcast waves */}
+        {decreeWaves.map(wave => {
+          const p = hexToPixel({ q: wave.q, r: wave.r }, HEX_SIZE);
+          return (
+            <g key={wave.id}>
+              <circle cx={p.x} cy={p.y} r={4} fill="none" stroke={wave.color} strokeWidth={2} opacity={0}>
+                <animate attributeName="r" values="4;40" dur="1.5s" fill="freeze" />
+                <animate attributeName="opacity" values="0.7;0" dur="1.5s" fill="freeze" />
+              </circle>
+              <circle cx={p.x} cy={p.y} r={4} fill="none" stroke={wave.color} strokeWidth={1} opacity={0}>
+                <animate attributeName="r" values="4;30" dur="1s" fill="freeze" begin="0.2s" />
+                <animate attributeName="opacity" values="0.5;0" dur="1s" fill="freeze" begin="0.2s" />
+              </circle>
+            </g>
           );
         })}
 

@@ -1,6 +1,8 @@
 import { resolveTimers } from './timerService.js';
 import { accumulateMemories } from './memoryGenService.js';
 import { runSpiritDecisions, runSpiritDialogs } from './spiritDecisionService.js';
+import { runSwarmlingTick } from './swarmlingAI.js';
+import { checkPromotions } from './promotionService.js';
 import { checkWinCondition } from './winService.js';
 import { broadcast, broadcastStateChange } from './wsService.js';
 import { createInitialGameState } from './gameInit.js';
@@ -96,11 +98,17 @@ async function tick() {
     }
   }
 
-  // 3. Spirit decision cycle (fire-and-forget, async)
+  // 3. Swarmling AI — deterministic, no LLM calls
+  runSwarmlingTick(gameState);
+
+  // 3b. Captain/Hero decision cycle (LLM-powered, fire-and-forget)
   runSpiritDecisions(gameState);
 
-  // 3b. Spirit dialog — spirits talk to each other and taunt enemies
+  // 3c. Spirit dialog — spirits talk to each other and taunt enemies
   runSpiritDialogs(gameState);
+
+  // 3d. Check promotions (swarmling→captain, captain→hero)
+  checkPromotions(gameState);
 
   // 4. Check win condition
   const winner = checkWinCondition(gameState);

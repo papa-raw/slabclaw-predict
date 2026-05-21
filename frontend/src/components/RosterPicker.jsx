@@ -36,7 +36,7 @@ export default function RosterPicker({ onSelectionChange, selectedIds = [] }) {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetch(`/api/roster/${walletAddress}`)
+    fetch(`/api/game/roster/${walletAddress}`)
       .then(r => {
         if (!r.ok) throw new Error(`Roster fetch failed (${r.status})`);
         return r.json();

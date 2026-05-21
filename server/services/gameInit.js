@@ -1,9 +1,15 @@
 import { createHexGrid, getStartingPositions } from '../../lib/hexGrid.js';
 import { SEED_SPIRITS } from '../../lib/seedSpirits.js';
+import { AFFINITIES, AFFINITY_NAMES, getAffinityFromTerrain, pickSwarmlingName, CLASS_NAMES } from '../../lib/classSystem.js';
+import { TERRAIN_TYPES } from '../../lib/terrainTypes.js';
 import { setKey } from './keyStore.js';
 import { getCachedAvatarBlobId } from './avatarService.js';
 import { selectGhostsForGame } from './graveyardService.js';
+import { neighbors, hexId } from '../../lib/hexMath.js';
 import crypto from 'crypto';
+
+const SWARMLINGS_PER_PLAYER = 12;
+const CAPTAINS_PER_PLAYER = 3;
 
 const DEITY_FIRST = [
   'Pyraxis', 'Thalwen', 'Umberis', 'Kaelix', 'Verathos',
@@ -16,13 +22,53 @@ const DEITY_TITLE = [
   'Voidtouched', 'Thornbound', 'the Hollow', 'Worldwatcher',
 ];
 
+const CAPTAIN_SEED_CLASSES = [
+  ['vanguard', 'ranger', 'harvester'],
+  ['ranger', 'oracle', 'bard'],
+  ['harvester', 'warden', 'oracle'],
+  ['shieldbearer', 'shadowstep', 'vanguard'],
+  ['shadowstep', 'vanguard', 'ranger'],
+  ['bard', 'harvester', 'shieldbearer'],
+];
+
+const SEED_AFFINITIES = ['flame', 'wind', 'growth', 'shadow', 'wind', 'tide'];
+
 function pickDeityNames() {
   const shuffled = [...DEITY_FIRST].sort(() => Math.random() - 0.5);
   const titles = [...DEITY_TITLE].sort(() => Math.random() - 0.5);
-  return {
-    names: shuffled.slice(0, 6),
-    titles: titles.slice(0, 6),
-  };
+  return { names: shuffled.slice(0, 6), titles: titles.slice(0, 6) };
+}
+
+function findOpenAdjacentHexes(startHex, map, usedHexIds, count) {
+  const found = [];
+  const queue = [startHex];
+  const visited = new Set([startHex.id]);
+
+  while (queue.length > 0 && found.length < count) {
+    const current = queue.shift();
+    const adjCoords = neighbors({ q: current.q, r: current.r });
+    for (const ac of adjCoords) {
+      const id = hexId(ac.q, ac.r);
+      if (visited.has(id)) continue;
+      visited.add(id);
+      const hex = map.hexes[id];
+      if (!hex || hex.terrain === 'ocean') continue;
+      if (!usedHexIds.has(id)) {
+        found.push(hex);
+        if (found.length >= count) break;
+      }
+      queue.push(hex);
+    }
+  }
+  return found;
+}
+
+function pickAffinityForTerrain(terrain) {
+  const terrainData = TERRAIN_TYPES[terrain];
+  if (terrainData?.elementalAffinity?.length) {
+    return terrainData.elementalAffinity[Math.floor(Math.random() * terrainData.elementalAffinity.length)];
+  }
+  return AFFINITY_NAMES[Math.floor(Math.random() * AFFINITY_NAMES.length)];
 }
 
 export async function createInitialGameState() {
@@ -33,23 +79,8 @@ export async function createInitialGameState() {
   const players = {};
   const spirits = {};
   const usedHexIds = new Set();
+  const usedNames = new Set();
 
-  const SWARM_SPECS = [
-    ['warrior', 'scout', 'gatherer'],
-    ['scout', 'gatherer', 'warrior'],
-    ['gatherer', 'warrior', 'scout'],
-    ['warrior', 'scout', 'gatherer'],
-    ['scout', 'warrior', 'gatherer'],
-    ['gatherer', 'scout', 'warrior'],
-  ];
-  const CHILD_NAMES = [
-    ['Ember', 'Flint', 'Ash'],
-    ['Drift', 'Breeze', 'Wisp'],
-    ['Moss', 'Fern', 'Thorn'],
-    ['Shade', 'Dusk', 'Veil'],
-    ['Gale', 'Tempest', 'Zephyr'],
-    ['Coral', 'Reef', 'Surge'],
-  ];
   const SEED_PROFILES = ['aggressive', 'explorer', 'cautious', 'cautious', 'aggressive', 'explorer'];
 
   for (let i = 0; i < 6; i++) {
@@ -64,15 +95,27 @@ export async function createInitialGameState() {
         h => Math.max(Math.abs(h.q), Math.abs(h.r), Math.abs(-h.q - h.r)) >= 3 && !usedHexIds.has(h.id)
       );
     }
-    if (startHex) usedHexIds.add(startHex.id);
+    if (startHex) {
+      usedHexIds.add(startHex.id);
+      startHex.controller = playerId;
+    }
 
+    const adjacentHexes = startHex
+      ? findOpenAdjacentHexes(startHex, map, usedHexIds, SWARMLINGS_PER_PLAYER + CAPTAINS_PER_PLAYER)
+      : [];
+    for (const ah of adjacentHexes) {
+      usedHexIds.add(ah.id);
+      ah.controller = playerId;
+    }
+
+    const totalSpirits = CAPTAINS_PER_PLAYER + SWARMLINGS_PER_PLAYER;
     players[playerId] = {
       id: playerId,
       name: DEITY_NAMES[i],
       deityTitle: DEITY_TITLES[i],
       walletAddress: null,
-      hexesControlled: 1,
-      spiritCount: 3,
+      hexesControlled: 1 + adjacentHexes.length,
+      spiritCount: totalSpirits,
       isBot: !isHuman,
       connected: false,
       lastSeen: Date.now(),
@@ -80,50 +123,63 @@ export async function createInitialGameState() {
       lastWhisperReset: Date.now(),
     };
 
-    if (startHex) startHex.controller = playerId;
-
     const namespace = `swarm-${playerId}`;
     const seed = SEED_SPIRITS[i];
-    const specs = SWARM_SPECS[i];
-    const names = CHILD_NAMES[i];
+    const captainClasses = CAPTAIN_SEED_CLASSES[i];
+    const playerAffinity = SEED_AFFINITIES[i];
 
-    for (let s = 0; s < 3; s++) {
+    const allHexes = [startHex, ...adjacentHexes].filter(Boolean);
+    let hexCursor = 0;
+    function nextHex() {
+      const h = allHexes[hexCursor % allHexes.length];
+      hexCursor++;
+      return h;
+    }
+
+    // --- Spawn 3 Captains (existing seed spirits) ---
+    const captainNames = [seed.name, ...['Ardent', 'Vigil', 'Nox', 'Lumen', 'Husk', 'Drift', 'Rune', 'Crux'].sort(() => Math.random() - 0.5).slice(0, 2)];
+    if (i === 0) { captainNames[1] = 'Flint'; captainNames[2] = 'Ash'; }
+    else if (i === 1) { captainNames[1] = 'Breeze'; captainNames[2] = 'Wisp'; }
+    else if (i === 2) { captainNames[1] = 'Fern'; captainNames[2] = 'Thorn'; }
+    else if (i === 3) { captainNames[1] = 'Dusk'; captainNames[2] = 'Veil'; }
+    else if (i === 4) { captainNames[1] = 'Tempest'; captainNames[2] = 'Zephyr'; }
+    else { captainNames[1] = 'Reef'; captainNames[2] = 'Surge'; }
+
+    for (let c = 0; c < CAPTAINS_PER_PLAYER; c++) {
+      const spiritId = c === 0 ? `spirit-${playerId}-seed` : `spirit-${playerId}-cap-${c}`;
+      const spiritHex = nextHex();
       const delegateKey = { privateKey: crypto.randomBytes(32).toString('hex') };
-      const spiritId = s === 0 ? `spirit-${playerId}-seed` : `spirit-${playerId}-${s}`;
+      const captainClass = captainClasses[c];
+      const affinity = c === 0 ? playerAffinity : pickAffinityForTerrain(spiritHex?.terrain || 'grassland');
 
       const startBond = isHuman
         ? { depth: 40, harmony: 40, adventure: 30, loyalty: 30 }
         : { depth: 55, harmony: 55, adventure: 45, loyalty: 45 };
 
-      // Place additional spirits on adjacent hexes
-      let spiritHex = startHex;
-      if (s > 0 && startHex) {
-        const adjCoords = [
-          { q: startHex.q + 1, r: startHex.r },
-          { q: startHex.q - 1, r: startHex.r },
-          { q: startHex.q, r: startHex.r + 1 },
-          { q: startHex.q, r: startHex.r - 1 },
-        ];
-        for (const ac of adjCoords) {
-          const ah = Object.values(map.hexes).find(h => h.q === ac.q && h.r === ac.r && h.terrain !== 'ocean');
-          if (ah && !usedHexIds.has(ah.id)) {
-            spiritHex = ah;
-            usedHexIds.add(ah.id);
-            ah.controller = playerId;
-            players[playerId].hexesControlled++;
-            break;
-          }
-        }
-      }
+      const personality = c === 0 ? seed.personality
+        : `A ${captainClass} captain of the ${captainNames[c]} lineage. ${captainClass === 'vanguard' ? 'Fierce and protective.' : captainClass === 'ranger' ? 'Quick and perceptive.' : captainClass === 'harvester' ? 'Patient and resourceful.' : captainClass === 'oracle' ? 'Wise and contemplative.' : captainClass === 'shieldbearer' ? 'Stalwart and loyal.' : captainClass === 'shadowstep' ? 'Cunning and swift.' : captainClass === 'warden' ? 'Resolute and territorial.' : 'Inspiring and harmonious.'}`;
 
       spirits[spiritId] = {
         id: spiritId,
-        name: names[s],
-        personality: s === 0 ? seed.personality : `A ${specs[s]} spirit of the ${names[s]} lineage. ${specs[s] === 'warrior' ? 'Fierce and protective.' : specs[s] === 'scout' ? 'Quick and curious.' : 'Patient and resourceful.'}`,
-        _style: s === 0 ? (seed.style || null) : null,
-        specialization: specs[s],
-        generation: s === 0 ? 0 : 1,
-        parentId: s === 0 ? null : `spirit-${playerId}-seed`,
+        name: captainNames[c],
+        personality,
+        _style: c === 0 ? (seed.style || null) : null,
+        specialization: captainClass === 'vanguard' || captainClass === 'shieldbearer' || captainClass === 'shadowstep' ? 'warrior'
+          : captainClass === 'ranger' ? 'scout'
+          : captainClass === 'harvester' || captainClass === 'bard' ? 'gatherer'
+          : 'sage',
+        tier: 'captain',
+        affinity,
+        captainClass,
+        heroTitle: null,
+        heroAbility: null,
+        promotionXP: 0,
+        promotionThreshold: null,
+        commandRadius: 2,
+        orderText: null,
+        orderSource: null,
+        generation: c === 0 ? 0 : 1,
+        parentId: c === 0 ? null : `spirit-${playerId}-seed`,
         hexId: spiritHex?.id || '1010',
         playerId,
         bond: startBond,
@@ -149,20 +205,86 @@ export async function createInitialGameState() {
         previousNames: [],
         pastLifeMemories: [],
         memorableActions: [],
+        legendaryDeeds: 0,
         lastSpawnAt: 0,
-        _lastDecision: s * 5000, // stagger initial decisions
-        avatarBlobId: getCachedAvatarBlobId(names[s]) || null,
+        _lastDecision: c * 5000,
+        avatarBlobId: getCachedAvatarBlobId(captainNames[c]) || null,
       };
 
+      usedNames.add(captainNames[c]);
       setKey(spiritId, delegateKey.privateKey);
 
       if (spiritHex) {
         spiritHex.spiritIds.push(spiritId);
       }
     }
+
+    // --- Spawn 12 Swarmlings ---
+    for (let s = 0; s < SWARMLINGS_PER_PLAYER; s++) {
+      const spiritHex = nextHex();
+      const affinity = pickAffinityForTerrain(spiritHex?.terrain || 'grassland');
+      const swarmName = pickSwarmlingName(affinity, usedNames);
+      usedNames.add(swarmName);
+
+      const spiritId = `spirit-${playerId}-sw-${s}`;
+      const delegateKey = { privateKey: crypto.randomBytes(32).toString('hex') };
+
+      spirits[spiritId] = {
+        id: spiritId,
+        name: swarmName,
+        personality: `A ${affinity} swarmling of the ${DEITY_NAMES[i]} swarm.`,
+        _style: null,
+        specialization: ['warrior', 'scout', 'gatherer', 'sage'][s % 4],
+        tier: 'swarmling',
+        affinity,
+        captainClass: null,
+        heroTitle: null,
+        heroAbility: null,
+        promotionXP: 0,
+        promotionThreshold: 10,
+        commandRadius: 0,
+        orderText: null,
+        orderSource: null,
+        generation: 2,
+        parentId: `spirit-${playerId}-seed`,
+        hexId: spiritHex?.id || '1010',
+        playerId,
+        bond: { depth: 20, harmony: 20, adventure: 15, loyalty: 15 },
+        alive: true,
+        hp: 60,
+        maxHp: 60,
+        memwalNamespace: namespace,
+        memwalAccountId: process.env.MEMWAL_ACCOUNT_ID || '',
+        spawnCount: 0,
+        memoryCount: 0,
+        combatXP: 0,
+        explorationXP: 0,
+        socialXP: 0,
+        wisdomXP: 0,
+        personalityProfile: 'swarmling',
+        currentAction: null,
+        kills: 0,
+        hexesClaimed: 0,
+        whispersReceived: 0,
+        whispersOriginated: 0,
+        reincarnationCount: 0,
+        enemyResistance: 30,
+        previousNames: [],
+        pastLifeMemories: [],
+        memorableActions: [],
+        legendaryDeeds: 0,
+        lastSpawnAt: 0,
+        _lastDecision: (CAPTAINS_PER_PLAYER + s) * 2000,
+        avatarBlobId: null,
+      };
+
+      setKey(spiritId, delegateKey.privateKey);
+      if (spiritHex) {
+        spiritHex.spiritIds.push(spiritId);
+      }
+    }
   }
 
-  // Spawn ghosts from the graveyard on unclaimed hexes
   const ghostSpirits = selectGhostsForGame(5);
   const unclaimedHexes = Object.values(map.hexes).filter(
     h => !h.controller && h.terrain !== 'ocean' && !usedHexIds.has(h.id)
@@ -173,18 +295,28 @@ export async function createInitialGameState() {
     const ghost = ghostSpirits[g];
     const hex = shuffledUnclaimed[g];
     ghost.hexId = hex.id;
+    ghost.tier = ghost.tier || 'captain';
+    ghost.affinity = ghost.affinity || 'shadow';
+    ghost.captainClass = ghost.captainClass || null;
+    ghost.commandRadius = ghost.tier === 'captain' ? 2 : 0;
+    ghost.promotionXP = ghost.promotionXP || 0;
+    ghost.legendaryDeeds = ghost.legendaryDeeds || 0;
     hex.spiritIds.push(ghost.id);
     usedHexIds.add(hex.id);
 
     const delegateKey = { privateKey: crypto.randomBytes(32).toString('hex') };
     setKey(ghost.id, delegateKey.privateKey);
-
     spirits[ghost.id] = ghost;
   }
 
   if (ghostSpirits.length > 0) {
     console.log(`[gameInit] Placed ${Math.min(ghostSpirits.length, shuffledUnclaimed.length)} ghost(s) on the map`);
   }
+
+  const totalSpirits = Object.keys(spirits).length;
+  const captainCount = Object.values(spirits).filter(s => s.tier === 'captain').length;
+  const swarmlingCount = Object.values(spirits).filter(s => s.tier === 'swarmling').length;
+  console.log(`[gameInit] Spawned ${totalSpirits} spirits (${captainCount} captains, ${swarmlingCount} swarmlings)`);
 
   return {
     id: `game-${Date.now()}`,

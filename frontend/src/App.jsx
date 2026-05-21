@@ -10,6 +10,8 @@ import SpiritPanel from './components/SpiritPanel.jsx';
 import OnboardingHints from './components/OnboardingHints.jsx';
 import OnchainFooter from './components/OnchainFooter.jsx';
 import WhisperBar from './components/WhisperBar.jsx';
+import Explorer from './components/Explorer.jsx';
+import VFXTestPage from './components/VFXTestPage.jsx';
 import { getAvatarUrl } from '@lib/avatarUrl.js';
 
 function getSessionPlayerId() {
@@ -22,6 +24,12 @@ function getSessionPlayerId() {
 }
 
 export default function App() {
+  if (window.location.pathname.startsWith('/explorer')) return <Explorer />;
+  if (window.location.pathname.startsWith('/vfx-test')) return <VFXTestPage />;
+  return <GameApp />;
+}
+
+function GameApp() {
   const account = useCurrentAccount();
   const devWallet = useDevWallet();
   const walletAddress = account?.address || devWallet.address;
@@ -440,24 +448,26 @@ export default function App() {
                   <p className="text-sm" style={{ color: 'var(--text-primary)' }}>Select a spirit on the map</p>
                   <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Click any spirit to view stats and whisper commands</p>
                   {mySpirits.length > 0 && (
-                    <div className="mt-4 space-y-1">
-                      <div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>YOUR SWARM</div>
-                      {mySpirits.map(s => (
-                        <button key={s.id} onClick={() => { setSelectedSpirit(s.id); }}
-                          className="flex items-center gap-2 text-sm hover:text-amber-400 transition-colors px-2 py-1 rounded hover:bg-gray-800/40 w-full"
-                          style={{ color: 'var(--text-secondary)' }}>
-                          {s.avatarBlobId ? (
-                            <img src={getAvatarUrl(s.avatarBlobId)} alt={s.name}
-                              className="w-5 h-5 rounded-full object-cover flex-shrink-0 border border-amber-500/40" />
-                          ) : (
-                            <span className="w-5 h-5 rounded-full bg-amber-500/30 border border-amber-500/40 flex items-center justify-center text-[8px] text-amber-400 flex-shrink-0">
-                              {s.name[0]}
-                            </span>
-                          )}
-                          <span>{s.name}</span>
-                          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{s.specialization}</span>
-                        </button>
-                      ))}
+                    <div className="mt-4 w-full">
+                      <div className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>YOUR SWARM</div>
+                      <div className="grid grid-cols-2 gap-0.5">
+                        {mySpirits.map(s => (
+                          <button key={s.id} onClick={() => { setSelectedSpirit(s.id); }}
+                            className="flex items-center gap-1.5 text-xs hover:text-amber-400 transition-colors px-1.5 py-1 rounded hover:bg-gray-800/40"
+                            style={{ color: 'var(--text-secondary)' }}>
+                            {s.avatarBlobId ? (
+                              <img src={getAvatarUrl(s.avatarBlobId)} alt={s.name}
+                                className="w-4 h-4 rounded-full object-cover flex-shrink-0 border border-amber-500/40" />
+                            ) : (
+                              <span className="w-4 h-4 rounded-full bg-amber-500/30 border border-amber-500/40 flex items-center justify-center text-[7px] text-amber-400 flex-shrink-0">
+                                {s.name[0]}
+                              </span>
+                            )}
+                            <span className="truncate">{s.name}</span>
+                            <span className="text-[10px] flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{s.specialization}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

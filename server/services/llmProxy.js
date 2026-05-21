@@ -5,16 +5,27 @@ const WINDFALL_API_KEY = process.env.WINDFALL_API_KEY || '';
 
 const DEFAULT_MODEL = 'deepseek/deepseek-chat-v3-0324';
 const BATTLE_MODEL = 'accounts/fireworks/models/kimi-k2p5';
+const FREE_MODEL = 'deepseek/deepseek-v4-flash:free';
+
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 const MODEL_MAP = {
   'claude-haiku-4-5-20251001': DEFAULT_MODEL,
   'claude-sonnet-4-20250514': BATTLE_MODEL,
 };
 
-// Rate limit tracking
+export const TIER_MODELS = {
+  swarmling_burst: FREE_MODEL,
+  captain: DEFAULT_MODEL,
+  hero: DEFAULT_MODEL,
+  battle_narration: BATTLE_MODEL,
+  hero_promotion: BATTLE_MODEL,
+};
+
+// Rate limit tracking — raised for 150-spirit games
 let callsThisMinute = 0;
 let minuteStart = Date.now();
-const RATE_LIMIT = 50; // stay under 60/min with margin
+const RATE_LIMIT = 200;
 
 function checkRateLimit() {
   const now = Date.now();
@@ -41,11 +52,14 @@ export async function callLLM(systemPrompt, userPrompt, options = {}) {
 
   callsThisMinute++;
 
-  const callFn = PROVIDER === 'windfall'
-    ? () => callWindfall(systemPrompt, userPrompt, { model, maxTokens, messages })
-    : PROVIDER === 'anthropic'
-      ? () => callAnthropic(systemPrompt, userPrompt, { model, maxTokens, messages })
-      : null;
+  const isFreeModel = model.includes(':free') || model.includes('deepseek-v4-flash:free');
+  const callFn = isFreeModel && process.env.OPENROUTER_API_KEY
+    ? () => callOpenRouter(systemPrompt, userPrompt, { model, maxTokens })
+    : PROVIDER === 'windfall'
+      ? () => callWindfall(systemPrompt, userPrompt, { model, maxTokens, messages })
+      : PROVIDER === 'anthropic'
+        ? () => callAnthropic(systemPrompt, userPrompt, { model, maxTokens, messages })
+        : null;
 
   if (!callFn) throw new Error(`Unknown LLM_PROVIDER: "${PROVIDER}"`);
 
@@ -124,6 +138,35 @@ async function callWindfall(systemPrompt, userPrompt, { model, maxTokens, messag
 
   const data = await response.json();
   return data.choices[0].message.content;
+}
+
+async function callOpenRouter(systemPrompt, userPrompt, { model, maxTokens }) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) throw new Error('OPENROUTER_API_KEY not set');
+
+  const response = await fetch(OPENROUTER_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: maxTokens,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`[llm:openrouter] API error ${response.status}: ${error}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || '';
 }
 
 export function classifyPersonality(text) {

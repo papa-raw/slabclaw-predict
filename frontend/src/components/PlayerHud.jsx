@@ -11,6 +11,9 @@ export default function PlayerHud({ player, spirits, gameState }) {
   const territoryPct = totalHexes > 0 ? Math.round((hexesControlled / totalHexes) * 100) : 0;
 
   const totalMemories = spirits?.reduce((sum, s) => sum + (s.memoryCount || 0), 0) || 0;
+  const heroCount = spirits?.filter(s => s.tier === 'hero').length || 0;
+  const captainCount = spirits?.filter(s => s.tier === 'captain').length || 0;
+  const swarmlingCount = spirits?.filter(s => s.tier === 'swarmling').length || 0;
 
   const divinePower = spiritCount > 0
     ? Math.round(spirits.reduce((sum, s) => {
@@ -22,9 +25,12 @@ export default function PlayerHud({ player, spirits, gameState }) {
   const allPlayers = gameState?.players ? Object.entries(gameState.players).map(([id, p]) => {
     const pSpirits = Object.values(gameState.spirits || {}).filter(s => s.playerId === id && s.alive);
     const pHexes = p.hexesControlled || 0;
+    const pH = pSpirits.filter(s => s.tier === 'hero').length;
+    const pC = pSpirits.filter(s => s.tier === 'captain').length;
+    const pS = pSpirits.filter(s => s.tier === 'swarmling').length;
     return {
       id, name: p.name, deityTitle: p.deityTitle || '',
-      hexes: pHexes, spirits: pSpirits.length,
+      hexes: pHexes, spirits: pSpirits.length, heroes: pH, captains: pC, swarmlings: pS,
       pct: Math.round((pHexes / totalHexes) * 100),
       eliminated: pSpirits.length === 0,
     };
@@ -42,7 +48,7 @@ export default function PlayerHud({ player, spirits, gameState }) {
         <div className="w-px h-4 bg-gray-700/50" />
         <div className="flex items-center gap-2.5 text-xs font-mono">
           <HudStat label="HEX" value={hexesControlled} color="text-amber-400" title="Hexes Controlled" />
-          <HudStat label="SPR" value={spiritCount} color="text-teal-400" title="Spirits Alive" />
+          <HudStat label="SPR" value={`${heroCount > 0 ? heroCount + '★ ' : ''}${captainCount}C ${swarmlingCount}S`} color="text-teal-400" title={`${heroCount} Heroes, ${captainCount} Captains, ${swarmlingCount} Swarmlings`} />
           <HudStat label="TER" value={`${territoryPct}%`}
             color={territoryPct >= 50 ? 'text-amber-300' : 'text-gray-400'} title="Territory Percentage" />
           <HudStat label="PWR" value={divinePower}
@@ -63,7 +69,10 @@ export default function PlayerHud({ player, spirits, gameState }) {
                 {p.name}
                 {p.deityTitle && <span className="ml-1" style={{ color: 'var(--text-muted)' }}>{p.deityTitle}</span>}
               </span>
-              <span className="w-5 text-right" style={{ color: 'var(--text-secondary)' }}>{p.spirits}s</span>
+              <span className="text-right" style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>
+                {p.heroes > 0 && <span style={{ color: '#f0c040' }}>{p.heroes}★</span>}
+                {p.captains}C {p.swarmlings}S
+              </span>
               <span className="w-6 text-right" style={{ color: 'var(--text-primary)' }}>{p.hexes}h</span>
               <span className={`w-8 text-right ${p.pct >= 50 ? 'text-amber-400' : ''}`} style={p.pct < 50 ? { color: 'var(--text-secondary)' } : undefined}>{p.pct}%</span>
             </div>

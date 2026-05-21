@@ -70,6 +70,7 @@ export function runSpiritDecisions(gameState) {
 
   for (const spirit of Object.values(gameState.spirits)) {
     if (!spirit.alive) continue;
+    if (spirit.tier === 'swarmling') continue;
     if (spirit.currentAction) continue;
     if (spirit._lastDecision && now - spirit._lastDecision < DECISION_INTERVAL) continue;
 
@@ -547,7 +548,7 @@ export function clearDeityOrder(spirit) {
  * to allies (coordination) or taunt enemies (provocation).
  */
 export function runSpiritDialogs(gameState) {
-  const spirits = Object.values(gameState.spirits).filter(s => s.alive && !s.currentAction);
+  const spirits = Object.values(gameState.spirits).filter(s => s.alive && !s.currentAction && s.tier !== 'swarmling');
   const dialogEvents = [];
 
   for (const spirit of spirits) {

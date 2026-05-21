@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { SPEC_COLORS, SPEC_ICONS, getPlayerColor } from '@lib/terrainTypes.js';
+import { AFFINITIES, CAPTAIN_CLASSES, PROMOTION_THRESHOLDS } from '@lib/classSystem.js';
 import { getAvatarUrl } from '@lib/avatarUrl.js';
 import LineageSection from './LineageSection.jsx';
 
@@ -65,9 +66,12 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
     (spirit.bond.depth + spirit.bond.harmony + spirit.bond.adventure + spirit.bond.loyalty) / 4
   );
 
-  const spiritColor = SPEC_COLORS[spirit.specialization] || getPlayerColor(spirit.playerId, gameState) || '#6b7280';
+  const affData = AFFINITIES[spirit.affinity];
+  const classData = spirit.captainClass ? CAPTAIN_CLASSES[spirit.captainClass] : null;
+  const spiritColor = affData?.color || SPEC_COLORS[spirit.specialization] || getPlayerColor(spirit.playerId, gameState) || '#6b7280';
+  const tierLabel = spirit.tier === 'hero' ? 'HERO' : spirit.tier === 'captain' ? 'CAPTAIN' : 'SWARMLING';
+  const tierColor = spirit.tier === 'hero' ? '#f0c040' : spirit.tier === 'captain' ? '#60a5fa' : '#9ca3af';
 
-  // Bond tier label
   function getBondTierName(avg) {
     if (avg >= 80) return 'Devoted';
     if (avg >= 60) return 'Trusted';
@@ -123,10 +127,22 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
                   </span>
                 )}
               </div>
-              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                {isGhost && <span style={{ color: '#a855f7' }}>☽ Ghost · </span>}
-                <span style={{ color: SPEC_COLORS[spirit.specialization] || '#6b7280' }}>{SPEC_ICONS[spirit.specialization] || '◉'}</span> {spirit.specialization}{!isGhost && <> · gen {spirit.generation} · {getBondTierName(bondAvg)} ({bondAvg})</>}
-              </p>
+              <div className="flex items-center gap-1.5 flex-wrap text-xs" style={{ color: 'var(--text-secondary)' }}>
+                {isGhost && <span style={{ color: '#a855f7' }}>☽ Ghost</span>}
+                {!isGhost && (
+                  <span className="font-mono font-bold px-1 py-0.5 rounded text-[9px] leading-none"
+                    style={{ background: `${tierColor}20`, color: tierColor, border: `1px solid ${tierColor}40` }}>
+                    {tierLabel}
+                  </span>
+                )}
+                {affData && (
+                  <span style={{ color: affData.color }}>{affData.icon} {spirit.affinity}</span>
+                )}
+                {classData && (
+                  <span style={{ color: '#93c5fd' }}>{classData.icon} {classData.label}</span>
+                )}
+                {!isGhost && <span style={{ color: 'var(--text-muted)' }}>· {getBondTierName(bondAvg)} ({bondAvg})</span>}
+              </div>
               {spirit.memwalAccountId ? (
                 <a
                   href={`https://suiscan.xyz/testnet/object/${spirit.memwalAccountId}`}
@@ -206,6 +222,27 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
           ))}
         </div>
 
+        {/* Promotion progress */}
+        {!isGhost && spirit.tier !== 'hero' && (() => {
+          const isSwarmling = spirit.tier === 'swarmling';
+          const current = isSwarmling ? (spirit.promotionXP || 0) : (spirit.legendaryDeeds || 0);
+          const threshold = isSwarmling ? PROMOTION_THRESHOLDS.swarmling_to_captain : PROMOTION_THRESHOLDS.captain_to_hero;
+          const pct = Math.min(100, (current / threshold) * 100);
+          const nextTier = isSwarmling ? 'Captain' : 'Hero';
+          const barColor = isSwarmling ? '#60a5fa' : '#f0c040';
+          return (
+            <div className="px-2 py-1.5 rounded mb-1" style={{ background: `${barColor}08`, border: `1px solid ${barColor}20` }}>
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span className="font-mono" style={{ color: barColor }}>→ {nextTier}</span>
+                <span className="font-mono" style={{ color: 'var(--text-muted)' }}>{current}/{threshold}</span>
+              </div>
+              <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: barColor }} />
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Lineage / Past Lives */}
         <LineageSection spirit={spirit} />
 
@@ -251,6 +288,18 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
             <span style={{ color: 'var(--text-muted)' }}>Hexes</span>
             <span style={{ color: 'var(--text-primary)' }}>{spirit.hexesClaimed || 0}</span>
           </div>
+          {spirit.commandRadius > 0 && (
+            <div className="flex justify-between px-2 py-1 rounded" style={{ background: 'var(--bg-elevated)' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Cmd Range</span>
+              <span style={{ color: '#60a5fa' }}>{spirit.commandRadius}</span>
+            </div>
+          )}
+          {spirit.tier === 'swarmling' && (
+            <div className="flex justify-between px-2 py-1 rounded" style={{ background: 'var(--bg-elevated)' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Promo XP</span>
+              <span style={{ color: '#a78bfa' }}>{spirit.promotionXP || 0}/{PROMOTION_THRESHOLDS.swarmling_to_captain}</span>
+            </div>
+          )}
           {!isMine && (
             <div className="flex justify-between px-2 py-1 rounded col-span-2" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
               <span style={{ color: '#ef4444' }}>Resistance</span>
@@ -258,6 +307,22 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
             </div>
           )}
         </div>
+
+        {/* Captain aura description */}
+        {classData && (
+          <div className="px-2 py-1.5 rounded text-xs" style={{ background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.15)' }}>
+            <span className="font-mono" style={{ color: '#93c5fd' }}>{classData.icon} {classData.label} Aura</span>
+            <span style={{ color: 'var(--text-muted)' }}> — {classData.desc}</span>
+          </div>
+        )}
+
+        {/* Hero title + ability */}
+        {spirit.tier === 'hero' && (spirit.heroTitle || spirit.heroAbility) && (
+          <div className="px-2 py-1.5 rounded text-xs" style={{ background: 'rgba(240,192,64,0.06)', border: '1px solid rgba(240,192,64,0.15)' }}>
+            {spirit.heroTitle && <div className="font-display font-bold" style={{ color: '#f0c040' }}>{spirit.heroTitle}</div>}
+            {spirit.heroAbility && <div style={{ color: 'var(--text-muted)' }}>{spirit.heroAbility}</div>}
+          </div>
+        )}
 
         {/* Memories */}
         <div className="pt-2 border-t border-gray-800/50">

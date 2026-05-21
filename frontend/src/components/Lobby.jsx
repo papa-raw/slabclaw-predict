@@ -59,12 +59,31 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
   const [essencePreview, setEssencePreview] = useState(null);
   const [fadeIn, setFadeIn] = useState(false);
   const [selectedSpiritIds, setSelectedSpiritIds] = useState([]);
+  const [deityName, setDeityName] = useState('');
+  const [nameCommitted, setNameCommitted] = useState(false);
+  const [swarmTab, setSwarmTab] = useState('swarm');
 
   useEffect(() => {
     requestAnimationFrame(() => setFadeIn(true));
   }, []);
 
+  useEffect(() => {
+    const p = gameState.players[playerId];
+    if (p?.name && !deityName) setDeityName(p.name);
+  }, [gameState.players[playerId]?.name]);
+
+  function commitName() {
+    if (!deityName.trim()) return;
+    setNameCommitted(true);
+    fetch('/api/game/rename', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId, name: deityName.trim() }),
+    }).catch(() => {});
+  }
+
   async function handleReady() {
+    if (deityName.trim() && !nameCommitted) commitName();
     setReady(true);
     await fetch('/api/game/ready', {
       method: 'POST',
@@ -190,15 +209,15 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
         className="relative z-10 flex-1 flex items-center justify-center px-8 pb-10 transition-all duration-1000"
         style={{ opacity: fadeIn ? 1 : 0, transform: fadeIn ? 'translateY(0)' : 'translateY(16px)' }}
       >
-        <div className="w-full max-w-5xl grid grid-cols-[1fr_400px] gap-10 items-center">
+        <div className="w-full max-w-5xl grid grid-cols-[1fr_420px] gap-8 items-start">
 
           {/* LEFT COLUMN — Title + CTA */}
-          <div className="flex flex-col">
-            <div className="mb-8">
+          <div className="flex flex-col justify-center min-h-[calc(100vh-10rem)]">
+            <div className="mb-4">
               <h1
-                className="font-title tracking-widest mb-2"
+                className="font-title tracking-widest mb-1"
                 style={{
-                  fontSize: 'clamp(2.6rem, 5.4vw, 4.2rem)',
+                  fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
                   color: 'var(--gold-bright)',
                   textShadow: '0 0 40px var(--gold-glow)',
                   lineHeight: 1.1,
@@ -208,146 +227,173 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
               </h1>
               <p
                 className="font-body italic"
-                style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', lineHeight: 1.4 }}
+                style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: 1.3 }}
               >
                 Command AI spirits through whispers&hellip;
               </p>
             </div>
 
-            <div className="flex flex-col items-start gap-4 mt-2">
-              <div className="group relative py-4">
-                <div
-                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-700 group-hover:scale-110 group-hover:opacity-[0.18]"
-                  style={{
-                    opacity: 0.08,
-                    animation: 'pulse 6s ease-in-out infinite',
-                    filter: 'drop-shadow(0 0 30px rgba(212,160,82,0.3))',
-                  }}
-                >
-                  <WalrusIcon size={180} />
-                </div>
-                <button
-                  onClick={handleReady}
-                  disabled={ready || !gameState.players[playerId]?.walletAddress}
-                  className="relative z-10 transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
-                >
-                  <img
-                    src="/images/landing/awaken-btn.png"
-                    alt={ready ? 'Starting...' : 'Awaken'}
-                    className="w-auto transition-all duration-300 group-hover:brightness-125"
-                    style={{
-                      height: '4.4rem',
-                      filter: ready ? 'grayscale(1) brightness(0.5)' : 'drop-shadow(0 0 20px rgba(212,160,82,0.4))',
-                    }}
-                    draggable={false}
-                  />
-                </button>
-              </div>
-              <span
-                className="inline-flex items-center gap-1.5 font-body text-sm italic"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                <WalrusIcon size={15} />
-                Memories persist on Walrus
-              </span>
+            {/* Deity Name — compact inline */}
+            <div className="flex items-center gap-2 w-full max-w-sm mb-3">
+              <label className="font-mono uppercase tracking-wider flex-shrink-0" style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>
+                Deity Name
+              </label>
+              <input
+                type="text"
+                value={deityName}
+                onChange={e => { setDeityName(e.target.value); setNameCommitted(false); }}
+                onBlur={commitName}
+                onKeyDown={e => { if (e.key === 'Enter') commitName(); }}
+                maxLength={24}
+                placeholder="Enter your name..."
+                className="flex-1 px-2.5 py-1.5 rounded-md text-sm font-header focus:outline-none transition-colors"
+                style={{
+                  background: 'var(--bg-elevated)',
+                  border: `1px solid ${nameCommitted ? 'var(--gold-dim)' : 'var(--bg-surface)'}`,
+                  color: 'var(--gold-bright)',
+                }}
+              />
+              {nameCommitted && (
+                <span className="text-xs" style={{ color: 'var(--gold-bright)' }}>&#10003;</span>
+              )}
             </div>
+
+            <div className="group relative py-2 w-fit">
+              <div
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-700 group-hover:scale-110 group-hover:opacity-[0.18]"
+                style={{
+                  opacity: 0.08,
+                  animation: 'pulse 6s ease-in-out infinite',
+                  filter: 'drop-shadow(0 0 30px rgba(212,160,82,0.3))',
+                }}
+              >
+                <WalrusIcon size={160} />
+              </div>
+              <button
+                onClick={handleReady}
+                disabled={ready || !gameState.players[playerId]?.walletAddress}
+                className="relative z-10 transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+              >
+                <img
+                  src="/images/landing/awaken-btn.png"
+                  alt={ready ? 'Starting...' : 'Awaken'}
+                  className="w-auto transition-all duration-300 group-hover:brightness-125"
+                  style={{
+                    height: '4rem',
+                    filter: ready ? 'grayscale(1) brightness(0.5)' : 'drop-shadow(0 0 20px rgba(212,160,82,0.4))',
+                  }}
+                  draggable={false}
+                />
+              </button>
+            </div>
+            <span
+              className="inline-flex items-center gap-1.5 font-body text-sm italic"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              <WalrusIcon size={15} />
+              Memories persist on Walrus
+            </span>
           </div>
 
-          {/* RIGHT COLUMN — Swarm + Essence (combined) */}
-          <div className="flex flex-col gap-3">
+          {/* RIGHT COLUMN — Tabbed panel + Essence Import */}
+          <div className="flex flex-col gap-3 pt-2">
             <div className={`anima-panel transition-all duration-300 ${confirmedBlobId ? 'ring-1 ring-purple-500/30' : ''}`}>
-              <div className="anima-panel-header flex items-center justify-between">
-                <span>Your Swarm</span>
-                <div className="flex items-center gap-2">
-                  {selectedSpiritIds.length > 0 && (
-                    <span
-                      className="text-xs font-mono px-2 py-0.5 rounded-full border"
-                      style={{ background: 'rgba(212,160,82,0.15)', borderColor: 'rgba(212,160,82,0.3)', color: 'var(--gold-bright)' }}
-                    >
-                      ✦ Roster loaded
-                    </span>
-                  )}
-                  {confirmedBlobId && (
-                    <span
-                      className="text-xs font-mono px-2 py-0.5 rounded-full border"
-                      style={{ background: 'rgba(168,85,247,0.15)', borderColor: 'rgba(168,85,247,0.3)', color: '#c084fc' }}
-                    >
-                      ✦ Reincarnated
-                    </span>
-                  )}
-                </div>
+              {/* Tab bar */}
+              <div className="flex" style={{ borderBottom: '1px solid var(--gold-dim)' }}>
+                {['swarm', 'roster'].map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setSwarmTab(tab)}
+                    className="flex-1 py-2 font-mono text-xs uppercase tracking-wider transition-colors"
+                    style={{
+                      color: swarmTab === tab ? 'var(--gold-bright)' : 'var(--text-muted)',
+                      background: swarmTab === tab ? 'rgba(212,160,82,0.08)' : 'transparent',
+                      borderBottom: swarmTab === tab ? '2px solid var(--gold-bright)' : '2px solid transparent',
+                    }}
+                  >
+                    {tab === 'swarm' ? `Swarm (${mySpirits.length})` : 'Roster'}
+                  </button>
+                ))}
               </div>
-              <div className="anima-panel-body">
-                <div className="grid grid-cols-3 gap-2 mb-3">
-                  {mySpirits.map(s => {
-                    const isReborn = confirmedBlobId && s.generation === 0;
-                    const rawPrev = essencePreview?.candidates?.[0]?.pastLifeNames || [];
-                    const prevNames = rawPrev.filter(n => n !== s.name);
-                    const candidate = essencePreview?.candidates?.find(c => c.pastLifeNames?.includes(s.name) || c.name === prevNames[0]);
-                    const avatarUrl = s.avatarBlobId ? getAvatarUrl(s.avatarBlobId) : (candidate?.avatarBlobId ? getAvatarUrl(candidate.avatarBlobId) : null);
-                    const specColor = SPEC_COLORS[s.specialization] || SPEC_COLORS.generalist;
 
-                    return (
-                      <div
-                        key={s.id}
-                        className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg text-center"
-                        style={{ background: 'var(--bg-elevated)', border: '1px solid var(--gold-dim)' }}
-                      >
-                        {avatarUrl ? (
-                          <img
-                            src={avatarUrl}
-                            alt={s.name}
-                            className="w-12 h-12 rounded-full object-cover"
-                            style={{ border: `2px solid ${specColor}`, boxShadow: `0 0 12px ${specColor}40` }}
-                          />
-                        ) : (
-                          <div
-                            className="w-12 h-12 rounded-full flex items-center justify-center font-header text-lg"
-                            style={{ background: `${specColor}20`, border: `2px solid ${specColor}60`, color: specColor }}
-                          >
-                            {s.name[0]}
-                          </div>
-                        )}
-                        <span className="font-header text-sm" style={{ color: isReborn ? '#c084fc' : 'var(--text-primary)' }}>
-                          {s.name}
-                        </span>
-                        <span className="text-xs font-mono uppercase tracking-wider" style={{ color: specColor }}>
-                          {SPEC_ICONS[s.specialization] || '◉'} {s.specialization}
-                        </span>
-                        {isReborn && prevNames.length > 0 && (
-                          <span className="text-xs italic" style={{ color: 'var(--text-muted)' }}>
-                            was {prevNames[0]}
+              <div className="anima-panel-body" style={{ maxHeight: 'calc(60vh - 9rem)', overflowY: 'auto' }}>
+                {swarmTab === 'swarm' ? (
+                  <div className="flex flex-col gap-0.5">
+                    {mySpirits.map(s => {
+                      const isReborn = confirmedBlobId && s.generation === 0;
+                      const rawPrev = essencePreview?.candidates?.[0]?.pastLifeNames || [];
+                      const prevNames = rawPrev.filter(n => n !== s.name);
+                      const candidate = essencePreview?.candidates?.find(c => c.pastLifeNames?.includes(s.name) || c.name === prevNames[0]);
+                      const avatarUrl = s.avatarBlobId ? getAvatarUrl(s.avatarBlobId) : (candidate?.avatarBlobId ? getAvatarUrl(candidate.avatarBlobId) : null);
+                      const specColor = SPEC_COLORS[s.specialization] || SPEC_COLORS.generalist;
+
+                      return (
+                        <div
+                          key={s.id}
+                          className="flex items-center gap-2 py-1 px-2 rounded-md"
+                          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--gold-dim)' }}
+                        >
+                          {avatarUrl ? (
+                            <img
+                              src={avatarUrl}
+                              alt={s.name}
+                              className="w-5 h-5 rounded-full object-cover flex-shrink-0"
+                              style={{ border: `1.5px solid ${specColor}` }}
+                            />
+                          ) : (
+                            <div
+                              className="w-5 h-5 rounded-full flex items-center justify-center font-header text-[10px] flex-shrink-0"
+                              style={{ background: `${specColor}20`, border: `1.5px solid ${specColor}60`, color: specColor }}
+                            >
+                              {s.name[0]}
+                            </div>
+                          )}
+                          <span className="font-header text-sm flex-1" style={{ color: isReborn ? '#c084fc' : 'var(--text-primary)' }}>
+                            {s.name}
                           </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Roster Picker */}
-                <div style={{ borderTop: '1px solid var(--gold-dim)', paddingTop: '10px' }}>
+                          <span className="text-xs font-mono uppercase tracking-wider flex-shrink-0" style={{ color: specColor }}>
+                            {SPEC_ICONS[s.specialization] || '◉'} {s.specialization}
+                          </span>
+                          {isReborn && prevNames.length > 0 && (
+                            <span className="text-xs italic flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
+                              was {prevNames[0]}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
                   <RosterPicker
                     onSelectionChange={setSelectedSpiritIds}
                     selectedIds={selectedSpiritIds}
                   />
-                </div>
+                )}
+              </div>
+            </div>
 
-                {/* Divider between roster and essence */}
-                <div className="flex items-center gap-3 my-2 px-2" style={{ color: 'var(--text-muted)' }}>
-                  <div className="flex-1 h-px" style={{ background: 'var(--gold-dim)' }} />
-                  <span className="text-xs font-mono italic whitespace-nowrap">or import essence</span>
-                  <div className="flex-1 h-px" style={{ background: 'var(--gold-dim)' }} />
-                </div>
-
-                {/* Essence Import — inside swarm panel */}
-                <div style={{
-                  paddingTop: '4px',
-                  opacity: selectedSpiritIds.length > 0 ? 0.4 : 1,
-                  pointerEvents: selectedSpiritIds.length > 0 ? 'none' : 'auto',
-                  transition: 'opacity 0.3s ease',
-                }}>
-                  <EssenceImport onEssenceConfirmed={handleEssenceConfirmed} confirmedBlobId={confirmedBlobId} />
-                </div>
+            {/* Essence Import — separate below panel */}
+            <div
+              className="anima-panel"
+              style={{
+                opacity: selectedSpiritIds.length > 0 ? 0.4 : 1,
+                pointerEvents: selectedSpiritIds.length > 0 ? 'none' : 'auto',
+                transition: 'opacity 0.3s ease',
+              }}
+            >
+              <div className="anima-panel-header flex items-center gap-2">
+                <span>Import Essence</span>
+                {confirmedBlobId && (
+                  <span
+                    className="text-xs font-mono px-2 py-0.5 rounded-full border"
+                    style={{ background: 'rgba(168,85,247,0.15)', borderColor: 'rgba(168,85,247,0.3)', color: '#c084fc' }}
+                  >
+                    ✦ Reincarnated
+                  </span>
+                )}
+              </div>
+              <div className="anima-panel-body" style={{ maxHeight: '12rem', overflowY: 'auto' }}>
+                <EssenceImport onEssenceConfirmed={handleEssenceConfirmed} confirmedBlobId={confirmedBlobId} />
               </div>
             </div>
           </div>

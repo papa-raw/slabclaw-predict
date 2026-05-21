@@ -77,7 +77,7 @@ export default function WhisperBar({ playerId, gameState }) {
 
   return (
     <div
-      className="flex items-stretch gap-3 px-4 py-2.5 flex-shrink-0"
+      className="flex items-stretch gap-3 px-4 py-2.5 flex-shrink-0 relative"
       style={{ background: 'rgba(6,10,18,0.9)', borderTop: '1px solid var(--gold-dim)' }}
     >
       {/* Swarm Decree */}
@@ -170,19 +170,35 @@ export default function WhisperBar({ playerId, gameState }) {
       {/* Result flash */}
       {lastResult && (
         <div
-          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg text-xs font-mono animate-pulse"
+          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-4 py-2 rounded-lg text-xs font-mono pointer-events-none"
           style={{
             background: lastResult.type === 'swarm' ? 'rgba(212,160,82,0.2)' : 'rgba(239,68,68,0.2)',
             border: `1px solid ${lastResult.type === 'swarm' ? 'var(--gold-dim)' : 'rgba(239,68,68,0.3)'}`,
             color: lastResult.type === 'swarm' ? 'var(--gold-bright)' : '#ef4444',
+            animation: 'whisper-flash 3s ease-out forwards',
           }}
         >
-          {lastResult.type === 'swarm'
-            ? `Decree heard by ${lastResult.count} spirits`
-            : `${lastResult.spirits?.filter(s => s.effect !== 'ignored').length || 0} spirits affected`
-          }
+          {lastResult.type === 'swarm' ? (
+            <span>Decree heard by {lastResult.count} spirits</span>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              <span>{lastResult.spirits?.filter(s => s.effect !== 'ignored').length || 0} spirits affected</span>
+              {lastResult.spirits?.filter(s => s.effect !== 'ignored').slice(0, 3).map(s => (
+                <span key={s.spiritId} style={{ color: s.effect === 'defecting' ? '#f87171' : s.effect === 'overridden' ? '#fb923c' : '#fbbf24' }}>
+                  {s.name}: {s.effect}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
+      <style>{`
+        @keyframes whisper-flash {
+          0% { opacity: 1; transform: translate(-50%, 0); }
+          70% { opacity: 1; transform: translate(-50%, 0); }
+          100% { opacity: 0; transform: translate(-50%, -8px); }
+        }
+      `}</style>
     </div>
   );
 }

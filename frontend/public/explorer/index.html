@@ -164,6 +164,21 @@
 
     code { font-family: 'JetBrains Mono', monospace; background: var(--bg-elevated); padding: 2px 6px; border-radius: 4px; font-size: 13px; color: var(--accent-teal); }
 
+    /* Ghost cards */
+    .ghost-card { background: var(--bg-elevated); border: 1px solid transparent; border-radius: 8px; padding: 12px; cursor: pointer; transition: border-color 0.2s, background 0.15s; margin-bottom: 6px; opacity: 0.75; }
+    .ghost-card:hover { background: rgba(168,85,247,0.06); opacity: 1; }
+    .ghost-card.active { border-color: var(--accent-purple); background: rgba(168,85,247,0.06); opacity: 1; }
+    .ghost-quote { font-style: italic; font-size: 12px; color: rgba(192,132,252,0.7); margin-top: 6px; line-height: 1.4; }
+
+    /* Deity cards */
+    .deity-card { background: var(--bg-elevated); border: 1px solid transparent; border-radius: 8px; padding: 12px; cursor: pointer; transition: border-color 0.2s, background 0.15s; margin-bottom: 6px; }
+    .deity-card:hover { background: rgba(212,160,82,0.04); }
+    .deity-card.active { border-color: var(--gold-bright); background: rgba(212,160,82,0.06); }
+
+    /* Reputation bars in detail */
+    .rep-bar-track { flex: 1; height: 8px; background: var(--bg-elevated); border-radius: 4px; overflow: hidden; }
+    .rep-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s; min-width: 2px; }
+
     @media (max-width: 768px) {
       .main { flex-direction: column; }
       .left-col { width: 100%; height: 40vh; border-right: none; border-bottom: 1px solid var(--gold-dim); }
@@ -184,6 +199,8 @@
       </div>
       <div class="left-tabs">
         <button class="left-tab active" onclick="switchTab('spirits')">Spirits</button>
+        <button class="left-tab" onclick="switchTab('ghosts')">☽ Ghosts</button>
+        <button class="left-tab" onclick="switchTab('deities')">Deities</button>
         <button class="left-tab" onclick="switchTab('essence')">Essence</button>
       </div>
 
@@ -194,6 +211,26 @@
         <div id="no-game" class="no-game" style="display:none;">
           <h3>No active game</h3>
           <p style="font-size:13px;">Start a game at <a href="/" style="color:var(--accent-teal);">the lobby</a></p>
+        </div>
+      </div>
+
+      <!-- Ghosts tab -->
+      <div class="left-tab-content" id="tab-ghosts">
+        <div style="padding:6px 12px 0;"><span class="refresh-note" style="float:none;">auto-refresh 10s</span></div>
+        <div class="spirit-list" id="ghost-list"></div>
+        <div id="no-ghosts" class="no-game" style="display:none;">
+          <h3>No ghosts yet</h3>
+          <p style="font-size:13px;">Play a game — fallen spirits become ghosts</p>
+        </div>
+      </div>
+
+      <!-- Deities tab -->
+      <div class="left-tab-content" id="tab-deities">
+        <div style="padding:6px 12px 0;"><span class="refresh-note" style="float:none;">from active game</span></div>
+        <div class="spirit-list" id="deity-list"></div>
+        <div id="no-deities" class="no-game" style="display:none;">
+          <h3>No deities</h3>
+          <p style="font-size:13px;">Deities appear when players join a game</p>
         </div>
       </div>
 
@@ -566,20 +603,369 @@ let activeTab = 'spirits';
 let currentEssence = null;
 let selectedLegacyIdx = null;
 
+const TAB_IDS = ['spirits', 'ghosts', 'deities', 'essence'];
+const TAB_EMPTY_TEXT = {
+  spirits: 'Select a spirit to view details',
+  ghosts: 'Select a ghost to view their past life',
+  deities: 'Select a deity to view their journal',
+  essence: 'Inspect an essence to view deity stats',
+};
+
 function switchTab(tab) {
   activeTab = tab;
-  document.querySelectorAll('.left-tab').forEach(t => t.classList.toggle('active', t.textContent.toLowerCase().includes(tab)));
-  document.getElementById('tab-spirits').classList.toggle('visible', tab === 'spirits');
-  document.getElementById('tab-essence').classList.toggle('visible', tab === 'essence');
+  document.querySelectorAll('.left-tab').forEach((t, i) => t.classList.toggle('active', TAB_IDS[i] === tab));
+  TAB_IDS.forEach(id => document.getElementById('tab-' + id).classList.toggle('visible', id === tab));
+
   if (tab === 'spirits' && selectedSpiritId) {
     renderDetail(selectedSpiritId);
+  } else if (tab === 'ghosts' && selectedGhostId) {
+    renderGhostDetail(selectedGhostId);
+  } else if (tab === 'deities' && selectedDeityId) {
+    renderDeityDetail(selectedDeityId);
   } else if (tab === 'essence' && currentEssence) {
     renderEssenceDetail();
   } else {
     document.getElementById('detail-empty').style.display = 'flex';
     document.getElementById('detail-content').style.display = 'none';
-    document.getElementById('detail-empty').textContent = tab === 'spirits' ? 'Select a spirit to view details' : 'Inspect an essence to view deity stats';
+    document.getElementById('detail-empty').textContent = TAB_EMPTY_TEXT[tab] || 'Select an item';
   }
+
+  if (tab === 'ghosts') loadGhosts();
+  if (tab === 'deities') renderDeityList();
+}
+
+// ── Ghost Graveyard ─────────────────────────────────────────────────────
+let graveyardData = [];
+let selectedGhostId = null;
+
+async function loadGhosts() {
+  try {
+    const r = await fetch('/api/graveyard');
+    if (!r.ok) { graveyardData = []; renderGhostList(); return; }
+    const data = await r.json();
+    graveyardData = data.ghosts || data || [];
+    renderGhostList();
+    if (selectedGhostId) renderGhostDetail(selectedGhostId);
+  } catch { graveyardData = []; renderGhostList(); }
+}
+
+function renderGhostList() {
+  const list = document.getElementById('ghost-list');
+  const noGhosts = document.getElementById('no-ghosts');
+  if (!graveyardData.length) { list.innerHTML = ''; noGhosts.style.display = 'block'; return; }
+  noGhosts.style.display = 'none';
+
+  list.innerHTML = graveyardData.map(g => {
+    const sc = specColor(g.specialization);
+    const si = specIcon(g.specialization);
+    const isActive = (g.id || g.spiritId) === selectedGhostId;
+    const hasAvatar = !!g.avatarBlobId;
+    const url = avatarUrl(g.avatarBlobId);
+
+    return `<div class="ghost-card ${isActive?'active':''}" onclick="openGhost('${esc(g.id || g.spiritId)}')">
+      <div class="spirit-header">
+        <div class="spirit-avatar" style="${hasAvatar ? '' : 'background:rgba(168,85,247,0.15);color:#a855f7;border:2px solid rgba(168,85,247,0.4)'}">
+          ${hasAvatar ? `<img src="${url}" alt="" style="border:2px solid ${sc};opacity:0.7;" />` : `<span>☽</span>`}
+        </div>
+        <div style="min-width:0;">
+          <div class="spirit-name" style="color:#c084fc;">${esc(g.name)}</div>
+          <div class="spirit-meta">
+            <span class="spec-icon" style="color:${sc}">${si}</span>
+            <span style="color:${sc}">${esc(g.specialization||'unknown')}</span>
+            <span style="color:var(--text-muted);">&middot;</span>
+            <span>${esc(g.lastDeityName || 'unknown deity')}</span>
+          </div>
+        </div>
+      </div>
+      ${g.memorableQuote ? `<div class="ghost-quote">"${esc(g.memorableQuote.slice(0,80))}${g.memorableQuote.length>80?'...':''}"</div>` : ''}
+      <div class="spirit-badges">
+        <span class="badge badge-red">GHOST</span>
+        <span class="stat">Loyalty ${g.pastLifeLoyalty ?? '?'}</span>
+        <span class="stat">${g.kills||0} kills</span>
+        ${g.generation != null ? `<span class="stat">Gen ${g.generation}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openGhost(id) {
+  selectedGhostId = id;
+  renderGhostList();
+  renderGhostDetail(id);
+}
+
+function renderGhostDetail(id) {
+  const emptyEl = document.getElementById('detail-empty');
+  const contentEl = document.getElementById('detail-content');
+  const g = graveyardData.find(gh => (gh.id || gh.spiritId) === id);
+  if (!g) return;
+  emptyEl.style.display = 'none';
+  contentEl.style.display = 'block';
+
+  const sc = specColor(g.specialization);
+  const si = specIcon(g.specialization);
+  const hasAvatar = !!g.avatarBlobId;
+  const url = avatarUrl(g.avatarBlobId);
+
+  let html = '';
+
+  // Header
+  html += `<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">`;
+  if (hasAvatar) {
+    html += `<img src="${url}" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid ${sc};opacity:0.7;flex-shrink:0;" />`;
+  } else {
+    html += `<div style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;background:rgba(168,85,247,0.15);color:#a855f7;border:2px solid rgba(168,85,247,0.4);flex-shrink:0;">☽</div>`;
+  }
+  html += `<div>
+    <div class="detail-name" style="color:#c084fc;">${esc(g.name)}
+      <span class="spec-badge" style="background:${sc}15;color:${sc};border:1px solid ${sc}30;">${si} ${esc(g.specialization||'unknown')}</span>
+      <span class="badge badge-red" style="font-size:10px;">GHOST</span>
+    </div>
+    <div class="detail-subtitle">Served ${esc(g.lastDeityName || 'unknown')} &middot; Gen ${g.generation??'?'} &middot; ${g.kills||0} kills &middot; Died: ${esc(g.deathCause || 'unknown')}</div>
+  </div></div>`;
+
+  // Memorable quote
+  if (g.memorableQuote) {
+    html += `<div style="margin:12px 0 16px;padding:14px 16px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:8px;font-style:italic;color:#c084fc;font-size:14px;line-height:1.5;">
+      "${esc(g.memorableQuote)}"
+    </div>`;
+  }
+
+  // Stats
+  html += `<div style="margin-bottom:16px;">
+    <div class="section-label">Ghost Stats</div>
+    <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat-box"><div class="val" style="color:#a855f7;">${g.pastLifeLoyalty ?? '?'}</div><div class="lbl">Past Loyalty</div></div>
+      <div class="stat-box"><div class="val">${g.kills||0}</div><div class="lbl">Kills</div></div>
+      <div class="stat-box"><div class="val">${g.generation??'?'}</div><div class="lbl">Generation</div></div>
+    </div>
+  </div>`;
+
+  // Bond rings if available
+  if (g.bond) {
+    const b = g.bond;
+    html += `<div class="bond-grid">
+      ${bondRing('Depth', b.depth||0, '#8b5cf6')}
+      ${bondRing('Harmony', b.harmony||0, '#22c55e')}
+      ${bondRing('Adventure', b.adventure||0, '#f97316')}
+      ${bondRing('Loyalty', b.loyalty||0, '#3b82f6')}
+    </div>`;
+  }
+
+  // Notable deeds
+  if (g.memorableActions?.length) {
+    html += `<div style="margin-bottom:16px;">
+      <div class="section-label" style="color:#a855f7;">Notable Deeds</div>`;
+    g.memorableActions.forEach(action => {
+      html += `<div class="mem-card cat-other" style="border:1px solid rgba(168,85,247,0.12);">
+        <div class="mem-body">${esc(typeof action === 'string' ? action : action.text || JSON.stringify(action))}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Recruitment info
+  html += `<div style="margin-bottom:16px;padding:12px;background:var(--bg-elevated);border-radius:8px;border:1px solid rgba(168,85,247,0.12);">
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Recruitment Difficulty</div>
+    <div style="font-size:13px;color:var(--text-secondary);">${
+      (g.pastLifeLoyalty||0) >= 80 ? 'High loyalty to past deity — will resist new masters' :
+      (g.pastLifeLoyalty||0) >= 50 ? 'Moderate loyalty — may be persuaded with the right words' :
+      'Low loyalty — likely to accept a new deity quickly'
+    }</div>
+  </div>`;
+
+  contentEl.innerHTML = html;
+  document.querySelector('.right-col').scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Deity Journal ───────────────────────────────────────────────────────
+let selectedDeityId = null;
+let deityJournalCache = {};
+
+const ARCHETYPE_COLORS = {
+  Warlord: '#dc2626', Shepherd: '#22c55e', Sage: '#8b5cf6',
+  Tyrant: '#ef4444', Phoenix: '#f97316', Wanderer: '#3b82f6', Balanced: '#d4a052',
+};
+
+function renderDeityList() {
+  const list = document.getElementById('deity-list');
+  const noDeities = document.getElementById('no-deities');
+  if (!gameState || !gameState.players) { list.innerHTML = ''; noDeities.style.display = 'block'; return; }
+
+  const deities = Object.entries(gameState.players).filter(([,p]) => p.walletAddress);
+  if (!deities.length) { list.innerHTML = ''; noDeities.style.display = 'block'; return; }
+  noDeities.style.display = 'none';
+
+  list.innerHTML = deities.map(([pid, p]) => {
+    const isActive = pid === selectedDeityId;
+    const spiritCount = Object.values(gameState.spirits || {}).filter(s => s.playerId === pid).length;
+    const aliveCount = Object.values(gameState.spirits || {}).filter(s => s.playerId === pid && s.alive).length;
+
+    return `<div class="deity-card ${isActive?'active':''}" onclick="openDeity('${pid}')">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;background:rgba(212,160,82,0.12);color:var(--gold-bright);border:2px solid rgba(212,160,82,0.3);flex-shrink:0;">👁</div>
+        <div style="min-width:0;">
+          <div class="spirit-name" style="color:var(--gold-bright);">${esc(p.name || pid)}</div>
+          <div class="spirit-meta">
+            <span>${aliveCount}/${spiritCount} spirits alive</span>
+            <span style="color:var(--text-muted);">&middot;</span>
+            <span style="color:${p.connected ? '#4ade80' : '#ef4444'};">${p.connected ? 'online' : 'offline'}</span>
+          </div>
+        </div>
+      </div>
+      <div class="spirit-badges">
+        <span class="stat">Hex ${Object.values(gameState.hexes || {}).filter(h => h.owner === pid).length || 0}</span>
+        <span class="stat">${p.walletAddress?.slice(0,8)}...</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openDeity(pid) {
+  selectedDeityId = pid;
+  renderDeityList();
+  renderDeityDetail(pid);
+}
+
+async function renderDeityDetail(pid) {
+  const emptyEl = document.getElementById('detail-empty');
+  const contentEl = document.getElementById('detail-content');
+  if (!gameState?.players?.[pid]) return;
+  const p = gameState.players[pid];
+  emptyEl.style.display = 'none';
+  contentEl.style.display = 'block';
+
+  const spirits = Object.values(gameState.spirits || {}).filter(s => s.playerId === pid);
+  const alive = spirits.filter(s => s.alive);
+  const hexCount = Object.values(gameState.hexes || {}).filter(h => h.owner === pid).length;
+
+  let html = '';
+
+  // Header
+  html += `<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+    <div style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(212,160,82,0.12);color:var(--gold-bright);border:2px solid rgba(212,160,82,0.4);flex-shrink:0;">👁</div>
+    <div>
+      <div class="detail-name">${esc(p.name || pid)}</div>
+      <div class="detail-subtitle">${alive.length}/${spirits.length} spirits alive &middot; ${hexCount} hexes claimed &middot; ${p.connected ? '<span style="color:#4ade80;">online</span>' : '<span style="color:#ef4444;">offline</span>'}</div>
+    </div>
+  </div>`;
+
+  // Current swarm overview
+  if (spirits.length) {
+    html += `<div style="margin-bottom:16px;">
+      <div class="section-label">Current Swarm</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;">`;
+    spirits.forEach(s => {
+      const sc = specColor(s.specialization);
+      const si = specIcon(s.specialization);
+      const hasAvatar = !!s.avatarBlobId;
+      const url = avatarUrl(s.avatarBlobId);
+      html += `<div style="background:var(--bg-elevated);border-radius:6px;padding:8px;text-align:center;opacity:${s.alive?1:0.5};cursor:pointer;" onclick="switchTab('spirits');openDetail('${s.id}');">
+        ${hasAvatar
+          ? `<img src="${url}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid ${sc};margin-bottom:4px;" />`
+          : `<div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;background:${sc}20;color:${sc};border:2px solid ${sc}60;margin:0 auto 4px;">${si}</div>`
+        }
+        <div style="font-family:'Cinzel',serif;font-size:11px;color:${s.alive?'var(--text-primary)':'#ef4444'};">${esc(s.name)}</div>
+        <div style="font-size:10px;color:${sc};">${si} ${esc(s.specialization||'')}</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Fetch and render journal if wallet address available
+  if (p.walletAddress) {
+    html += `<div id="deity-journal-section"><span style="color:var(--text-muted);font-size:13px;font-style:italic;">Loading deity journal from Walrus...</span></div>`;
+    contentEl.innerHTML = html;
+    document.querySelector('.right-col').scrollTo({ top: 0, behavior: 'smooth' });
+
+    try {
+      const r = await fetch(`/api/deity-journal/${p.walletAddress}`);
+      if (!r.ok) throw new Error('No journal');
+      const data = await r.json();
+      const journal = data.journal;
+      if (journal) {
+        renderJournalSection(journal);
+      } else {
+        document.getElementById('deity-journal-section').innerHTML = '<div style="color:var(--text-muted);font-size:13px;font-style:italic;padding:8px 0;">No deity journal yet — finish a game to create one.</div>';
+      }
+    } catch {
+      document.getElementById('deity-journal-section').innerHTML = '<div style="color:var(--text-muted);font-size:13px;font-style:italic;padding:8px 0;">No deity journal yet — finish a game to create one.</div>';
+    }
+  } else {
+    contentEl.innerHTML = html;
+    document.querySelector('.right-col').scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function renderJournalSection(j) {
+  const section = document.getElementById('deity-journal-section');
+  if (!section) return;
+
+  const rep = j.reputation || {};
+  const archetype = j.playstyle?.deityArchetype || 'Unknown';
+  const arcColor = ARCHETYPE_COLORS[archetype] || 'var(--gold-bright)';
+
+  const repBars = [
+    { label: 'Benevolence', value: rep.benevolence||0, color: '#22c55e' },
+    { label: 'Ruthlessness', value: rep.ruthlessness||0, color: '#ef4444' },
+    { label: 'Wisdom', value: rep.wisdom||0, color: '#8b5cf6' },
+    { label: 'Loyalty', value: rep.loyalty||0, color: '#3b82f6' },
+    { label: 'Expansion', value: rep.expansion||0, color: '#f97316' },
+  ];
+
+  let html = '';
+
+  // Archetype badge
+  html += `<div style="margin-bottom:16px;text-align:center;">
+    <span style="display:inline-block;padding:6px 16px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:13px;background:${arcColor}20;color:${arcColor};border:1px solid ${arcColor}40;letter-spacing:0.05em;">${esc(archetype)}</span>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">${j.gamesPlayed||0} games played${j.totalBattlesWon ? ` · ${j.totalBattlesWon} battles won` : ''}</div>
+  </div>`;
+
+  // Reputation bars
+  html += `<div style="margin-bottom:16px;">
+    <div class="section-label">Reputation</div>`;
+  repBars.forEach(bar => {
+    html += `<div class="bar-wrap">
+      <span class="bar-label" style="width:80px;font-size:11px;">${bar.label}</span>
+      <div class="rep-bar-track">
+        <div class="rep-bar-fill" style="width:${Math.min(100,bar.value)}%;background:${bar.color};"></div>
+      </div>
+      <span class="bar-val" style="color:${bar.color};">${Math.round(bar.value)}</span>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Playstyle stats
+  if (j.playstyle) {
+    html += `<div style="margin-bottom:16px;">
+      <div class="section-label">Playstyle</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">`;
+    if (j.playstyle.avgGameLength) html += `<span class="stat" style="font-size:11px;padding:3px 8px;">Avg Game ${Math.round(j.playstyle.avgGameLength/60)}min</span>`;
+    if (j.playstyle.favoriteSpecialization) html += `<span class="stat" style="font-size:11px;padding:3px 8px;color:${specColor(j.playstyle.favoriteSpecialization)};">Favorite: ${esc(j.playstyle.favoriteSpecialization)}</span>`;
+    if (j.playstyle.whisperRate != null) html += `<span class="stat" style="font-size:11px;padding:3px 8px;">Whispers: ${j.playstyle.whisperRate}/game</span>`;
+    if (j.playstyle.spiritSurvivalRate != null) html += `<span class="stat" style="font-size:11px;padding:3px 8px;color:${j.playstyle.spiritSurvivalRate>=70?'#22c55e':j.playstyle.spiritSurvivalRate>=40?'#fbbf24':'#ef4444'};">Survival: ${Math.round(j.playstyle.spiritSurvivalRate)}%</span>`;
+    html += `</div></div>`;
+  }
+
+  // Game history
+  if (j.games?.length) {
+    html += `<div style="margin-bottom:16px;">
+      <div class="section-label">Game History</div>
+      <div style="display:flex;flex-direction:column;gap:4px;">`;
+    j.games.slice(-10).reverse().forEach(game => {
+      const medal = game.won ? '★' : '·';
+      html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg-elevated);border-radius:4px;font-size:12px;font-family:'JetBrains Mono',monospace;">
+        <span style="color:${game.won?'var(--gold-bright)':'var(--text-muted)'};">${medal}</span>
+        <span style="color:var(--text-primary);flex:1;">${game.won ? 'Victory' : 'Defeat'}</span>
+        <span style="color:var(--text-muted);">${game.spiritsSurvived||0}/${game.spiritsTotal||3} survived</span>
+        <span style="color:var(--text-muted);">${game.hexesClaimed||0}h</span>
+        ${game.date ? `<span style="color:var(--text-muted);font-size:10px;">${new Date(game.date).toLocaleDateString()}</span>` : ''}
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  section.innerHTML = html;
 }
 
 // ── Essence viewer ───────────────────────────────────────────────────────

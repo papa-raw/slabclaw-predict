@@ -59,13 +59,21 @@ router.get('/state', (req, res) => {
 });
 
 router.post('/claim-slot', (req, res) => {
-  const { walletAddress } = req.body;
+  const { walletAddress, playerName } = req.body;
   if (!walletAddress) return res.status(400).json({ error: 'Missing walletAddress' });
 
   const state = getGameState();
   if (!state) return res.status(404).json({ error: 'No active game' });
   const existing = Object.entries(state.players).find(([, p]) => p.walletAddress === walletAddress);
-  if (existing) return res.json({ playerId: existing[0], player: existing[1], alreadyClaimed: true });
+  if (existing) {
+    existing[1].connected = true;
+    existing[1].lastSeen = Date.now();
+    if (playerName?.trim()) {
+      existing[1].name = playerName.trim().slice(0, 24);
+    }
+    broadcastStateChange(state);
+    return res.json({ playerId: existing[0], player: existing[1], alreadyClaimed: true });
+  }
 
   if (state.status !== 'lobby') return res.status(400).json({ error: 'Game already started' });
 
@@ -74,12 +82,28 @@ router.post('/claim-slot', (req, res) => {
 
   const [playerId, player] = available;
   player.walletAddress = walletAddress;
+  if (playerName?.trim()) player.name = playerName.trim().slice(0, 24);
   player.connected = true;
   player.lastSeen = Date.now();
 
   broadcastStateChange(state);
   console.log(`[claim-slot] ${walletAddress.slice(0, 10)}... claimed ${playerId} (${player.name})`);
   res.json({ playerId, player, alreadyClaimed: false });
+});
+
+router.post('/rename', (req, res) => {
+  const { playerId, name } = req.body;
+  const state = getGameState();
+  if (!state) return res.status(404).json({ error: 'No active game' });
+  if (!playerId || !name?.trim()) return res.status(400).json({ error: 'Missing playerId or name' });
+  if (state.status !== 'lobby') return res.status(400).json({ error: 'Can only rename in lobby' });
+
+  const player = state.players[playerId];
+  if (!player) return res.status(404).json({ error: 'Player not found' });
+
+  player.name = name.trim().slice(0, 24);
+  broadcastStateChange(state);
+  res.json({ playerId, name: player.name });
 });
 
 router.post('/ready', async (req, res) => {
@@ -157,7 +181,7 @@ router.post('/ready', async (req, res) => {
   res.json({ status: state.status, connectedCount });
 });
 
-// POST /api/game/chat — chat with a spirit (server-side dialogue + whisper propagation)
+// LEGACY: POST /api/game/chat — replaced by POST /api/game/whisper (swarm decree / enemy whisper system)
 router.post('/chat', async (req, res) => {
   const { spiritId, message, playerId } = req.body;
   const state = getGameState();
