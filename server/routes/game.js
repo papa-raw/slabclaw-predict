@@ -3,7 +3,7 @@ import { sanitizeForClient, broadcastStateChange } from '../services/wsService.j
 import { chatWithSpirit, chatWithEnemySpirit } from '../services/spiritDialogueService.js';
 import { applyBondAction } from '../services/bondService.js';
 import { applyDeityIntent, issueRallyCommand } from '../services/spiritDecisionService.js';
-import { readEssence, getStorageMode } from '../services/walrusService.js';
+import { readEssence, storeEssence, getStorageMode } from '../services/walrusService.js';
 import { recallMemoriesServer } from '../services/memwalServer.js';
 import { getKey } from '../services/keyStore.js';
 import { applyEssence } from '../services/essenceService.js';
@@ -14,6 +14,7 @@ import { loadRoster, initializeFromRoster, persistPostGame } from '../services/r
 import { loadDeityJournal, updateDeityJournal, computeReputationModifiers } from '../services/deityJournalService.js';
 import { loadGraveyard, addToGraveyard, attemptRecruitment } from '../services/graveyardService.js';
 import { queryOwnedSpirits, updateSpiritPostGame, markSpiritGhost } from '../services/suiService.js';
+import { serializeForWalrus, deserializeFromWalrus, computeBehaviorRules } from '../services/memoryEngine.js';
 
 const PACKAGE_ID = process.env.PACKAGE_ID || '0xb0f9ba3da143c92225ada477204a57fd61bae3f2c5c70e8593ce29eac309da21';
 const ADMIN_CAP = process.env.ADMIN_CAP_ID || '0x87faef3092e7568ecac9c9e2475828ed521bace50f3747e87abb07dc585a6f88';
@@ -141,6 +142,36 @@ router.post('/ready', async (req, res) => {
       applyEssence(state, importedEssence, playerId);
     } catch (err) {
       console.warn('[game/ready] Could not apply importedEssence:', err.message);
+    }
+  }
+
+  // Auto-load captain memories from Walrus (Spirit NFTs with essence_blob_id)
+  if (player.walletAddress) {
+    try {
+      const ownedSpirits = await queryOwnedSpirits(player.walletAddress);
+      const captains = Object.values(state.spirits).filter(
+        s => s.playerId === playerId && s.tier === 'captain'
+      );
+      let loaded = 0;
+      for (const nft of ownedSpirits) {
+        if (!nft.essenceBlobId) continue;
+        const matchingCaptain = captains.find(c => c.name === nft.name) || captains[loaded];
+        if (!matchingCaptain) continue;
+        try {
+          const blob = await readEssence(nft.essenceBlobId);
+          if (blob && deserializeFromWalrus(blob, matchingCaptain)) {
+            loaded++;
+            console.log(`[game/ready] Loaded ${matchingCaptain.memoryLedger.length} memories for ${matchingCaptain.name} from Walrus`);
+          }
+        } catch (err) {
+          console.warn(`[game/ready] Failed to load memories for ${nft.name}:`, err.message);
+        }
+      }
+      if (loaded > 0) {
+        console.log(`[game/ready] Auto-loaded memories for ${loaded} captains from Walrus`);
+      }
+    } catch (err) {
+      console.warn('[game/ready] Walrus memory auto-load failed:', err.message);
     }
   }
 
@@ -312,7 +343,7 @@ router.post('/whisper', async (req, res) => {
   }
 });
 
-// GET /api/game/spirit/:id/memories — recall a spirit's stored memories
+// GET /api/game/spirit/:id/memories — return structured memory ledger + behavior rules
 router.get('/spirit/:id/memories', async (req, res) => {
   const state = getGameState();
   if (!state) return res.status(404).json({ error: 'No active game' });
@@ -320,21 +351,15 @@ router.get('/spirit/:id/memories', async (req, res) => {
   const spirit = state.spirits[req.params.id];
   if (!spirit) return res.status(404).json({ error: 'Spirit not found' });
 
-  try {
-    const key = getKey(spirit.id);
-    const result = await recallMemoriesServer(
-      spirit.memwalNamespace, 'all memories', 50, key, spirit.memwalAccountId
-    );
-    res.json({
-      spiritId: spirit.id,
-      name: spirit.name,
-      memories: result.results || [],
-      count: spirit.memoryCount || 0,
-    });
-  } catch (err) {
-    console.error('[memories] Error:', err.message);
-    res.status(500).json({ error: err.message });
-  }
+  res.json({
+    spiritId: spirit.id,
+    name: spirit.name,
+    tier: spirit.tier,
+    memoryLedger: spirit.memoryLedger || [],
+    behaviorRules: spirit.behaviorRules || null,
+    count: (spirit.memoryLedger || []).length,
+    totalMemoryCount: spirit.memoryCount || 0,
+  });
 });
 
 // POST /api/game/command — direct tactical command (click hex to rally/attack)
@@ -401,7 +426,15 @@ router.get('/chain-info', (req, res) => {
       walrusScan: 'https://walruscan.com/testnet/blob/',
       walrusAgg: (process.env.WALRUS_AGGREGATOR || 'https://aggregator.walrus-testnet.walrus.space') + '/v1/blobs/',
     },
-    stats: { totalMemories, totalSpirits },
+    stats: {
+      totalMemories,
+      totalSpirits,
+      totalCaptainMemories: state
+        ? Object.values(state.spirits)
+            .filter(s => s.tier === 'captain')
+            .reduce((sum, s) => sum + (s.memoryLedger || []).length, 0)
+        : 0,
+    },
   });
 });
 
@@ -467,7 +500,34 @@ router.post('/end-persist', async (req, res) => {
       }
     }
 
-    // 4. Add dead spirits to graveyard
+    // 4. Auto-persist captain memory ledgers to Walrus
+    const captains = Object.values(state.spirits).filter(
+      s => s.playerId === playerId && s.tier === 'captain'
+    );
+    results.memoryBlobs = [];
+    for (const captain of captains) {
+      if ((captain.memoryLedger || []).length === 0) continue;
+      try {
+        const serialized = serializeForWalrus(captain);
+        const blobResult = await storeEssence(serialized);
+        if (blobResult?.blobId) {
+          results.memoryBlobs.push({
+            spiritName: captain.name,
+            spiritId: captain.id,
+            blobId: blobResult.blobId,
+            memoryCount: captain.memoryLedger.length,
+          });
+          captain._walrusBlobId = blobResult.blobId;
+        }
+      } catch (err) {
+        console.warn(`[end-persist] Memory blob failed for ${captain.name}:`, err.message);
+      }
+    }
+    if (results.memoryBlobs.length > 0) {
+      console.log(`[end-persist] Stored ${results.memoryBlobs.length} captain memory blobs to Walrus`);
+    }
+
+    // 5. Add dead spirits to graveyard
     const deadSpirits = Object.values(state.spirits).filter(
       s => s.playerId === playerId && !s.alive && !s._isGhost
     );

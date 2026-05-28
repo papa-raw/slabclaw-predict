@@ -8,6 +8,7 @@ import { callLLM } from './llmProxy.js';
 import { storeMemoryServer, recallMemoriesServer } from './memwalServer.js';
 import { getKey } from './keyStore.js';
 import { broadcast } from './wsService.js';
+import { createMemory } from './memoryEngine.js';
 
 const WHISPER_SYSTEM_PROMPT = `You are a spirit in a swarm, relaying your deity's influence to another spirit.
 Reinterpret the deity's message in your own voice and personality, then pass it along.
@@ -101,7 +102,7 @@ export async function broadcastSwarmWhisper({ playerId, message, gameState }) {
   );
   if (!allSpirits.length) return { spirits: [], events: [] };
 
-  const captains = allSpirits.filter(s => s.tier === 'captain' || s.tier === 'hero');
+  const captains = allSpirits.filter(s => s.tier === 'captain');
   const spiritNames = allSpirits.map(s => s.name.toLowerCase());
   const mentionedName = spiritNames.find(n => message.toLowerCase().includes(n));
 
@@ -141,8 +142,8 @@ export async function broadcastSwarmWhisper({ playerId, message, gameState }) {
       issuedAt: Date.now(),
     };
 
-    // Captains relay orders to swarmlings — set _captainOrder for swarmlingAI to pick up
-    if (spirit.tier === 'captain' || spirit.tier === 'hero') {
+    if (spirit.tier === 'captain') {
+      createMemory(spirit, 'DECREE', message, { playerId }, gameState);
       spirit._captainOrder = intent.intent;
     }
 
@@ -223,6 +224,10 @@ export async function broadcastEnemyWhisper({ playerId, targetPlayerId, message,
         issuedAt: Date.now(),
       };
       effect = 'defecting';
+    }
+
+    if (spirit.tier === 'captain') {
+      createMemory(spirit, 'ENCOUNTER', effect, { playerId, name: attackerName }, gameState);
     }
 
     const event = {

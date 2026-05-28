@@ -1,5 +1,5 @@
-const WIN_PERCENT = 0.5;
-const MAX_TICKS = 500;
+const WIN_PERCENT = 0.45;
+const MAX_TICKS = 96;
 
 export function checkWinCondition(gameState) {
   const totalHexes = Object.keys(gameState.map.hexes).length;

@@ -69,8 +69,10 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
   const affData = AFFINITIES[spirit.affinity];
   const classData = spirit.captainClass ? CAPTAIN_CLASSES[spirit.captainClass] : null;
   const spiritColor = affData?.color || SPEC_COLORS[spirit.specialization] || getPlayerColor(spirit.playerId, gameState) || '#6b7280';
-  const tierLabel = spirit.tier === 'hero' ? 'HERO' : spirit.tier === 'captain' ? 'CAPTAIN' : 'SWARMLING';
-  const tierColor = spirit.tier === 'hero' ? '#f0c040' : spirit.tier === 'captain' ? '#60a5fa' : '#9ca3af';
+  const tierLabel = spirit.tier === 'captain' ? 'CAPTAIN' : 'SWARMLING';
+  const tierColor = spirit.tier === 'captain' ? '#60a5fa' : '#9ca3af';
+  const memoryLedger = spirit.memoryLedger || [];
+  const behaviorRules = spirit.behaviorRules || null;
 
   function getBondTierName(avg) {
     if (avg >= 80) return 'Devoted';
@@ -222,26 +224,66 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
           ))}
         </div>
 
-        {/* Promotion progress */}
-        {!isGhost && spirit.tier !== 'hero' && (() => {
-          const isSwarmling = spirit.tier === 'swarmling';
-          const current = isSwarmling ? (spirit.promotionXP || 0) : (spirit.legendaryDeeds || 0);
-          const threshold = isSwarmling ? PROMOTION_THRESHOLDS.swarmling_to_captain : PROMOTION_THRESHOLDS.captain_to_hero;
-          const pct = Math.min(100, (current / threshold) * 100);
-          const nextTier = isSwarmling ? 'Captain' : 'Hero';
-          const barColor = isSwarmling ? '#60a5fa' : '#f0c040';
-          return (
-            <div className="px-2 py-1.5 rounded mb-1" style={{ background: `${barColor}08`, border: `1px solid ${barColor}20` }}>
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-mono" style={{ color: barColor }}>→ {nextTier}</span>
-                <span className="font-mono" style={{ color: 'var(--text-muted)' }}>{current}/{threshold}</span>
+        {/* Behavior Rules (from memory engine) */}
+        {behaviorRules && spirit.tier === 'captain' && (
+          <div className="space-y-1 mb-1">
+            {Object.keys(behaviorRules.grudges || {}).length > 0 && (
+              <div className="px-2 py-1 rounded text-xs flex items-center gap-1.5" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                <span style={{ color: '#ef4444' }}>⚔</span>
+                <span style={{ color: '#fca5a5' }}>
+                  GRUDGE: {Object.entries(behaviorRules.grudges).map(([team, count]) => {
+                    const player = gameState?.players?.[team];
+                    return `${player?.name || team} (${count}x)`;
+                  }).join(', ')}
+                </span>
               </div>
-              <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: barColor }} />
+            )}
+            {Object.keys(behaviorRules.confidence || {}).length > 0 && (
+              <div className="px-2 py-1 rounded text-xs flex items-center gap-1.5" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
+                <span style={{ color: '#22c55e' }}>★</span>
+                <span style={{ color: '#86efac' }}>
+                  CONFIDENT vs {Object.entries(behaviorRules.confidence).map(([team, count]) => {
+                    const player = gameState?.players?.[team];
+                    return `${player?.name || team} (${count} wins)`;
+                  }).join(', ')}
+                </span>
               </div>
-            </div>
-          );
-        })()}
+            )}
+            {Object.keys(behaviorRules.fears || {}).length > 0 && (
+              <div className="px-2 py-1 rounded text-xs flex items-center gap-1.5" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)' }}>
+                <span style={{ color: '#a855f7' }}>◈</span>
+                <span style={{ color: '#d8b4fe' }}>
+                  FEARS: {Object.entries(behaviorRules.fears).map(([team]) => {
+                    const player = gameState?.players?.[team];
+                    return player?.name || team;
+                  }).join(', ')}
+                </span>
+              </div>
+            )}
+            {behaviorRules.traumaTerrain?.length > 0 && (
+              <div className="px-2 py-1 rounded text-xs flex items-center gap-1.5" style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)' }}>
+                <span style={{ color: '#fbbf24' }}>⚠</span>
+                <span style={{ color: '#fde68a' }}>
+                  TRAUMA: Avoids {behaviorRules.traumaTerrain.join(', ')} terrain
+                </span>
+              </div>
+            )}
+            {behaviorRules.insubordinate && (
+              <div className="px-2 py-1 rounded text-xs flex items-center gap-1.5" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)' }}>
+                <span style={{ color: '#ef4444' }}>!</span>
+                <span style={{ color: '#fca5a5' }}>INSUBORDINATE — may refuse orders</span>
+              </div>
+            )}
+            {behaviorRules.veteranBonus > 0 && (
+              <div className="px-2 py-1 rounded text-xs flex items-center gap-1.5" style={{ background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)' }}>
+                <span style={{ color: '#60a5fa' }}>◆</span>
+                <span style={{ color: '#93c5fd' }}>
+                  VETERAN +{Math.round(behaviorRules.veteranBonus * 100)}% combat ({behaviorRules.totalMemories} memories)
+                </span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Lineage / Past Lives */}
         <LineageSection spirit={spirit} />
@@ -294,10 +336,10 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
               <span style={{ color: '#60a5fa' }}>{spirit.commandRadius}</span>
             </div>
           )}
-          {spirit.tier === 'swarmling' && (
+          {spirit.tier === 'captain' && (
             <div className="flex justify-between px-2 py-1 rounded" style={{ background: 'var(--bg-elevated)' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Promo XP</span>
-              <span style={{ color: '#a78bfa' }}>{spirit.promotionXP || 0}/{PROMOTION_THRESHOLDS.swarmling_to_captain}</span>
+              <span style={{ color: 'var(--text-muted)' }}>Ledger</span>
+              <span style={{ color: '#2dd4bf' }}>{memoryLedger.length} memories</span>
             </div>
           )}
           {!isMine && (
@@ -316,36 +358,52 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
           </div>
         )}
 
-        {/* Hero title + ability */}
-        {spirit.tier === 'hero' && (spirit.heroTitle || spirit.heroAbility) && (
-          <div className="px-2 py-1.5 rounded text-xs" style={{ background: 'rgba(240,192,64,0.06)', border: '1px solid rgba(240,192,64,0.15)' }}>
-            {spirit.heroTitle && <div className="font-display font-bold" style={{ color: '#f0c040' }}>{spirit.heroTitle}</div>}
-            {spirit.heroAbility && <div style={{ color: 'var(--text-muted)' }}>{spirit.heroAbility}</div>}
-          </div>
-        )}
-
-        {/* Memories */}
+        {/* Memory Ledger */}
         <div className="pt-2 border-t border-gray-800/50">
           <button
             onClick={() => setShowMemories(v => !v)}
             className="w-full flex items-center justify-between text-xs font-mono py-1 hover:text-teal-300 transition-colors"
             style={{ color: '#2dd4bf' }}
           >
-            <span>{spirit.memoryCount || 0} memories on MemWal</span>
+            <span>{memoryLedger.length > 0 ? `${memoryLedger.length} structured memories` : `${spirit.memoryCount || 0} memories`}</span>
             <span>{showMemories ? '▾' : '▸'}</span>
           </button>
           {showMemories && (
-            <div className="mt-1 space-y-1 max-h-40 overflow-y-auto">
-              {loadingMem ? (
-                <p className="text-xs text-gray-500 italic animate-pulse">Recalling memories...</p>
-              ) : memories.length === 0 ? (
-                <p className="text-xs text-gray-500 italic">No memories found</p>
+            <div className="mt-1 space-y-1 max-h-52 overflow-y-auto">
+              {memoryLedger.length === 0 ? (
+                loadingMem ? (
+                  <p className="text-xs text-gray-500 italic animate-pulse">Loading...</p>
+                ) : memories.length === 0 ? (
+                  <p className="text-xs text-gray-500 italic">No memories yet</p>
+                ) : (
+                  memories.map((m, i) => (
+                    <div key={i} className="text-xs px-2 py-1 rounded leading-tight" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>
+                      {m.text?.length > 120 ? m.text.slice(0, 117) + '...' : m.text}
+                    </div>
+                  ))
+                )
               ) : (
-                memories.map((m, i) => (
-                  <div key={i} className="text-xs px-2 py-1 rounded leading-tight" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>
-                    {m.text?.length > 120 ? m.text.slice(0, 117) + '...' : m.text}
-                  </div>
-                ))
+                [...memoryLedger].reverse().map((m) => {
+                  const typeColors = {
+                    BATTLE: m.outcome === 'WIN' ? '#4ade80' : m.outcome === 'LOSS' ? '#ef4444' : '#fbbf24',
+                    DECREE: '#60a5fa',
+                    SCOUT: '#22d3ee',
+                    BETRAYAL: '#a855f7',
+                    ALLIANCE: '#22c55e',
+                    DEATH_WITNESS: '#dc2626',
+                    ENCOUNTER: '#f97316',
+                  };
+                  const color = typeColors[m.type] || '#9ca3af';
+                  return (
+                    <div key={m.id} className="text-xs px-2 py-1 rounded leading-tight flex items-start gap-1.5"
+                      style={{ background: 'var(--bg-elevated)', borderLeft: `2px solid ${color}` }}>
+                      <span className="font-mono shrink-0" style={{ color, fontSize: '9px' }}>
+                        {m.type}{m.outcome ? `:${m.outcome}` : ''}
+                      </span>
+                      <span style={{ color: 'var(--text-secondary)' }}>{m.text}</span>
+                    </div>
+                  );
+                })
               )}
             </div>
           )}

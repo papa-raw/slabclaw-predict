@@ -50,8 +50,14 @@ export function runSwarmlingTick(gameState) {
       .filter(s => s && s.alive && s.playerId !== spirit.playerId);
 
     if (enemiesOnHex.length > 0 && orderType !== ORDER_TYPES.RETREAT) {
-      const result = autoResolveBattle(spirit, enemiesOnHex[0], gameState);
-      events.push(makeBattleEvent(spirit, enemiesOnHex[0], result, gameState));
+      const captainRules = captain?.behaviorRules;
+      let target = enemiesOnHex[0];
+      if (captainRules?.grudges) {
+        const grudgeTarget = enemiesOnHex.find(e => captainRules.grudges[e.playerId]);
+        if (grudgeTarget) target = grudgeTarget;
+      }
+      const result = autoResolveBattle(spirit, target, gameState);
+      events.push(makeBattleEvent(spirit, target, result, gameState));
       continue;
     }
 
@@ -75,7 +81,7 @@ function findNearestCaptain(swarmling, allSpirits, hexes) {
 
   for (const s of Object.values(allSpirits)) {
     if (!s.alive || s.playerId !== swarmling.playerId) continue;
-    if (s.tier !== 'captain' && s.tier !== 'hero') continue;
+    if (s.tier !== 'captain') continue;
     const captHex = hexes[s.hexId];
     if (!captHex) continue;
 
@@ -179,7 +185,7 @@ function moveSpirit(spirit, targetHexId, hexes, gameState) {
     newHex.controller = spirit.playerId;
     spirit.hexesClaimed = (spirit.hexesClaimed || 0) + 1;
     spirit.explorationXP = (spirit.explorationXP || 0) + 0.5;
-    spirit.promotionXP = (spirit.promotionXP || 0) + 0.5;
+    spirit.combatXP = (spirit.combatXP || 0) + 0.5;
 
     const player = gameState.players[spirit.playerId];
     if (player) player.hexesControlled = (player.hexesControlled || 0) + 1;
@@ -208,7 +214,7 @@ export function autoResolveBattle(attacker, defender, gameState) {
     loser.alive = false;
     winner.kills = (winner.kills || 0) + 1;
     winner.combatXP = (winner.combatXP || 0) + 3;
-    winner.promotionXP = (winner.promotionXP || 0) + 1;
+    winner.combatXP = (winner.combatXP || 0) + 1;
 
     const hex = gameState.map.hexes[loser.hexId];
     if (hex) {

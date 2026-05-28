@@ -9,7 +9,7 @@ import { neighbors, hexId } from '../../lib/hexMath.js';
 import crypto from 'crypto';
 
 const SWARMLINGS_PER_PLAYER = 12;
-const CAPTAINS_PER_PLAYER = 3;
+const CAPTAINS_PER_PLAYER = 6;
 
 const DEITY_FIRST = [
   'Pyraxis', 'Thalwen', 'Umberis', 'Kaelix', 'Verathos',
@@ -23,12 +23,12 @@ const DEITY_TITLE = [
 ];
 
 const CAPTAIN_SEED_CLASSES = [
-  ['vanguard', 'ranger', 'harvester'],
-  ['ranger', 'oracle', 'bard'],
-  ['harvester', 'warden', 'oracle'],
-  ['shieldbearer', 'shadowstep', 'vanguard'],
-  ['shadowstep', 'vanguard', 'ranger'],
-  ['bard', 'harvester', 'shieldbearer'],
+  ['vanguard', 'ranger', 'harvester', 'oracle', 'shieldbearer', 'bard'],
+  ['ranger', 'oracle', 'bard', 'vanguard', 'shadowstep', 'warden'],
+  ['harvester', 'warden', 'oracle', 'bard', 'ranger', 'vanguard'],
+  ['shieldbearer', 'shadowstep', 'vanguard', 'harvester', 'oracle', 'ranger'],
+  ['shadowstep', 'vanguard', 'ranger', 'warden', 'bard', 'shieldbearer'],
+  ['bard', 'harvester', 'shieldbearer', 'shadowstep', 'oracle', 'vanguard'],
 ];
 
 const SEED_AFFINITIES = ['flame', 'wind', 'growth', 'shadow', 'wind', 'tide'];
@@ -137,13 +137,15 @@ export async function createInitialGameState() {
     }
 
     // --- Spawn 3 Captains (existing seed spirits) ---
-    const captainNames = [seed.name, ...['Ardent', 'Vigil', 'Nox', 'Lumen', 'Husk', 'Drift', 'Rune', 'Crux'].sort(() => Math.random() - 0.5).slice(0, 2)];
-    if (i === 0) { captainNames[1] = 'Flint'; captainNames[2] = 'Ash'; }
-    else if (i === 1) { captainNames[1] = 'Breeze'; captainNames[2] = 'Wisp'; }
-    else if (i === 2) { captainNames[1] = 'Fern'; captainNames[2] = 'Thorn'; }
-    else if (i === 3) { captainNames[1] = 'Dusk'; captainNames[2] = 'Veil'; }
-    else if (i === 4) { captainNames[1] = 'Tempest'; captainNames[2] = 'Zephyr'; }
-    else { captainNames[1] = 'Reef'; captainNames[2] = 'Surge'; }
+    const CAPTAIN_NAMES_BY_PLAYER = [
+      [seed.name, 'Flint', 'Ash', 'Cinder', 'Blaze', 'Scoria'],
+      [seed.name, 'Breeze', 'Wisp', 'Gale', 'Cirrus', 'Zephyr'],
+      [seed.name, 'Fern', 'Thorn', 'Moss', 'Briar', 'Root'],
+      [seed.name, 'Dusk', 'Veil', 'Shade', 'Shroud', 'Eclipse'],
+      [seed.name, 'Tempest', 'Squall', 'Bolt', 'Gust', 'Howl'],
+      [seed.name, 'Reef', 'Surge', 'Coral', 'Kelp', 'Riptide'],
+    ];
+    const captainNames = CAPTAIN_NAMES_BY_PLAYER[i];
 
     for (let c = 0; c < CAPTAINS_PER_PLAYER; c++) {
       const spiritId = c === 0 ? `spirit-${playerId}-seed` : `spirit-${playerId}-cap-${c}`;
@@ -171,10 +173,6 @@ export async function createInitialGameState() {
         tier: 'captain',
         affinity,
         captainClass,
-        heroTitle: null,
-        heroAbility: null,
-        promotionXP: 0,
-        promotionThreshold: null,
         commandRadius: 2,
         orderText: null,
         orderSource: null,
@@ -188,6 +186,8 @@ export async function createInitialGameState() {
         maxHp: 100,
         memwalNamespace: namespace,
         memwalAccountId: process.env.MEMWAL_ACCOUNT_ID || '',
+        memoryLedger: [],
+        behaviorRules: null,
         spawnCount: 0,
         memoryCount: isHuman ? 3 : 12,
         combatXP: 0,
@@ -238,10 +238,6 @@ export async function createInitialGameState() {
         tier: 'swarmling',
         affinity,
         captainClass: null,
-        heroTitle: null,
-        heroAbility: null,
-        promotionXP: 0,
-        promotionThreshold: 10,
         commandRadius: 0,
         orderText: null,
         orderSource: null,
@@ -255,6 +251,7 @@ export async function createInitialGameState() {
         maxHp: 60,
         memwalNamespace: namespace,
         memwalAccountId: process.env.MEMWAL_ACCOUNT_ID || '',
+        memoryLedger: [],
         spawnCount: 0,
         memoryCount: 0,
         combatXP: 0,
@@ -285,7 +282,7 @@ export async function createInitialGameState() {
     }
   }
 
-  const ghostSpirits = selectGhostsForGame(5);
+  const ghostSpirits = selectGhostsForGame(2);
   const unclaimedHexes = Object.values(map.hexes).filter(
     h => !h.controller && h.terrain !== 'ocean' && !usedHexIds.has(h.id)
   );

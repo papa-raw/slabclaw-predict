@@ -4,6 +4,7 @@ import { applyBondAction } from './bondService.js';
 import { claimHex, findRetreatHex } from './territoryService.js';
 import { evaluateBattle } from './battleArbiterService.js';
 import { recordBattle } from './suiService.js';
+import { createMemory } from './memoryEngine.js';
 
 export async function resolveBattle(gameState, timer) {
   const { attackerId, defenderId, hexId } = timer.data;
@@ -104,6 +105,17 @@ export async function resolveBattle(gameState, timer) {
   winnerSpirit.memorableActions = winnerSpirit.memorableActions || [];
   winnerSpirit.memorableActions.push(`Defeated ${loserSpirit.name} in the ${terrain}`);
   if (winnerSpirit.memorableActions.length > 10) winnerSpirit.memorableActions = winnerSpirit.memorableActions.slice(-10);
+
+  // Structured memories for the memory engine
+  if (winnerSpirit.tier === 'captain') {
+    createMemory(winnerSpirit, 'BATTLE', 'WIN', { spiritId: loserSpirit.id, playerId: loserSpirit.playerId }, gameState);
+  }
+  if (loserSpirit.tier === 'captain') {
+    createMemory(loserSpirit, 'BATTLE', 'LOSS', { spiritId: winnerSpirit.id, playerId: winnerSpirit.playerId }, gameState);
+    if (loserOutcome === 'died') {
+      createMemory(loserSpirit, 'DEATH_WITNESS', 'LOSS', { spiritId: winnerSpirit.id, playerId: winnerSpirit.playerId }, gameState);
+    }
+  }
 
   // Store battle memories + record on chain
   const battleLog = `[BATTLE] ${attacker.name} vs ${defender.name} at hex ${hexId} (${terrain}). ${winnerSpirit.name} wins. Loser ${loserOutcome}.`;
