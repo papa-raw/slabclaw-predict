@@ -126,3 +126,56 @@ Live-tested full game loop:
 **Bug fixed:** SpiritPanel `d.memories` → `d.memoryLedger` (API field name mismatch — memories never loaded from API endpoint).
 
 **Remaining:** Merge `memory-pivot` branch back to main. Activate real MemWal/Walrus testnet (currently mock). Demo video (5 min max). Submission materials for Sui Overflow.
+
+### Session Log — 2026-05-28
+
+**Memory Event Broadcasting + UX Overhaul**
+
+Added live memory event system:
+- `memoryEngine.js` — `detectDramaticChanges()` emits `GRUDGE_FORMED`, `FEAR_ACQUIRED`, `TRAUMA_ACQUIRED`, `INSUBORDINATE` events
+- `tickEngine.js` — flushes `_pendingMemoryEvents` to broadcast each tick
+- `wsService.js` — `memory_event` added to `PERSIST_TYPES`, `_pendingMemoryEvents` stripped from client state
+- `MemoryBanner.jsx` (NEW) — 7s transient toasts for dramatic events, color-coded by type
+- `MemoryTimeline.jsx` (NEW) — scrolling event feed with stats bar, filters (All/Dramatic/My Swarm), dedup, Walrus footer
+
+UX adversarial review (9 findings, all fixed):
+1. [CRITICAL] Header Walrus counter — persistent "🧠 N memories | Walrus" always visible
+2. [HIGH] Memory tab defaults when no spirit selected (was empty Spirit panel)
+3. [HIGH] Memory tab badge shows dramatic event count
+4. [HIGH] Onboarding hints rewritten for Walrus Track judges
+5. [MEDIUM] Banner duration 4s → 7s
+6. [MEDIUM] "Chain" → "Onchain" tab rename
+7. [MEDIUM] Timer now shows "⏱ X:XX left"
+8. [LOW] Empty dramatic filter contextual copy
+9. [LOW] Walrus footer restyled with 🦭 branding
+
+VFX toning (second pass):
+- Canvas explosions: captain 0.45 (was 1.0), swarmling 0.3 (was 0.6), promo 0.6 (was 1.5)
+- SVG effects: impact flash r 1→10 (was 2→22), ring r 3→14 (was 4→30), fatal r 5→18 (was 8→35)
+- Sparks: 4 at distance 10 (was 6 at distance 20), crossed swords 5px (was 8px)
+
+SpiritPanel improvements:
+- Memory ledger default-open for captains
+- 🧠 + WALRUS label on memory section header
+
+Docs updated: README rewritten for memory-centric pivot, project memory updated.
+
+**E2E verified:** Full game recording with Playwright, all 7 steps complete, screenshots confirm all UX fixes render correctly.
+
+### Session Log — 2026-05-28 (late evening)
+
+**Walrus Testnet Activation + Bug Fix**
+
+- **Created `.env`** with `WALRUS_NETWORK=testnet` — Walrus blob storage now hits real testnet (publisher.walrus-testnet.walrus.space)
+- **Fixed critical bug in `game.js` end-persist:** `storeEssence()` returns a plain string blobId, but code checked `blobResult?.blobId` (always undefined). Captain memory blobs were silently never recorded. Fixed: `const blobId = await storeEssence(serialized)` + `if (blobId)`.
+- **Verified full Walrus testnet pipeline:**
+  - Direct curl store + read: confirmed working
+  - Server startup: `Walrus: testnet` mode logged
+  - Game run: battles generate structured captain memories (BATTLE WIN/LOSS, DEATH_WITNESS)
+  - End-persist: 6 captain memory blobs stored to real Walrus testnet
+  - Read-back: verified blob content from aggregator (structured memory ledger with behaviorRules)
+  - Avatar blobs also storing to Walrus testnet (image/webp)
+  - Roster essence blobs storing to Walrus testnet (~10KB per spirit)
+- **MemWal:** Still in local cache mode (needs `MEMWAL_DELEGATE_KEY` + `MEMWAL_ACCOUNT_ID` from setup-memwal.js). Not critical for Walrus Track — the captain memory blob storage IS the Walrus integration.
+- **Sui onchain calls:** Failing as expected (spirits use game-internal IDs, not real NFT addresses). Doesn't affect Walrus storage.
+- **Remaining:** Demo video (5 min max), submission materials, optional MemWal testnet activation.

@@ -30,6 +30,7 @@ const PERSIST_TYPES = new Set([
   'battle_started', 'battle_resolved', 'swarmling_battle', 'spawn_started', 'spawn_complete',
   'spirit_died', 'territory_claimed', 'game_over',
   'explore_started', 'whisper_arrived', 'spirit_dialog', 'avatar_ready', 'promotion',
+  'memory_event',
 ]);
 
 export function broadcast(gameState, events) {
@@ -75,8 +76,7 @@ export function broadcastStateChange(gameState) {
 }
 
 export function sanitizeForClient(gameState) {
-  // Strip server-only fields (delegateKeys, etc.)
-  const { spirits, ...rest } = gameState;
+  const { spirits, _pendingMemoryEvents, ...rest } = gameState;
   const clientSpirits = {};
   for (const [id, s] of Object.entries(spirits)) {
     const { delegateKey, _lastDecision, _deityOrder, _captainOrder, _swarmDecree, _chosenByGod, _lastSwarmTick, _style, ...safe } = s;

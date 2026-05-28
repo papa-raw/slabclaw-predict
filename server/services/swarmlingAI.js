@@ -114,7 +114,7 @@ function pickTargetHex(spirit, orderType, captain, gameState) {
 
   const adj = neighbors({ q: hex.q, r: hex.r })
     .map(a => hexes[hexId(a.q, a.r)])
-    .filter(h => h && h.terrain !== 'ocean');
+    .filter(h => h);
 
   switch (orderType) {
     case ORDER_TYPES.ADVANCE: {

@@ -12,6 +12,8 @@ import OnchainFooter from './components/OnchainFooter.jsx';
 import WhisperBar from './components/WhisperBar.jsx';
 import Explorer from './components/Explorer.jsx';
 import VFXTestPage from './components/VFXTestPage.jsx';
+import MemoryBanner from './components/MemoryBanner.jsx';
+import MemoryTimeline from './components/MemoryTimeline.jsx';
 import { getAvatarUrl } from '@lib/avatarUrl.js';
 
 function getSessionPlayerId() {
@@ -41,7 +43,7 @@ function GameApp() {
   const [chainOps, setChainOps] = useState([]);
   const [chainInfo, setChainInfo] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(true);
-  const [rightTab, setRightTab] = useState('spirit');
+  const [rightTab, setRightTab] = useState('memory');
   const [persistStatus, setPersistStatus] = useState('idle');
   const [persistResults, setPersistResults] = useState(null);
   const wsRef = useRef(null);
@@ -435,7 +437,7 @@ function GameApp() {
               color: gameState._tickCount > 80 ? '#ef4444' : '#2dd4bf',
               background: gameState._tickCount > 80 ? 'rgba(239,68,68,0.08)' : 'rgba(45,212,191,0.06)',
             }}>
-              {Math.max(0, Math.ceil((96 - gameState._tickCount) * 5 / 60))}:{String(Math.max(0, ((96 - gameState._tickCount) * 5) % 60)).padStart(2, '0')}
+              ⏱ {Math.max(0, Math.ceil((96 - gameState._tickCount) * 5 / 60))}:{String(Math.max(0, ((96 - gameState._tickCount) * 5) % 60)).padStart(2, '0')} left
             </span>
           )}
           <button
@@ -448,6 +450,32 @@ function GameApp() {
           </button>
         </div>
         <div className="flex items-center gap-4">
+          {(() => {
+            const allSpirits = Object.values(gameState.spirits);
+            const memCount = allSpirits.reduce((sum, s) => sum + (s.memoryLedger?.length || 0), 0);
+            const dramaticCount = events.filter(e => e.type === 'memory_event' && e.dramatic).length;
+            return (
+              <div className="flex items-center gap-2 px-2.5 py-1 rounded-md"
+                style={{ background: 'rgba(45,212,191,0.06)', border: '1px solid rgba(45,212,191,0.15)' }}>
+                <span style={{ fontSize: 13 }}>🧠</span>
+                <span className="text-xs font-mono tabular-nums" style={{ color: '#2dd4bf' }}>
+                  {memCount}
+                </span>
+                <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>memories</span>
+                {dramaticCount > 0 && (
+                  <>
+                    <span style={{ color: 'rgba(107,114,128,0.4)' }}>|</span>
+                    <span className="text-xs font-mono tabular-nums" style={{ color: '#ef4444' }}>
+                      {dramaticCount}
+                    </span>
+                    <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>dramatic</span>
+                  </>
+                )}
+                <span style={{ color: 'rgba(107,114,128,0.4)' }}>|</span>
+                <span className="text-[10px] font-mono" style={{ color: 'rgba(45,212,191,0.5)' }}>Walrus</span>
+              </div>
+            );
+          })()}
           <PlayerHud player={gameState.players[playerId]} spirits={mySpirits} gameState={gameState} />
           <WalletConnect />
         </div>
@@ -457,6 +485,7 @@ function GameApp() {
       <main className="flex-1 flex overflow-hidden">
         {/* Hex Map — 70% left */}
         <div className="flex-1 relative min-w-0">
+          <MemoryBanner events={events} />
           <HexMap
             hexes={gameState.map.hexes}
             spirits={gameState.spirits}
@@ -474,11 +503,15 @@ function GameApp() {
         <div className="w-[360px] border-l border-gray-700/50 bg-gray-900/60 backdrop-blur flex flex-col overflow-hidden">
           {/* Tabs */}
           <div className="flex border-b border-gray-700/40 flex-shrink-0">
-            {[
-              { id: 'spirit', label: 'Spirit' },
-              { id: 'chronicle', label: 'Chronicle' },
-              { id: 'chain', label: 'Chain', badge: chainOps.length || null },
-            ].map(tab => (
+            {(() => {
+              const dramaticCount = events.filter(e => e.type === 'memory_event' && e.dramatic).length;
+              return [
+                { id: 'spirit', label: 'Spirit' },
+                { id: 'memory', label: 'Memory', badge: dramaticCount || null, badgeColor: 'teal' },
+                { id: 'chronicle', label: 'Chronicle' },
+                { id: 'chain', label: 'Onchain', badge: chainOps.length || null },
+              ];
+            })().map(tab => (
               <button key={tab.id} onClick={() => setRightTab(tab.id)}
                 className={`flex-1 py-2 text-xs font-mono tracking-wider transition-colors
                   ${rightTab === tab.id
@@ -535,6 +568,14 @@ function GameApp() {
                   )}
                 </div>
               )
+            )}
+
+            {rightTab === 'memory' && (
+              <MemoryTimeline
+                events={events}
+                gameState={gameState}
+                playerId={playerId}
+              />
             )}
 
             {rightTab === 'chronicle' && (

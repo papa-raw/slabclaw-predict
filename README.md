@@ -1,153 +1,160 @@
 # Anima Swarm
 
-5-player deity-controlled AI swarm strategy on a 37-hex grid. You whisper to your spirits through natural language — they interpret, propagate, and act autonomously based on accumulated memories. Battles, spawning, territory claims, and cross-game reincarnation — all verifiable on Walrus and Sui.
+AI spirits that remember everything — and that's the problem.
+
+6-player deity-controlled strategy on a 169-hex grid where **persistent memory on Walrus is the gameplay mechanic**, not just storage. Spirits form grudges from repeated losses, develop fears from witnessing death, acquire terrain trauma, and become insubordinate when loyalty breaks. These memories persist across games on Walrus — your veterans from Game 1 carry their scars into Game 2.
 
 Built for [Sui Overflow 2026](https://overflow.sui.io/) (Walrus Track).
 
-## The Idea
+## Why Walrus
 
-You are a deity. Your only tool is conversation. Whisper to your seed spirit, and your words become memories stored on Walrus via MemWal. Those memories shape how your swarm decides to move, fight, explore, or spawn — autonomously. When the game ends, your swarm's entire soul exports as a **SwarmEssence** blob on Walrus: playstyle fingerprint, spirit legacies, core memories, and lineage chain. Import that essence into your next game and your spirits reincarnate with echoes of past lives — deeper lineages carry stronger bonds.
+This game couldn't exist without Walrus. Every captain maintains a structured memory ledger that drives deterministic behavior:
+
+| Memory Type | Trigger | Behavior Effect |
+|------------|---------|-----------------|
+| **Grudge** | 3+ losses to a team | Auto-attacks that team on sight |
+| **Confidence** | 3+ wins vs a team | +10% combat bonus against them |
+| **Fear** | Witnessed ally death | Flees from that team |
+| **Trauma** | Died on a terrain type | Refuses to enter that terrain |
+| **Insubordination** | Low loyalty + grudges | Ignores deity orders |
+
+At game end, captain memory ledgers serialize to Walrus blobs. At game start, they auto-load from the player's wallet. No manual import/export — connect wallet, memories load.
+
+**The tension:** Captains can spend memories to spawn new swarmlings. Bigger army, but your veteran loses their grudges and confidence. Memory is the currency.
 
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────┐
-│  React + Vite frontend (:5173)                   │
-│  HexMap · SpiritPanel · Lobby · EssenceExport    │
-└──────────────────┬───────────────────────────────┘
-                   │ WebSocket + REST
-┌──────────────────▼───────────────────────────────┐
-│  Express server (:3001)                          │
-│  tickEngine · spiritDecision · battleResolver     │
-│  whisperService · essenceService · walrusService  │
-└──────┬────────────────┬──────────────────────────┘
-       │                │
-┌──────▼──────┐  ┌──────▼──────────────────────────┐
-│  MemWal     │  │  Walrus                         │
-│  agent      │  │  SwarmEssence blobs             │
-│  memory     │  │  (export/import/reincarnation)  │
-└─────────────┘  └─────────────────────────────────┘
-       │
-┌──────▼──────────────────────────────────────────┐
-│  Sui (Move contracts)                           │
-│  spirit.move · battle.move · territory.move     │
-│  spawn.move (0.01 SUI fee)                      │
-└─────────────────────────────────────────────────┘
+Frontend (React + Vite :5173)
+  HexMap  SpiritPanel  MemoryTimeline  MemoryBanner  Lobby
+      |
+      | WebSocket + REST
+      v
+Server (Express :3001)
+  tickEngine        - 96 ticks at 5s (~8 min games)
+  memoryEngine      - structured memories, behavior rules, Walrus serialization
+  spiritDecision    - deterministic rule-based (zero LLM in game loop)
+  battleArbiter     - stat-based + memory bonuses
+  battleResolver    - creates BATTLE memories on every fight
+  wsService         - broadcasts memory_events to all clients
+      |         |
+  MemWal SDK    Walrus HTTP API
+  (per-spirit   (captain memory
+   agent memory) ledger blobs)
+      |
+  Sui Move Contracts (testnet)
+  spirit.move  battle.move  territory.move  spawn.move
 ```
 
 ## Quick Start
 
 ```bash
-# 1. Install dependencies
-npm install
-cd frontend && npm install && cd ..
+# Install
+npm install && cd frontend && npm install && cd ..
 
-# 2. Move contracts (optional — compile and test)
-cd contracts/anima_swarm
-sui move build    # 0 errors
-sui move test     # 4 tests, all pass
-cd ../..
-
-# 3. Start the server
+# Start server
 node server/index.js
-# → [Anima Swarm] Server + WebSocket running on port 3001
+# -> [Anima Swarm] Server on port 3001
 
-# 4. Start the frontend (separate terminal)
-cd frontend
-npx vite
-# → http://localhost:5173
+# Start frontend (separate terminal)
+cd frontend && npx vite
+# -> http://localhost:5173
 ```
+
+Open the browser, connect a wallet (or use dev mode), and start the game. 6 players auto-fill with AI deities. Games last ~8 minutes.
 
 ## Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `ANTHROPIC_API_KEY` | For AI dialogue | LLM for spirit dialogue, battle narration, decisions |
-| `PORT` | No (default 3001) | Express server port |
-| `WALRUS_NETWORK` | No (default mock) | `testnet` for real Walrus blob storage via HTTP API |
-| `WALRUS_PUBLISHER` | No | Override publisher URL (default: Mysten testnet publisher) |
-| `WALRUS_AGGREGATOR` | No | Override aggregator URL (default: Mysten testnet aggregator) |
-| `PACKAGE_ID` | No (mock mode) | Sui Move package ID after `sui client publish` |
+| `ANTHROPIC_API_KEY` | No | Spirit dialogue flavor text (game works without it) |
+| `PORT` | No (3001) | Express server port |
+| `WALRUS_NETWORK` | No (mock) | `testnet` for real Walrus blob storage |
+| `WALRUS_PUBLISHER` | No | Override Walrus publisher URL |
+| `WALRUS_AGGREGATOR` | No | Override Walrus aggregator URL |
+| `PACKAGE_ID` | No (mock) | Sui Move package ID |
 
-Without API keys, the game runs in mock mode — spirits make random decisions, battles use RNG, and blobs store in-memory (persisted to `_data/blobs.json`).
+Without keys, everything runs in mock mode with local blob storage.
 
-Set `WALRUS_NETWORK=testnet` to store SwarmEssence blobs on real Walrus testnet — no SUI keypair or WAL tokens needed (the publisher handles it via HTTP API).
+## Game Parameters
 
-## Demo Flow
+| Parameter | Value |
+|-----------|-------|
+| Players | 6 (human + AI deities) |
+| Captains per player | 6 (36 total) |
+| Swarmlings per player | 12 (72 total) |
+| Total spirits | 108 + 2 ghosts |
+| Map | 169 hexes (radius 7), 7 terrain types |
+| Game duration | 96 ticks (~8 minutes) |
+| Win condition | 45% territory OR timer |
+| Decision interval | 8s (deterministic, zero LLM) |
+| Max memories per captain | 50 |
+| Spawn cost | 5 memories from captain ledger |
 
-```bash
-# Start server + frontend (see Quick Start)
+## Memory System
 
-# Open http://localhost:5173 → Lobby screen
-# Click "Start Game" → Game begins with 1 human + 4 AI deities
+### How Memories Form
 
-# Fast-forward the game:
-curl -X POST http://localhost:3001/api/tick/fast-forward \
-  -H 'Content-Type: application/json' \
-  -d '{"ticks": 50}'
-# Game typically completes in 20-40 ticks
+Every battle, decree, scout mission, betrayal, alliance, death witness, and encounter creates a structured memory:
 
-# Export SwarmEssence after game over:
-curl -X POST http://localhost:3001/api/essence/export \
-  -H 'Content-Type: application/json' \
-  -d '{"playerId": "player-1"}' | jq .blobId
-# → "mock-blob-..."
-
-# Restart to fresh lobby:
-curl -X POST http://localhost:3001/api/game/restart
-
-# Import essence in new game:
-curl -X POST http://localhost:3001/api/essence/import \
-  -H 'Content-Type: application/json' \
-  -d '{"blobId": "mock-blob-..."}'
-# → Preview with reincarnation candidates, lineage depth, memories
-
-# Start game with imported essence:
-curl -X POST http://localhost:3001/api/game/ready \
-  -H 'Content-Type: application/json' \
-  -d '{"playerId": "player-1", "blobId": "mock-blob-..."}'
-# → Seed spirit now has past-life memories, XP carryover, purple ring on map
+```json
+{
+  "type": "BATTLE",
+  "outcome": "LOSS",
+  "targetTeam": "player-3",
+  "targetSpirit": "Captain Kelp",
+  "terrain": "volcanic",
+  "tick": 24,
+  "text": "Fell to Captain Kelp on volcanic ground"
+}
 ```
 
-### Walrus Testnet Mode
+### How Memories Drive Behavior
 
-```bash
-# Start server with real Walrus blob storage:
-WALRUS_NETWORK=testnet node server/index.js
+`computeBehaviorRules()` scans the ledger and produces deterministic rules:
+- 3+ losses to a team = **grudge** (auto-attack on sight)
+- 3+ wins vs a team = **confidence** (+10% combat bonus)
+- Witnessed death by a team = **fear** (auto-retreat)
+- Died on a terrain = **trauma** (refuses entry)
+- Low loyalty + grudges = **insubordinate** (ignores orders)
 
-# Export now writes to Walrus testnet — blob IDs are real:
-# → "76epk5lDY5DNm0c3eDlFdr4nGlamOaT5XJhYg8M236k"
+### Cross-Game Persistence
 
-# Anyone can verify the blob:
-curl https://aggregator.walrus-testnet.walrus.space/v1/blobs/<BLOB_ID>
-```
+1. **Game ends** -> `serializeForWalrus(captain)` -> Walrus blob per captain
+2. **Game starts** -> wallet query -> fetch blobs -> `deserializeFromWalrus()` -> memories loaded
+3. Captain from Game 1 with a grudge against Tide enters Game 2 still hostile to Tide
+
+### Memory as Economy
+
+Captains with 10+ memories can spend 5 to spawn a swarmling. This erases 5 memories from their ledger, potentially removing grudges or confidence bonuses. Army size vs. behavioral depth is a real trade-off.
+
+## Frontend Features
+
+- **Hex map** with 169 hexes, 7 terrain types, territory borders, spirit sprites
+- **Memory tab** with live feed of all memory events, filters (All/Dramatic/My Swarm)
+- **Memory banners** overlay the map when dramatic events fire (grudge formed, fear acquired, trauma)
+- **Spirit panel** with behavior rule indicators, memory ledger timeline, XP/bond stats
+- **Header counter** showing total memories + Walrus branding
+- **Game-over screen** with memory persistence summary and Walrus blob links
+- **Onboarding** explains the Walrus memory system to new viewers
+- **Onchain tab** showing live Sui + Walrus operations
 
 ## Project Structure
 
 ```
 anima-swarm/
-├── contracts/anima_swarm/
-│   ├── sources/          # 4 Move modules (spirit, battle, territory, spawn)
-│   └── tests/            # 4 Move tests
-├── frontend/src/
-│   ├── components/       # HexMap, SpiritPanel, Lobby, CommandBar, EssenceExport/Import
-│   ├── styles/           # design-system.css (dark mythic theme)
-│   └── App.jsx           # Main app with lobby → active → finished routing
-├── server/
-│   ├── routes/           # game, tick, essence API endpoints
-│   └── services/         # 17 services (tick engine, battle, spawn, whisper, essence, etc.)
-├── lib/                  # Shared: hexMath, hexGrid, terrainTypes, seedSpirits
-└── _data/                # Mock blob persistence (blobs.json)
+  contracts/anima_swarm/
+    sources/            4 Move modules (spirit, battle, territory, spawn)
+    tests/              4 Move tests
+  frontend/src/
+    components/         HexMap, SpiritPanel, MemoryTimeline, MemoryBanner, Lobby
+    vfx/                Canvas particle engine (explosions, blood, spawn, death)
+    styles/             design-system.css (dark mythic theme)
+  server/
+    routes/             game.js (REST + persistence endpoints)
+    services/           memoryEngine, spiritDecision, battleResolver, tickEngine, etc.
+  lib/                  hexMath, terrainTypes, classSystem, seedSpirits
 ```
-
-## Key Features
-
-- **Memory-as-control** — no direct unit commands; all behavior emerges from whispered memories
-- **SwarmEssence** — export your swarm's soul to Walrus, import in future games
-- **Reincarnation** — spirits carry 20%+ XP and 15%+ bond from past lives (deeper lineages = stronger bonuses)
-- **Autonomous AI** — spirits decide, move, battle, and spawn on their own every 30s
-- **4 Move contracts** — Spirit NFTs, BattleRecords, shared GameMap, spawn fees (0.01 SUI)
-- **Real-time hex grid** — 37 hexes, 8 terrain types, territory borders, spirit animations
 
 ## License
 

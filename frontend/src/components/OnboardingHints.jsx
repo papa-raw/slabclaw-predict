@@ -3,22 +3,22 @@ import { useState, useEffect } from 'react';
 const HINTS = [
   {
     id: 'welcome',
-    title: 'Welcome, Deity',
-    body: 'You command an AI swarm through whispers. Click any of your spirits on the map to begin.',
+    title: 'Persistent AI Memory on Walrus',
+    body: 'AI spirits fight, form memories, and store them on Walrus. Grudges, fears, and trauma persist across games and shape future behavior.',
     position: 'center',
     delay: 500,
   },
   {
     id: 'click-spirit',
-    title: 'Whisper to Your Spirits',
-    body: 'Your spirits glow with your color. Click one to open the spirit panel and send commands through conversation.',
+    title: 'Watch Memories Form',
+    body: 'Click any spirit to inspect its stats and memory ledger. The Memory tab shows a live feed of all memory events across the battlefield.',
     position: 'center',
     delay: 0,
   },
   {
     id: 'memory',
-    title: 'Memory is Power',
-    body: 'Every whisper is stored on MemWal (Walrus). Spirits recall memories to make decisions. Watch the Chain Activity panel for live storage operations.',
+    title: 'Memories Are the Gameplay',
+    body: 'Captains who lose repeatedly form grudges and auto-attack. Witnesses of death develop fears. Trauma makes spirits refuse terrain. All stored on Walrus, loaded next game.',
     position: 'center',
     delay: 0,
   },
@@ -35,6 +35,13 @@ export default function OnboardingHints({ gameState, selectedSpirit, onDismissAl
     const t = setTimeout(() => setVisible(true), HINTS[0].delay);
     return () => clearTimeout(t);
   }, [gameState?.status, dismissed]);
+
+  // Auto-dismiss after 8 seconds
+  useEffect(() => {
+    if (!visible || dismissed) return;
+    const t = setTimeout(() => skipAll(), 8000);
+    return () => clearTimeout(t);
+  }, [visible, dismissed]);
 
   useEffect(() => {
     if (selectedSpirit && currentHint === 0) {
@@ -63,8 +70,8 @@ export default function OnboardingHints({ gameState, selectedSpirit, onDismissAl
   const hint = HINTS[currentHint];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-      <div className="pointer-events-auto max-w-sm mx-4 bg-gray-900/95 border border-amber-500/30 rounded-lg p-5 backdrop-blur-sm shadow-xl shadow-black/40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={skipAll}>
+      <div className="max-w-sm mx-4 bg-gray-900/95 border border-amber-500/30 rounded-lg p-5 backdrop-blur-sm shadow-xl shadow-black/40" onClick={e => e.stopPropagation()}>
         <div className="flex items-center gap-2 mb-2">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
           <h3 className="font-header text-sm text-amber-400 uppercase tracking-wider">{hint.title}</h3>

@@ -109,7 +109,7 @@ function decideSpiritAction(spirit, gameState) {
     const fearedEnemy = currentEnemies.find(e => rules.fears[e.playerId]);
     if (fearedEnemy) {
       const retreatHex = adjacentHexes.find(h =>
-        h.terrain !== 'ocean' && !h.spiritIds.some(id => {
+        !h.spiritIds.some(id => {
           const s = gameState.spirits[id];
           return s && s.alive && s.playerId !== spirit.playerId;
         })
@@ -318,7 +318,7 @@ function executeDecision(spirit, decision, gameState, adj) {
       if (!targetHexId) {
         const validAdj = adj
           .map(a => gameState.map.hexes[hexId(a.q, a.r)])
-          .filter(h => h && h.terrain !== 'ocean');
+          .filter(h => h);
         if (!validAdj.length) return null;
         const target = pickMoveTarget(validAdj, spirit);
         if (!target) return null;
@@ -358,7 +358,7 @@ function executeDecision(spirit, decision, gameState, adj) {
     case 'explore': {
       const unexplored = adj
         .map(a => gameState.map.hexes[hexId(a.q, a.r)])
-        .filter(h => h && !h.controller && h.terrain !== 'ocean');
+        .filter(h => h && !h.controller);
       const targetHex = unexplored[0];
       if (!targetHex) return fallbackMove(spirit, gameState, adj);
       spirit.explorationXP = (spirit.explorationXP || 0) + 2;
@@ -603,7 +603,7 @@ export function issueRallyCommand(playerId, targetHexId, gameState) {
 function fallbackMove(spirit, gameState, adj) {
   const validAdj = adj
     .map(a => gameState.map.hexes[hexId(a.q, a.r)])
-    .filter(h => h && h.terrain !== 'ocean');
+    .filter(h => h);
 
   if (!validAdj.length) return null;
   const target = pickMoveTarget(validAdj, spirit);
@@ -657,7 +657,7 @@ async function decideGhostAction(spirit, gameState) {
 
   const validAdj = adj
     .map(a => gameState.map.hexes[hexId(a.q, a.r)])
-    .filter(h => h && h.terrain !== 'ocean');
+    .filter(h => h);
   if (!validAdj.length) return null;
 
   const unclaimed = validAdj.filter(h => !h.controller);

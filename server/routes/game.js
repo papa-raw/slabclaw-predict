@@ -371,8 +371,6 @@ router.post('/command', (req, res) => {
 
   const targetHex = state.map.hexes[targetHexId];
   if (!targetHex) return res.status(400).json({ error: 'Invalid hex' });
-  if (targetHex.terrain === 'ocean') return res.status(400).json({ error: 'Cannot rally to ocean' });
-
   const result = issueRallyCommand(playerId, targetHexId, state);
   res.json(result);
 });
@@ -509,15 +507,15 @@ router.post('/end-persist', async (req, res) => {
       if ((captain.memoryLedger || []).length === 0) continue;
       try {
         const serialized = serializeForWalrus(captain);
-        const blobResult = await storeEssence(serialized);
-        if (blobResult?.blobId) {
+        const blobId = await storeEssence(serialized);
+        if (blobId) {
           results.memoryBlobs.push({
             spiritName: captain.name,
             spiritId: captain.id,
-            blobId: blobResult.blobId,
+            blobId,
             memoryCount: captain.memoryLedger.length,
           });
-          captain._walrusBlobId = blobResult.blobId;
+          captain._walrusBlobId = blobId;
         }
       } catch (err) {
         console.warn(`[end-persist] Memory blob failed for ${captain.name}:`, err.message);

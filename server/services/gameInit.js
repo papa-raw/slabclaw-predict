@@ -52,7 +52,7 @@ function findOpenAdjacentHexes(startHex, map, usedHexIds, count) {
       if (visited.has(id)) continue;
       visited.add(id);
       const hex = map.hexes[id];
-      if (!hex || hex.terrain === 'ocean') continue;
+      if (!hex) continue;
       if (!usedHexIds.has(id)) {
         found.push(hex);
         if (found.length >= count) break;
@@ -284,7 +284,7 @@ export async function createInitialGameState() {
 
   const ghostSpirits = selectGhostsForGame(2);
   const unclaimedHexes = Object.values(map.hexes).filter(
-    h => !h.controller && h.terrain !== 'ocean' && !usedHexIds.has(h.id)
+    h => !h.controller && !usedHexIds.has(h.id)
   );
   const shuffledUnclaimed = [...unclaimedHexes].sort(() => Math.random() - 0.5);
 

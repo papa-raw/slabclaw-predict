@@ -11,10 +11,6 @@ export function validateMovement(spirit, targetHexId, gameState) {
   );
   if (dist !== 1) return { valid: false, reason: 'Not adjacent' };
 
-  if (targetHex.terrain === 'ocean' && spirit.specialization !== 'scout') {
-    return { valid: false, reason: 'Only scouts can enter ocean hexes' };
-  }
-
   return { valid: true };
 }
 

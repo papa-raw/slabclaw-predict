@@ -114,6 +114,12 @@ async function tick() {
     events.push({ type: 'game_over', winner });
   }
 
-  // 5. Broadcast state delta to all connected clients
+  // 5. Flush pending memory events
+  if (gameState._pendingMemoryEvents?.length) {
+    events.push(...gameState._pendingMemoryEvents);
+    gameState._pendingMemoryEvents = [];
+  }
+
+  // 6. Broadcast state delta to all connected clients
   broadcast(gameState, events);
 }

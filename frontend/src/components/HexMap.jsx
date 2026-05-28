@@ -316,7 +316,7 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
           // Canvas VFX explosion
           if (vfxRef.current) {
             const affinity = winner?.affinity || undefined;
-            vfxRef.current.explosion(p.x, p.y, { fatal, affinity });
+            vfxRef.current.explosion(p.x, p.y, { fatal, affinity, scale: 0.45 });
             vfxRef.current.damageNumber(p.x, p.y, evt.margin || Math.floor(Math.random() * 30 + 10), { critical: fatal });
             if (fatal && loser) {
               const lh = hexes[loser.hexId || evt.hexId];
@@ -342,7 +342,7 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
 
           if (vfxRef.current) {
             const affinity = winner?.affinity || undefined;
-            vfxRef.current.explosion(p.x, p.y, { fatal: evt.killed, affinity, scale: 0.6 });
+            vfxRef.current.explosion(p.x, p.y, { fatal: evt.killed, affinity, scale: 0.3 });
             vfxRef.current.damageNumber(p.x, p.y, evt.damage || 0, { critical: evt.killed });
           }
         }
@@ -376,7 +376,7 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
             const promoSpirit = evt.spiritId ? spirits[evt.spiritId] : null;
             vfxRef.current.spawn(p.x, p.y, pc, { affinity: promoSpirit?.affinity || evt.affinity });
             if (evt.toTier === 'hero') {
-              vfxRef.current.explosion(p.x, p.y, { fatal: false, scale: 1.5 });
+              vfxRef.current.explosion(p.x, p.y, { fatal: false, scale: 0.6 });
             }
           }
         }
@@ -614,7 +614,6 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
               onMouseLeave={() => setHoveredHex(null)}
               onClick={(e) => {
                 if (dragRef.current?.dragged) return;
-                if (hex.terrain === 'ocean') return;
                 if (onHexCommand) {
                   e.stopPropagation();
                   onHexCommand(hex.id);
@@ -808,12 +807,6 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
                   </circle>
                 )}
 
-                {/* Hero glow */}
-                {isHero && !isDying && (
-                  <ellipse cx={0} cy={-16} rx={22} ry={26} fill={affColor} opacity={0.08}>
-                    <animate attributeName="opacity" values="0.08;0.15;0.08" dur="2s" repeatCount="indefinite" />
-                  </ellipse>
-                )}
 
                 {isGhost && (
                   <ellipse cx={0} cy={-16} rx={18} ry={22} fill="none"
@@ -839,12 +832,6 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
                   <text x={12} y={-32} textAnchor="middle" fontSize="6" opacity={0.8}>{classData.icon}</text>
                 )}
 
-                {/* Hero title */}
-                {isHero && spirit.heroTitle && (
-                  <text x={0} y={-48} textAnchor="middle" fontSize="5" fill="#f0c040" fontFamily="'Cinzel', serif" fontWeight="700" opacity={0.9}>
-                    {spirit.heroTitle}
-                  </text>
-                )}
 
                 {/* Portrait + HP bar */}
                 {spirit.alive && (() => {
@@ -1033,49 +1020,49 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
         {battleEffects.map(fx => (
           <g key={fx.id} transform={`translate(${fx.pos.x},${fx.pos.y})`} filter="url(#glow-battle)">
             {/* Impact flash */}
-            <circle cx={0} cy={0} r={2} fill="#fff" opacity={0.9}>
-              <animate attributeName="r" values="2;22" dur="0.4s" fill="freeze" />
-              <animate attributeName="opacity" values="0.9;0" dur="0.4s" fill="freeze" />
+            <circle cx={0} cy={0} r={1} fill="#fff" opacity={0.8}>
+              <animate attributeName="r" values="1;10" dur="0.3s" fill="freeze" />
+              <animate attributeName="opacity" values="0.8;0" dur="0.3s" fill="freeze" />
             </circle>
             {/* Expanding ring */}
-            <circle cx={0} cy={0} r={4} fill="none" stroke={fx.color} strokeWidth={2.5} opacity={0.8}>
-              <animate attributeName="r" values="4;30" dur="0.8s" fill="freeze" />
-              <animate attributeName="opacity" values="0.8;0" dur="0.8s" fill="freeze" />
-              <animate attributeName="stroke-width" values="2.5;0.5" dur="0.8s" fill="freeze" />
+            <circle cx={0} cy={0} r={3} fill="none" stroke={fx.color} strokeWidth={1.5} opacity={0.7}>
+              <animate attributeName="r" values="3;14" dur="0.6s" fill="freeze" />
+              <animate attributeName="opacity" values="0.7;0" dur="0.6s" fill="freeze" />
+              <animate attributeName="stroke-width" values="1.5;0.3" dur="0.6s" fill="freeze" />
             </circle>
             {fx.fatal && (
-              <circle cx={0} cy={0} r={8} fill="none" stroke="#ff4040" strokeWidth={1.5} opacity={0.6}>
-                <animate attributeName="r" values="8;35" dur="1s" begin="0.2s" fill="freeze" />
-                <animate attributeName="opacity" values="0.6;0" dur="1s" begin="0.2s" fill="freeze" />
+              <circle cx={0} cy={0} r={5} fill="none" stroke="#ff4040" strokeWidth={1} opacity={0.5}>
+                <animate attributeName="r" values="5;18" dur="0.8s" begin="0.15s" fill="freeze" />
+                <animate attributeName="opacity" values="0.5;0" dur="0.8s" begin="0.15s" fill="freeze" />
               </circle>
             )}
             {/* Crossed swords */}
-            <g opacity={0.9}>
-              <animate attributeName="opacity" values="0.9;0" dur="1.5s" fill="freeze" />
-              <line x1={-8} y1={-8} x2={8} y2={8} stroke="#fff" strokeWidth={2} strokeLinecap="round">
-                <animate attributeName="x1" values="0;-8" dur="0.2s" fill="freeze" />
-                <animate attributeName="y1" values="0;-8" dur="0.2s" fill="freeze" />
-                <animate attributeName="x2" values="0;8" dur="0.2s" fill="freeze" />
-                <animate attributeName="y2" values="0;8" dur="0.2s" fill="freeze" />
+            <g opacity={0.8}>
+              <animate attributeName="opacity" values="0.8;0" dur="1s" fill="freeze" />
+              <line x1={-5} y1={-5} x2={5} y2={5} stroke="#fff" strokeWidth={1.5} strokeLinecap="round">
+                <animate attributeName="x1" values="0;-5" dur="0.15s" fill="freeze" />
+                <animate attributeName="y1" values="0;-5" dur="0.15s" fill="freeze" />
+                <animate attributeName="x2" values="0;5" dur="0.15s" fill="freeze" />
+                <animate attributeName="y2" values="0;5" dur="0.15s" fill="freeze" />
               </line>
-              <line x1={8} y1={-8} x2={-8} y2={8} stroke="#fff" strokeWidth={2} strokeLinecap="round">
-                <animate attributeName="x1" values="0;8" dur="0.2s" fill="freeze" />
-                <animate attributeName="y1" values="0;-8" dur="0.2s" fill="freeze" />
-                <animate attributeName="x2" values="0;-8" dur="0.2s" fill="freeze" />
-                <animate attributeName="y2" values="0;8" dur="0.2s" fill="freeze" />
+              <line x1={5} y1={-5} x2={-5} y2={5} stroke="#fff" strokeWidth={1.5} strokeLinecap="round">
+                <animate attributeName="x1" values="0;5" dur="0.15s" fill="freeze" />
+                <animate attributeName="y1" values="0;-5" dur="0.15s" fill="freeze" />
+                <animate attributeName="x2" values="0;-5" dur="0.15s" fill="freeze" />
+                <animate attributeName="y2" values="0;5" dur="0.15s" fill="freeze" />
               </line>
             </g>
             {/* Sparks */}
-            {[0, 60, 120, 180, 240, 300].map((angle, i) => {
+            {[0, 90, 180, 270].map((angle, i) => {
               const rad = (angle * Math.PI) / 180;
-              const ex = Math.cos(rad) * 20;
-              const ey = Math.sin(rad) * 20;
+              const ex = Math.cos(rad) * 10;
+              const ey = Math.sin(rad) * 10;
               return (
-                <circle key={i} cx={0} cy={0} r={1.2} fill={i % 2 === 0 ? '#ffd040' : fx.color} opacity={0.8}>
-                  <animate attributeName="cx" values={`0;${ex}`} dur="0.5s" fill="freeze" />
-                  <animate attributeName="cy" values={`0;${ey}`} dur="0.5s" fill="freeze" />
-                  <animate attributeName="opacity" values="0.8;0" dur="0.6s" fill="freeze" />
-                  <animate attributeName="r" values="1.2;0.3" dur="0.6s" fill="freeze" />
+                <circle key={i} cx={0} cy={0} r={0.8} fill={i % 2 === 0 ? '#ffd040' : fx.color} opacity={0.7}>
+                  <animate attributeName="cx" values={`0;${ex}`} dur="0.4s" fill="freeze" />
+                  <animate attributeName="cy" values={`0;${ey}`} dur="0.4s" fill="freeze" />
+                  <animate attributeName="opacity" values="0.7;0" dur="0.5s" fill="freeze" />
+                  <animate attributeName="r" values="0.8;0.2" dur="0.5s" fill="freeze" />
                 </circle>
               );
             })}

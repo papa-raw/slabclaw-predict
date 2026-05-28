@@ -16,12 +16,12 @@ function affinityColor(affinity) {
 }
 
 export function explosion(pm, x, y, opts = {}) {
-  const count = opts.count || 45;
-  const speed = opts.speed || 250;
+  const scale = opts.scale || 1;
+  const count = Math.round((opts.count || 16) * scale);
+  const speed = (opts.speed || 120) * scale;
   const colors = affinityColor(opts.affinity);
   const fatal = opts.fatal || false;
 
-  // Core burst
   pm.emit(count, (i, n) => {
     const angle = (TAU * i) / n + rand(-0.3, 0.3);
     const v = rand(speed * 0.4, speed);
@@ -29,13 +29,13 @@ export function explosion(pm, x, y, opts = {}) {
       x, y,
       vx: Math.cos(angle) * v,
       vy: Math.sin(angle) * v,
-      maxLife: rand(0.3, 0.7),
-      size: rand(6, 14),
-      sizeEnd: rand(0, 2),
-      alpha: 1, alphaEnd: 0,
+      maxLife: rand(0.2, 0.45),
+      size: rand(3, 7) * scale,
+      sizeEnd: rand(0, 1),
+      alpha: 0.8, alphaEnd: 0,
       ...colors,
-      gravity: rand(50, 200),
-      friction: 0.96,
+      gravity: rand(50, 150),
+      friction: 0.94,
       texture: 'flame',
       additive: true,
       rotation: rand(0, TAU),
@@ -43,63 +43,59 @@ export function explosion(pm, x, y, opts = {}) {
     };
   });
 
-  // White-hot center flash
-  pm.emit(8, () => ({
-    x: x + rand(-4, 4), y: y + rand(-4, 4),
-    vx: rand(-30, 30), vy: rand(-30, 30),
-    maxLife: rand(0.15, 0.3),
-    size: rand(20, 35), sizeEnd: rand(40, 60),
-    alpha: 0.9, alphaEnd: 0,
+  pm.emit(3, () => ({
+    x: x + rand(-2, 2), y: y + rand(-2, 2),
+    vx: rand(-15, 15), vy: rand(-15, 15),
+    maxLife: rand(0.1, 0.2),
+    size: rand(8, 14) * scale, sizeEnd: rand(16, 24) * scale,
+    alpha: 0.7, alphaEnd: 0,
     r: 255, g: 255, b: 255, r2: 255, g2: 220, b2: 180,
     texture: 'star',
     additive: true,
   }));
 
-  // Sparks flying outward
-  pm.emit(12, (i) => {
-    const angle = (TAU * i) / 12 + rand(-0.2, 0.2);
-    const v = rand(speed * 0.8, speed * 1.5);
+  pm.emit(6, (i) => {
+    const angle = (TAU * i) / 6 + rand(-0.2, 0.2);
+    const v = rand(speed * 0.6, speed * 1.2);
     return {
       x, y,
       vx: Math.cos(angle) * v,
       vy: Math.sin(angle) * v,
-      maxLife: rand(0.4, 0.8),
-      size: rand(2, 4), sizeEnd: 0,
-      alpha: 1, alphaEnd: 0,
+      maxLife: rand(0.3, 0.5),
+      size: rand(1.5, 3), sizeEnd: 0,
+      alpha: 0.8, alphaEnd: 0,
       r: 255, g: 240, b: 150, r2: 255, g2: 100, b2: 30,
-      gravity: 300,
-      friction: 0.98,
+      gravity: 200,
+      friction: 0.97,
       additive: true,
     };
   });
 
-  // Smoke aftermath
-  pm.emit(6, () => ({
-    x: x + rand(-10, 10), y: y + rand(-10, 10),
-    vx: rand(-20, 20), vy: rand(-60, -20),
-    maxLife: rand(0.6, 1.2),
-    size: rand(10, 20), sizeEnd: rand(25, 40),
-    alpha: 0.4, alphaEnd: 0,
+  pm.emit(3, () => ({
+    x: x + rand(-5, 5), y: y + rand(-5, 5),
+    vx: rand(-10, 10), vy: rand(-30, -10),
+    maxLife: rand(0.4, 0.7),
+    size: rand(5, 10) * scale, sizeEnd: rand(12, 20) * scale,
+    alpha: 0.25, alphaEnd: 0,
     r: 80, g: 80, b: 80, r2: 40, g2: 40, b2: 40,
     texture: 'smoke',
     friction: 0.97,
   }));
 
   if (fatal) {
-    // Extra debris ring for fatal kills
-    pm.emit(20, (i, n) => {
+    pm.emit(10, (i, n) => {
       const angle = (TAU * i) / n;
-      const v = rand(speed * 0.6, speed * 1.2);
+      const v = rand(speed * 0.5, speed * 0.9);
       return {
         x, y,
         vx: Math.cos(angle) * v,
         vy: Math.sin(angle) * v,
-        maxLife: rand(0.5, 1.0),
-        size: rand(3, 7), sizeEnd: 0,
-        alpha: 0.8, alphaEnd: 0,
+        maxLife: rand(0.3, 0.6),
+        size: rand(2, 4), sizeEnd: 0,
+        alpha: 0.6, alphaEnd: 0,
         ...colors,
-        gravity: 400,
-        friction: 0.97,
+        gravity: 300,
+        friction: 0.96,
         rotation: rand(0, TAU),
         rotationSpeed: rand(-8, 8),
       };

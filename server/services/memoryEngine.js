@@ -29,6 +29,7 @@ export function createMemory(spirit, type, outcome, target, gameState) {
   };
 
   if (!spirit.memoryLedger) spirit.memoryLedger = [];
+  const oldRules = spirit.behaviorRules;
   spirit.memoryLedger.push(memory);
 
   if (spirit.memoryLedger.length > MAX_LEDGER_SIZE) {
@@ -38,6 +39,32 @@ export function createMemory(spirit, type, outcome, target, gameState) {
   spirit.memoryCount = (spirit.memoryCount || 0) + 1;
 
   spirit.behaviorRules = computeBehaviorRules(spirit);
+
+  const dramaticEvents = detectDramaticChanges(oldRules, spirit.behaviorRules, spirit, targetPlayer, gameState);
+  if (dramaticEvents.length > 0) {
+    gameState._pendingMemoryEvents = gameState._pendingMemoryEvents || [];
+    gameState._pendingMemoryEvents.push(...dramaticEvents);
+  }
+
+  const tick = gameState._tickCount || 0;
+
+  gameState._pendingMemoryEvents = gameState._pendingMemoryEvents || [];
+  gameState._pendingMemoryEvents.push({
+    type: 'memory_event',
+    subtype: type,
+    outcome,
+    spiritId: spirit.id,
+    spiritName: spirit.name,
+    playerId: spirit.playerId,
+    targetName: targetSpirit?.name || target?.name || null,
+    targetPlayerId: targetPlayer,
+    text: memory.text,
+    terrain: memory.terrain,
+    hexId: spirit.hexId,
+    tick,
+    dramatic: false,
+    timestamp: Date.now(),
+  });
 
   const key = getKey(spirit.id);
   if (key) {
@@ -50,6 +77,85 @@ export function createMemory(spirit, type, outcome, target, gameState) {
   }
 
   return memory;
+}
+
+function detectDramaticChanges(oldRules, newRules, spirit, targetPlayer, gameState) {
+  const events = [];
+  if (!newRules) return events;
+
+  const tick = gameState._tickCount || 0;
+  const oldGrudges = oldRules?.grudges || {};
+  const oldFears = oldRules?.fears || {};
+  const oldTrauma = oldRules?.traumaTerrain || [];
+
+  for (const [team, count] of Object.entries(newRules.grudges || {})) {
+    if (!oldGrudges[team]) {
+      const teamName = gameState.players[team]?.name || 'an enemy';
+      events.push({
+        type: 'memory_event',
+        subtype: 'GRUDGE_FORMED',
+        spiritId: spirit.id,
+        spiritName: spirit.name,
+        playerId: spirit.playerId,
+        targetPlayerId: team,
+        text: `${spirit.name} now holds a grudge against ${teamName} (${count} losses)`,
+        tick,
+        dramatic: true,
+        timestamp: Date.now(),
+      });
+    }
+  }
+
+  for (const [team, count] of Object.entries(newRules.fears || {})) {
+    if (!oldFears[team]) {
+      const teamName = gameState.players[team]?.name || 'an enemy';
+      events.push({
+        type: 'memory_event',
+        subtype: 'FEAR_ACQUIRED',
+        spiritId: spirit.id,
+        spiritName: spirit.name,
+        playerId: spirit.playerId,
+        targetPlayerId: team,
+        text: `${spirit.name} now fears ${teamName}`,
+        tick,
+        dramatic: true,
+        timestamp: Date.now(),
+      });
+    }
+  }
+
+  for (const terrain of newRules.traumaTerrain || []) {
+    if (!oldTrauma.includes(terrain)) {
+      events.push({
+        type: 'memory_event',
+        subtype: 'TRAUMA_ACQUIRED',
+        spiritId: spirit.id,
+        spiritName: spirit.name,
+        playerId: spirit.playerId,
+        terrain,
+        text: `${spirit.name} now refuses to enter ${terrain} terrain`,
+        tick,
+        dramatic: true,
+        timestamp: Date.now(),
+      });
+    }
+  }
+
+  if (newRules.insubordinate && (!oldRules || !oldRules.insubordinate)) {
+    events.push({
+      type: 'memory_event',
+      subtype: 'INSUBORDINATE',
+      spiritId: spirit.id,
+      spiritName: spirit.name,
+      playerId: spirit.playerId,
+      text: `${spirit.name} has become insubordinate — loyalty broken`,
+      tick,
+      dramatic: true,
+      timestamp: Date.now(),
+    });
+  }
+
+  return events;
 }
 
 export function computeBehaviorRules(spirit) {

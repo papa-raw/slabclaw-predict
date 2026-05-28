@@ -20,14 +20,14 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
   const isGhost = spirit?._isGhost || spirit?.playerId === 'ghost';
   const [memories, setMemories] = useState([]);
   const [loadingMem, setLoadingMem] = useState(false);
-  const [showMemories, setShowMemories] = useState(false);
+  const [showMemories, setShowMemories] = useState(spirit?.tier === 'captain');
   const [recruitMsg, setRecruitMsg] = useState('');
   const [recruitResult, setRecruitResult] = useState(null);
   const [recruiting, setRecruiting] = useState(false);
 
   useEffect(() => {
     setMemories([]);
-    setShowMemories(false);
+    setShowMemories(spirit?.tier === 'captain');
     setRecruitResult(null);
     setRecruitMsg('');
   }, [spirit?.id]);
@@ -365,7 +365,11 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
             className="w-full flex items-center justify-between text-xs font-mono py-1 hover:text-teal-300 transition-colors"
             style={{ color: '#2dd4bf' }}
           >
-            <span>{memoryLedger.length > 0 ? `${memoryLedger.length} structured memories` : `${spirit.memoryCount || 0} memories`}</span>
+            <span className="flex items-center gap-1.5">
+              <span>🧠</span>
+              <span>{memoryLedger.length > 0 ? `${memoryLedger.length} memories` : `${spirit.memoryCount || 0} memories`}</span>
+              {spirit.tier === 'captain' && <span style={{ color: 'rgba(45,212,191,0.4)', fontSize: '9px' }}>WALRUS</span>}
+            </span>
             <span>{showMemories ? '▾' : '▸'}</span>
           </button>
           {showMemories && (
