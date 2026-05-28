@@ -29,3 +29,33 @@
 **Root cause:** API returns `d.memoryLedger` but SpiritPanel read `d.memories` — undefined always fell back to `[]`
 **Fix:** Changed `d.memories` to `d.memoryLedger` in the fetch handler (SpiritPanel.jsx line 58)
 **Mechanism:** The structured memory ledger was inline in the game state (from WebSocket updates) so the timeline display worked — only the API-fetch fallback path was broken
+
+### 2026-05-28 — End-persist blobId silently discarded
+**Symptom:** Captain memory blobs stored to Walrus successfully but `memoryBlobs` array in persist results always had `blobId: undefined`
+**Root cause:** `storeEssence()` returns a plain string blobId. Code destructured as `const blobResult = await storeEssence(serialized)` then read `blobResult?.blobId` — string has no `.blobId` property.
+**Fix:** Changed to `const blobId = await storeEssence(serialized)` + `if (blobId)` direct use
+**Mechanism:** JavaScript string primitives silently return `undefined` for arbitrary property access — no error thrown, blobId was always stored but never recorded in the response
+
+### 2026-05-28 — Cross-game persistence loop broken (no NFT link-back)
+**Symptom:** Captain memories stored to Walrus at game end but never loaded at game start — cross-game persistence didn't work
+**Root cause:** Design assumed blobIds would be written to Spirit NFT's `essence_blob_id` field, but NFT minting itself was failing (wrong Move entry function + game IDs instead of Sui object IDs)
+**Fix:** Added local captain blob index (`_data/captain-blobs.json`) as a persistent fallback keyed by wallet address + spirit name. Written at end-persist, read at game ready.
+**Mechanism:** Bypasses the broken NFT→blobId link entirely. Local file persists across server restarts. Full NFT path can be restored later when Sui minting is reliable.
+
+### 2026-05-28 — Ghost recruit always 404
+**Symptom:** Clicking "Recruit" on a ghost spirit in SpiritPanel always returned 404
+**Root cause:** Frontend POST to `/api/ghost/recruit` but server route is mounted at `/api/game/ghost/recruit`
+**Fix:** Changed path in SpiritPanel.jsx fetch call
+**Mechanism:** Express route hierarchy nests ghost routes under `/api/game/` prefix
+
+### 2026-05-28 — Hero tier spirits invisible on map
+**Symptom:** After promotion VFX, promoted spirits vanished from the hex map
+**Root cause:** HexMap.jsx filtered visible spirits with `s.tier === 'captain'` — hero tier was excluded
+**Fix:** Changed filter to `s.tier === 'captain' || s.tier === 'hero'`
+**Mechanism:** Promotion changes tier from 'captain' to 'hero' but the rendering filter only checked for 'captain'
+
+### 2026-05-28 — MemWal per-spirit writes were dead code
+**Symptom:** No per-spirit memories were ever written to MemWal despite the SDK being initialized
+**Root cause:** `memoryEngine.js` guarded MemWal writes with `if (key) { storeMemoryServer(...) }` where `key` came from `keyStore.getKey(spirit.id)`. But `keyStore.setKey()` was never called during game lifecycle — the store was always empty.
+**Fix:** Removed the `getKey` guard entirely. MemWal writes are now unconditional. Errors caught and logged only when `isRealMemwalMode()` is true.
+**Mechanism:** The keyStore was designed for a per-spirit encryption key model that was never implemented. The guard was always false, making all MemWal writes dead code.

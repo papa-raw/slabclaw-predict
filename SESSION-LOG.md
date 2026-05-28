@@ -181,3 +181,37 @@ Docs updated: README rewritten for memory-centric pivot, project memory updated.
 - **Production readiness audit:** 3-agent parallel scan found 5 critical, 4 high, 4 medium issues. Key: all Sui NFT calls fail (wrong Move function targets + game IDs instead of Sui object IDs), cross-game memory loop broken (blobId never written back to NFT), MemWal per-spirit writes dead code (keyStore never populated), ghost recruit 404 (wrong API path), hero tier invisible on map.
 - **Committed + pushed** `memory-pivot` branch to `origin` (a165ef6). 20 files, +813/-249.
 - **Remaining:** Demo video (5 min max), submission materials, optional MemWal testnet activation. See production audit for full buildout plan (Phases 1-4).
+
+### Session Log — 2026-05-28 (night)
+
+**Production Readiness Audit — All 4 Phases Implemented**
+
+16 files changed, +233/-164 lines (85ab2b6).
+
+Phase 1 — Cross-game persistence loop:
+- Added `loadCaptainBlobIndex()`/`saveCaptainBlobIndex()` to `game.js` — persists captain blob IDs to `_data/captain-blobs.json`
+- End-persist writes captain blobIds to local index after Walrus storage
+- Ready route loads memories from local blob index as fallback (works without NFT minting)
+- Closes the broken cross-game persistence loop without requiring Sui NFT writes
+
+Phase 2 — Sui NFT fixes (agent):
+- `suiService.js`: `spirit::mint` → `spirit::mint_v2` (public entry), `battle::record` → `battle::record_and_transfer`
+- `rosterService.js`: Added `_decodeVecU8()` for base64 Sui field decode, stores `_nftObjectId` after mint
+- Removed dead exports (`collectSpawnFee`, `reincarnateSpirit`)
+
+Phase 3 — MemWal activation (agent):
+- Removed dead `getKey` guard from `memoryEngine.js` — MemWal writes now unconditional
+- Added `isRealMemwalMode()` export to `memwalServer.js` for error logging
+- Cleaned dead `keyStore` imports from 8 service files (battleResolver, whisperService, promotionService, graveyardService, spiritDialogueService, spiritDecisionService, spawnResolver)
+
+Phase 4 — Frontend fixes:
+- `SpiritPanel.jsx`: Ghost recruit path `/api/ghost/recruit` → `/api/game/ghost/recruit` (was always 404)
+- `HexMap.jsx`: Hero tier visibility — added `|| s.tier === 'hero'` to captain filter
+- `Lobby.jsx`: "Connect wallet above to play" red text when Awaken disabled
+- `SpiritPanel.jsx`: Replaced stale JSDoc with one-line comment
+
+Skipped H2 (EssenceExport wiring) — game-over screen already has superior inline persist display with WalrusScan links. EssenceExport is dead code per plan CUT list.
+
+Server verified: 110 spirits, 6 players, all services healthy, zero startup errors.
+
+**Remaining:** M2 (TickTimer server sync), M4 (Walrus readEssence fallback), demo video, submission materials.
