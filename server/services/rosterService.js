@@ -1,7 +1,6 @@
 import { computeEssence } from './essenceService.js';
 import { storeEssence } from './walrusService.js';
 import { recallMemoriesServer } from './memwalServer.js';
-import { getKey } from './keyStore.js';
 import { getCachedAvatarBlobId } from './avatarService.js';
 import { mintSpirit } from './suiService.js';
 import crypto from 'crypto';
@@ -13,6 +12,9 @@ const rosterCache = new Map();
 
 // ── Sui RPC helper ───────────────────────────────────────────────────────────
 
+// NOTE: This local queryOwnedSpirits is used by loadRoster (which needs raw objects
+// for parseOnchainSpirit). suiService.js has its own version used by queryOwnedSpirits
+// exported from suiService — these serve different purposes and are not duplicates.
 async function queryOwnedSpirits(walletAddress) {
   const res = await fetch(SUI_RPC_URL, {
     method: 'POST',
@@ -38,6 +40,17 @@ async function queryOwnedSpirits(walletAddress) {
   return json.result?.data || [];
 }
 
+// Helper: decode a Sui vector<u8> field from base64 to UTF-8 string.
+// Sui BCS encodes vector<u8> fields as base64 in JSON responses.
+function _decodeVecU8(value, fallback = '') {
+  if (!value) return fallback;
+  try {
+    return Buffer.from(value, 'base64').toString('utf-8');
+  } catch {
+    return String(value);
+  }
+}
+
 function parseOnchainSpirit(obj) {
   const objectId = obj.data?.objectId;
   const fields = obj.data?.content?.fields;
@@ -45,16 +58,17 @@ function parseOnchainSpirit(obj) {
 
   return {
     objectId,
-    name: fields.name || 'Unknown',
+    // fields.name is vector<u8> returned as base64 — must decode, not use as plain string
+    name: _decodeVecU8(fields.name, 'Unknown'),
     personalityHash: fields.personality_hash || '',
     generation: parseInt(fields.generation || '0', 10),
     createdAt: parseInt(fields.created_at || '0', 10),
     owner: fields.owner || '',
     parentId: fields.parent_id || null,
-    specialization: fields.specialization || 'warrior',
-    memwalAccountId: fields.memwal_account_id || '',
-    essenceBlobId: fields.essence_blob_id || '',
-    avatarBlobId: fields.avatar_blob_id || null,
+    specialization: _decodeVecU8(fields.specialization, 'warrior'),
+    memwalAccountId: _decodeVecU8(fields.memwal_account_id, ''),
+    essenceBlobId: _decodeVecU8(fields.essence_blob_id, ''),
+    avatarBlobId: _decodeVecU8(fields.avatar_blob_id, '') || null,
     status: parseInt(fields.status || '0', 10),
     gamesPlayed: parseInt(fields.games_played || '0', 10),
     totalKills: parseInt(fields.total_kills || '0', 10),
@@ -251,9 +265,18 @@ export async function persistPostGame(gameState, playerId) {
           personalityHash,
           spirit.generation || 0,
           spirit.parentId || null,
+          spirit.specialization || 'warrior',
+          spirit.memwalAccountId || process.env.MEMWAL_ACCOUNT_ID || '',
+          spirit.avatarBlobId || '',
+          null, // recipient: defaults to server keypair address inside mintSpirit
         );
       } catch (err) {
         console.error(`[roster] Mint failed for ${spirit.name}:`, err.message);
+      }
+
+      // Persist the NFT object ID on the spirit so subsequent calls treat it as returning
+      if (objectId) {
+        spirit._nftObjectId = objectId;
       }
 
       minted.push({

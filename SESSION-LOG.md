@@ -178,4 +178,6 @@ Docs updated: README rewritten for memory-centric pivot, project memory updated.
   - Roster essence blobs storing to Walrus testnet (~10KB per spirit)
 - **MemWal:** Still in local cache mode (needs `MEMWAL_DELEGATE_KEY` + `MEMWAL_ACCOUNT_ID` from setup-memwal.js). Not critical for Walrus Track — the captain memory blob storage IS the Walrus integration.
 - **Sui onchain calls:** Failing as expected (spirits use game-internal IDs, not real NFT addresses). Doesn't affect Walrus storage.
-- **Remaining:** Demo video (5 min max), submission materials, optional MemWal testnet activation.
+- **Production readiness audit:** 3-agent parallel scan found 5 critical, 4 high, 4 medium issues. Key: all Sui NFT calls fail (wrong Move function targets + game IDs instead of Sui object IDs), cross-game memory loop broken (blobId never written back to NFT), MemWal per-spirit writes dead code (keyStore never populated), ghost recruit 404 (wrong API path), hero tier invisible on map.
+- **Committed + pushed** `memory-pivot` branch to `origin` (a165ef6). 20 files, +813/-249.
+- **Remaining:** Demo video (5 min max), submission materials, optional MemWal testnet activation. See production audit for full buildout plan (Phases 1-4).

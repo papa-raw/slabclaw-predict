@@ -9,7 +9,6 @@
 import { callLLM } from './llmProxy.js';
 import { storeMemoryServer, recallMemoriesServer } from './memwalServer.js';
 import { propagateWhisperServer, extractDeityIntent } from './whisperService.js';
-import { getKey } from './keyStore.js';
 
 /**
  * Chat with a spirit. Returns the spirit's response, extracted deity intent,
@@ -22,14 +21,12 @@ import { getKey } from './keyStore.js';
  * @returns {Promise<{ response: string, intent: object, whispers: Array<object> }>}
  */
 export async function chatWithSpirit({ spirit, userMessage, gameState }) {
-  const delegateKey = getKey(spirit.id);
-  const accountId = spirit.memwalAccountId;
   const chainOps = [];
   const ts = Date.now();
 
   // 1. Recall relevant memories to give context (non-blocking — degrade gracefully)
   const memories = await recallMemoriesServer(
-    spirit.memwalNamespace, userMessage, 10, delegateKey, accountId
+    spirit.memwalNamespace, userMessage, 10
   ).catch(err => { console.warn(`[dialog] recall failed for ${spirit.name}:`, err.message); return { results: [] }; });
   const memoryContext = memories.results?.map(r => r.text).join('\n') || '';
   chainOps.push({
@@ -51,8 +48,8 @@ export async function chatWithSpirit({ spirit, userMessage, gameState }) {
 
   // 4. Store both messages as memories (non-blocking)
   const storeResults = await Promise.allSettled([
-    storeMemoryServer(spirit.memwalNamespace, `[DEITY] ${userMessage}`, delegateKey, accountId),
-    storeMemoryServer(spirit.memwalNamespace, `[RESPONSE] ${response}`, delegateKey, accountId),
+    storeMemoryServer(spirit.memwalNamespace, `[DEITY] ${userMessage}`),
+    storeMemoryServer(spirit.memwalNamespace, `[RESPONSE] ${response}`),
   ]);
   for (const [i, r] of storeResults.entries()) {
     if (r.status === 'fulfilled') {
@@ -102,9 +99,7 @@ export async function chatWithSpirit({ spirit, userMessage, gameState }) {
     const whisper = whispers[i];
     const wStore = await storeMemoryServer(
       targetSpirit.memwalNamespace,
-      `[WHISPER RECEIVED from ${spirit.name}] ${whisper.text}`,
-      getKey(targetSpirit.id),
-      targetSpirit.memwalAccountId
+      `[WHISPER RECEIVED from ${spirit.name}] ${whisper.text}`
     );
     chainOps.push({
       type: 'whisper_store', service: 'memwal', timestamp: Date.now(),
@@ -221,12 +216,10 @@ RULES:
  * @returns {Promise<{ response: string, chainOps: Array<object> }>}
  */
 export async function chatWithEnemySpirit({ spirit, userMessage, gameState, foreignPlayerId }) {
-  const delegateKey = getKey(spirit.id);
-  const accountId = spirit.memwalAccountId;
   const chainOps = [];
 
   const memories = await recallMemoriesServer(
-    spirit.memwalNamespace, userMessage, 5, delegateKey, accountId
+    spirit.memwalNamespace, userMessage, 5
   ).catch(() => ({ results: [] }));
   const memoryContext = memories.results?.map(r => r.text).join('\n') || '';
   chainOps.push({
@@ -274,9 +267,7 @@ RULES:
   // Store the foreign interaction as a memory
   storeMemoryServer(
     spirit.memwalNamespace,
-    `[FOREIGN DEITY SPOKE] "${userMessage}" — I responded: "${response}"`,
-    delegateKey,
-    accountId
+    `[FOREIGN DEITY SPOKE] "${userMessage}" — I responded: "${response}"`
   ).then(r => {
     if (r?.blob_id) {
       chainOps.push({

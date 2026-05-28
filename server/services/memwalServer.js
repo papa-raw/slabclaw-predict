@@ -74,6 +74,10 @@ export function getMemoryCount(namespace) {
   return getLocalCache(namespace).length;
 }
 
+export function isRealMemwalMode() {
+  return USE_REAL;
+}
+
 export function clearAllMemories() {
   localCache.clear();
 }

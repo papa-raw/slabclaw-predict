@@ -1,4 +1,3 @@
-import { getKey } from './keyStore.js';
 import { storeMemoryServer } from './memwalServer.js';
 import { applyBondAction } from './bondService.js';
 import { claimHex, findRetreatHex } from './territoryService.js';
@@ -123,8 +122,8 @@ export async function resolveBattle(gameState, timer) {
     (evaluation.scores?.attacker?.totalScore || 0) - (evaluation.scores?.defender?.totalScore || 0)
   );
   Promise.allSettled([
-    storeMemoryServer(attacker.memwalNamespace, battleLog, getKey(attacker.id), attacker.memwalAccountId),
-    storeMemoryServer(defender.memwalNamespace, battleLog, getKey(defender.id), defender.memwalAccountId),
+    storeMemoryServer(attacker.memwalNamespace, battleLog),
+    storeMemoryServer(defender.memwalNamespace, battleLog),
     recordBattle(attacker.id, defender.id, winnerSpirit.id, battleMargin, terrain)
       .then(objectId => {
         if (objectId) {

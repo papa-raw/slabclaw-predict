@@ -6,7 +6,6 @@
 
 import { callLLM } from './llmProxy.js';
 import { storeMemoryServer, recallMemoriesServer } from './memwalServer.js';
-import { getKey } from './keyStore.js';
 import { broadcast } from './wsService.js';
 import { createMemory } from './memoryEngine.js';
 
@@ -113,13 +112,11 @@ export async function broadcastSwarmWhisper({ playerId, message, gameState }) {
   const targets = captains.length > 0 ? captains : allSpirits;
 
   await Promise.allSettled(targets.map(async (spirit) => {
-    const key = getKey(spirit.id);
     const isChosen = mentionedName && spirit.name.toLowerCase() === mentionedName;
 
     storeMemoryServer(
       spirit.memwalNamespace,
-      `[DEITY DECREE] "${message}"${isChosen ? ' (YOU WERE NAMED)' : ''}`,
-      key, spirit.memwalAccountId
+      `[DEITY DECREE] "${message}"${isChosen ? ' (YOU WERE NAMED)' : ''}`
     ).catch(() => {});
     spirit.memoryCount = (spirit.memoryCount || 0) + 1;
 
@@ -182,13 +179,11 @@ export async function broadcastEnemyWhisper({ playerId, targetPlayerId, message,
   const results = [];
 
   await Promise.allSettled(targetSpirits.map(async (spirit) => {
-    const key = getKey(spirit.id);
     const resistance = spirit.enemyResistance ?? 50;
 
     storeMemoryServer(
       spirit.memwalNamespace,
-      `[ENEMY WHISPER from ${attackerName}] "${message}"`,
-      key, spirit.memwalAccountId
+      `[ENEMY WHISPER from ${attackerName}] "${message}"`
     ).catch(() => {});
     spirit.memoryCount = (spirit.memoryCount || 0) + 1;
 

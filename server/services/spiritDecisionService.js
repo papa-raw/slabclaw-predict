@@ -5,7 +5,6 @@ import { broadcast } from './wsService.js';
 import { checkSpawnReadiness } from './spawningService.js';
 import { computeBehaviorRules, createMemory } from './memoryEngine.js';
 import { storeMemoryServer } from './memwalServer.js';
-import { getKey } from './keyStore.js';
 
 const DECISION_INTERVAL = 8_000;
 const DIALOG_CHANCE = 0.25;

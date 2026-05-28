@@ -5,7 +5,6 @@ import { applyBondAction } from '../services/bondService.js';
 import { applyDeityIntent, issueRallyCommand } from '../services/spiritDecisionService.js';
 import { readEssence, storeEssence, getStorageMode } from '../services/walrusService.js';
 import { recallMemoriesServer } from '../services/memwalServer.js';
-import { getKey } from '../services/keyStore.js';
 import { applyEssence } from '../services/essenceService.js';
 import { generateAvatarBackground } from '../services/avatarService.js';
 import { pauseGame, resumeGame } from '../services/tickEngine.js';
@@ -15,6 +14,27 @@ import { loadDeityJournal, updateDeityJournal, computeReputationModifiers } from
 import { loadGraveyard, addToGraveyard, attemptRecruitment } from '../services/graveyardService.js';
 import { queryOwnedSpirits, updateSpiritPostGame, markSpiritGhost } from '../services/suiService.js';
 import { serializeForWalrus, deserializeFromWalrus, computeBehaviorRules } from '../services/memoryEngine.js';
+import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const CAPTAIN_BLOBS_FILE = join(__dirname, '../../_data/captain-blobs.json');
+
+function loadCaptainBlobIndex() {
+  try {
+    return JSON.parse(readFileSync(CAPTAIN_BLOBS_FILE, 'utf-8'));
+  } catch { return {}; }
+}
+
+function saveCaptainBlobIndex(index) {
+  try {
+    mkdirSync(dirname(CAPTAIN_BLOBS_FILE), { recursive: true });
+    writeFileSync(CAPTAIN_BLOBS_FILE, JSON.stringify(index, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('[captain-blobs] Failed to persist index:', err.message);
+  }
+}
 
 const PACKAGE_ID = process.env.PACKAGE_ID || '0xb0f9ba3da143c92225ada477204a57fd61bae3f2c5c70e8593ce29eac309da21';
 const ADMIN_CAP = process.env.ADMIN_CAP_ID || '0x87faef3092e7568ecac9c9e2475828ed521bace50f3747e87abb07dc585a6f88';
@@ -168,10 +188,43 @@ router.post('/ready', async (req, res) => {
         }
       }
       if (loaded > 0) {
-        console.log(`[game/ready] Auto-loaded memories for ${loaded} captains from Walrus`);
+        console.log(`[game/ready] Auto-loaded memories for ${loaded} captains from Walrus (NFTs)`);
       }
     } catch (err) {
       console.warn('[game/ready] Walrus memory auto-load failed:', err.message);
+    }
+  }
+
+  // Fallback: load captain memories from local blob index (works without NFTs)
+  if (player.walletAddress) {
+    try {
+      const blobIndex = loadCaptainBlobIndex();
+      const wallet = player.walletAddress;
+      const walletBlobs = blobIndex[wallet];
+      if (walletBlobs && Object.keys(walletBlobs).length > 0) {
+        const captains = Object.values(state.spirits).filter(
+          s => s.playerId === playerId && s.tier === 'captain'
+        );
+        let loaded = 0;
+        for (const [spiritName, entry] of Object.entries(walletBlobs)) {
+          const captain = captains.find(c => c.name === spiritName && (!c.memoryLedger || c.memoryLedger.length === 0));
+          if (!captain) continue;
+          try {
+            const blob = await readEssence(entry.blobId);
+            if (blob && deserializeFromWalrus(blob, captain)) {
+              loaded++;
+              console.log(`[game/ready] Loaded ${captain.memoryLedger.length} memories for ${captain.name} from blob index`);
+            }
+          } catch (err) {
+            console.warn(`[game/ready] Failed to load memories for ${spiritName} from index:`, err.message);
+          }
+        }
+        if (loaded > 0) {
+          console.log(`[game/ready] Auto-loaded memories for ${loaded} captains from local blob index`);
+        }
+      }
+    } catch (err) {
+      console.warn('[game/ready] Local blob index load failed:', err.message);
     }
   }
 
@@ -523,6 +576,19 @@ router.post('/end-persist', async (req, res) => {
     }
     if (results.memoryBlobs.length > 0) {
       console.log(`[end-persist] Stored ${results.memoryBlobs.length} captain memory blobs to Walrus`);
+      const blobIndex = loadCaptainBlobIndex();
+      const wallet = player.walletAddress || playerId;
+      if (!blobIndex[wallet]) blobIndex[wallet] = {};
+      for (const blob of results.memoryBlobs) {
+        blobIndex[wallet][blob.spiritName] = {
+          blobId: blob.blobId,
+          memoryCount: blob.memoryCount,
+          gameId: state.gameId,
+          timestamp: Date.now(),
+        };
+      }
+      saveCaptainBlobIndex(blobIndex);
+      console.log(`[end-persist] Updated captain blob index for ${wallet.slice(0, 12)}... (${results.memoryBlobs.length} entries)`);
     }
 
     // 5. Add dead spirits to graveyard

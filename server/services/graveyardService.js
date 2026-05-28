@@ -1,6 +1,5 @@
 import { storeEssence } from './walrusService.js';
 import { recallMemoriesServer } from './memwalServer.js';
-import { getKey } from './keyStore.js';
 import { callLLM } from './llmProxy.js';
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
@@ -199,8 +198,7 @@ export async function attemptRecruitment(ghostSpiritId, recruitingPlayerId, whis
   if (spirit.memwalNamespace) {
     try {
       const recall = await recallMemoriesServer(
-        spirit.memwalNamespace, 'past life death loyalty deity', 3,
-        getKey(ghostSpiritId), spirit.memwalAccountId
+        spirit.memwalNamespace, 'past life death loyalty deity', 3
       );
       if (recall.results?.length) {
         memories = '\nPast memories:\n' + recall.results.map(r => `- ${r.text}`).join('\n');

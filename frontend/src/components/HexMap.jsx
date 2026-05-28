@@ -692,7 +692,7 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
           const hexSpirits = hex.spiritIds.map(id => spirits[id]).filter(s => s && s.alive);
           if (hexSpirits.length === 0) return [];
 
-          const captains = hexSpirits.filter(s => s.tier === 'captain');
+          const captains = hexSpirits.filter(s => s.tier === 'captain' || s.tier === 'hero');
           const swarmlings = hexSpirits.filter(s => s.tier === 'swarmling');
           const featured = captains;
 

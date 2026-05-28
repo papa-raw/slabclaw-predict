@@ -1,7 +1,6 @@
 import { assignCaptainClass, PROMOTION_THRESHOLDS, LEGENDARY_DEED_XP, CAPTAIN_CLASSES, pickSwarmlingName, AFFINITIES } from '../../lib/classSystem.js';
 import { callLLM } from './llmProxy.js';
 import { storeMemoryServer, recallMemoriesServer } from './memwalServer.js';
-import { getKey } from './keyStore.js';
 import { broadcast } from './wsService.js';
 
 export function checkPromotions(gameState) {
@@ -99,9 +98,8 @@ function promoteToHero(spirit, gameState, events) {
 
 async function generateHeroTitle(spirit, gameState) {
   try {
-    const key = getKey(spirit.id);
     const memories = await recallMemoriesServer(
-      spirit.memwalNamespace, `${spirit.name} legendary deeds`, 5, key, spirit.memwalAccountId
+      spirit.memwalNamespace, `${spirit.name} legendary deeds`, 5
     ).catch(() => ({ results: [] }));
 
     const memContext = memories.results?.map(r => r.text).join('\n') || '(no memories recalled)';

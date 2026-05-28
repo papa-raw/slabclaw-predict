@@ -4,17 +4,7 @@ import { AFFINITIES, CAPTAIN_CLASSES } from '@lib/classSystem.js';
 import { getAvatarUrl } from '@lib/avatarUrl.js';
 import LineageSection from './LineageSection.jsx';
 
-/**
- * SpiritPanel — Spirit detail sidebar with chat interface.
- *
- * Props:
- *   spirit     - spirit object from gameState.spirits
- *   gameState  - full (sanitized) game state
- *   playerId   - current player's ID
- *   onClose    - called when the panel's close button is clicked
- *   messages   - persisted message history for this spirit (lifted to App.jsx)
- *   onMessages - setter to update message history
- */
+/** SpiritPanel — Spirit detail sidebar with memory ledger and behavior rules. */
 export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
   const isMine = spirit?.playerId === playerId;
   const isGhost = spirit?._isGhost || spirit?.playerId === 'ghost';
@@ -36,7 +26,7 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
     if (!recruitMsg.trim() || recruiting) return;
     setRecruiting(true);
     try {
-      const res = await fetch('/api/ghost/recruit', {
+      const res = await fetch('/api/game/ghost/recruit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ghostSpiritId: spirit.id, playerId, message: recruitMsg.trim() }),

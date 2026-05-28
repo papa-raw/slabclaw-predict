@@ -1,6 +1,5 @@
 import crypto from 'crypto';
-import { storeMemoryServer } from './memwalServer.js';
-import { getKey } from './keyStore.js';
+import { storeMemoryServer, isRealMemwalMode } from './memwalServer.js';
 
 const GRUDGE_THRESHOLD = 3;
 const CONFIDENCE_THRESHOLD = 3;
@@ -66,15 +65,14 @@ export function createMemory(spirit, type, outcome, target, gameState) {
     timestamp: Date.now(),
   });
 
-  const key = getKey(spirit.id);
-  if (key) {
-    storeMemoryServer(
-      spirit.memwalNamespace,
-      `[${type}:${outcome}] ${memory.text}`,
-      key,
-      spirit.memwalAccountId
-    ).catch(() => {});
-  }
+  storeMemoryServer(
+    spirit.memwalNamespace,
+    `[${type}:${outcome}] ${memory.text}`
+  ).catch((err) => {
+    if (isRealMemwalMode()) {
+      console.warn(`[MemWal] write failed for ${spirit.name}:`, err?.message || err);
+    }
+  });
 
   return memory;
 }

@@ -8,6 +8,18 @@
  * Real mode (when PACKAGE_ID is set):
  *   - Builds Transaction objects for deployed Move contract entry functions
  *   - Requires SUI_PRIVATE_KEY for signing
+ *
+ * Entry function reference (from Move sources):
+ *   spirit::mint_v2(AdminCap, name, personality_hash, generation, parent_id,
+ *                   specialization, memwal_account_id, avatar_blob_id,
+ *                   recipient, clock, ctx)
+ *   spirit::mint_to(AdminCap, name, personality_hash, generation, parent_id,
+ *                   recipient, clock, ctx)
+ *   battle::record_and_transfer(AdminCap, attacker_id, defender_id, winner_id,
+ *                               margin, terrain, recipient, clock, ctx)
+ *   territory::claim_hex(AdminCap, GameMap (mut), hex_id, controller)
+ *
+ * NOTE: spirit::mint and battle::record are NOT public entry — do not call them.
  */
 
 const PACKAGE_ID = process.env.PACKAGE_ID;
@@ -15,44 +27,53 @@ const SUI_PRIVATE_KEY = process.env.SUI_PRIVATE_KEY;
 const SUI_RPC_URL = process.env.SUI_RPC_URL || 'https://fullnode.testnet.sui.io';
 
 /**
- * Mint a Spirit NFT onchain.
+ * Mint a Spirit NFT onchain via spirit::mint_v2 (the public entry fun).
+ * spirit::mint is NOT public entry — this always routes to mint_v2.
  * @param {string} name
  * @param {string} personalityHash - hex string
  * @param {number} generation
  * @param {string|null} parentId - object ID of parent spirit, or null
+ * @param {string} [specialization] - defaults to 'warrior'
+ * @param {string} [memwalAccountId] - defaults to ''
+ * @param {string} [avatarBlobId] - defaults to ''
+ * @param {string} [recipient] - defaults to server keypair address
  * @returns {Promise<string|null>} objectId or null
  */
-export async function mintSpirit(name, personalityHash, generation, parentId = null) {
+export async function mintSpirit(name, personalityHash, generation, parentId = null, specialization = 'warrior', memwalAccountId = '', avatarBlobId = '', recipient = null) {
   if (!PACKAGE_ID) {
     const mockId = `0x${_mockObjectId('spirit', name)}`;
     console.log(`[sui:mock] mintSpirit name=${name} gen=${generation} → ${mockId}`);
     return mockId;
   }
-  return _mintSpiritReal(name, personalityHash, generation, parentId);
+  return _mintSpiritReal(name, personalityHash, generation, parentId, specialization, memwalAccountId, avatarBlobId, recipient);
 }
 
 /**
- * Record a battle onchain.
- * @param {string} attackerId - object ID
- * @param {string} defenderId - object ID
- * @param {string} winnerId - object ID
- * @param {number} margin - battle margin score
- * @param {string} terrain - terrain type
+ * Record a battle onchain via battle::record_and_transfer (the public entry fun).
+ * battle::record is NOT public entry — this always routes to record_and_transfer.
+ * The BattleRecord is transferred to the server keypair address (winner's record-keeper).
+ * @param {string} attackerId - Sui object ID of attacker spirit
+ * @param {string} defenderId - Sui object ID of defender spirit
+ * @param {string} winnerId - Sui object ID of winning spirit
+ * @param {number} margin - battle margin score (fractional, multiplied ×100 onchain)
+ * @param {string} terrain - terrain type string
+ * @param {string} [recipient] - address to receive the BattleRecord; defaults to server address
  * @returns {Promise<string|null>} objectId of BattleRecord or null
  */
-export async function recordBattle(attackerId, defenderId, winnerId, margin, terrain) {
+export async function recordBattle(attackerId, defenderId, winnerId, margin, terrain, recipient = null) {
   if (!PACKAGE_ID) {
     const mockId = `0x${_mockObjectId('battle', `${attackerId}-${winnerId}`)}`;
     console.log(`[sui:mock] recordBattle attacker=${attackerId} winner=${winnerId} terrain=${terrain} → ${mockId}`);
     return mockId;
   }
-  return _recordBattleReal(attackerId, defenderId, winnerId, margin, terrain);
+  return _recordBattleReal(attackerId, defenderId, winnerId, margin, terrain, recipient);
 }
 
 /**
- * Claim a territory hex onchain.
+ * Claim a territory hex onchain via territory::claim_hex.
+ * Requires GAME_MAP_ID env var (the shared GameMap object).
  * @param {string} hexId
- * @param {string} controllerId - spirit or player address
+ * @param {string} controllerId - SUI address of the controller
  * @returns {Promise<void>}
  */
 export async function claimTerritory(hexId, controllerId) {
@@ -60,21 +81,16 @@ export async function claimTerritory(hexId, controllerId) {
     console.log(`[sui:mock] claimTerritory hexId=${hexId} controller=${controllerId}`);
     return;
   }
+  if (!process.env.GAME_MAP_ID) {
+    console.warn(`[sui:real] claimTerritory skipped — GAME_MAP_ID not set (hexId=${hexId})`);
+    return;
+  }
   return _claimTerritoryReal(hexId, controllerId);
 }
 
-/**
- * Collect spawn fee onchain.
- * @param {string} recipientAddress - SUI address
- * @returns {Promise<void>}
- */
-export async function collectSpawnFee(recipientAddress) {
-  if (!PACKAGE_ID) {
-    console.log(`[sui:mock] collectSpawnFee recipient=${recipientAddress}`);
-    return;
-  }
-  return _collectSpawnFeeReal(recipientAddress);
-}
+// collectSpawnFee removed — dead code, never called by game server.
+// spawn::collect_fee requires a &mut Coin<SUI> from the player's wallet,
+// which cannot be submitted server-side. Handle client-side if needed.
 
 /**
  * Mint a v2 Spirit NFT with all fields, transferred to recipient.
@@ -110,16 +126,8 @@ export async function markSpiritGhost(spiritObjectId) {
   return _markSpiritGhostReal(spiritObjectId);
 }
 
-/**
- * Reincarnate a spirit (status → alive, increment count).
- */
-export async function reincarnateSpirit(spiritObjectId) {
-  if (!PACKAGE_ID) {
-    console.log(`[sui:mock] reincarnateSpirit spirit=${spiritObjectId}`);
-    return spiritObjectId;
-  }
-  return _reincarnateSpiritReal(spiritObjectId);
-}
+// reincarnateSpirit removed — dead code, never called by game server.
+// spirit::reincarnate is still available via _reincarnateSpiritReal if needed later.
 
 /**
  * Query owned Spirit NFTs for a wallet address.
@@ -178,7 +186,12 @@ async function _executeTransaction(tx) {
   }
 }
 
-async function _mintSpiritReal(name, personalityHash, generation, parentId) {
+// _mintSpiritReal — calls spirit::mint_v2 (the sole public entry mint).
+// Signature: mint_v2(AdminCap, name, personality_hash, generation, parent_id,
+//                    specialization, memwal_account_id, avatar_blob_id,
+//                    recipient, clock, ctx)
+// parent_id is Option<ID> — pass none() when null.
+async function _mintSpiritReal(name, personalityHash, generation, parentId, specialization, memwalAccountId, avatarBlobId, recipient) {
   try {
     const { Transaction } = await import('@mysten/sui/transactions');
     const ADMIN_CAP_ID = process.env.ADMIN_CAP_ID;
@@ -187,33 +200,30 @@ async function _mintSpiritReal(name, personalityHash, generation, parentId) {
       return null;
     }
 
-    const tx = new Transaction();
-    const nameBytes = Array.from(Buffer.from(name, 'utf-8'));
-    const hashBytes = Array.from(Buffer.from(personalityHash || '', 'utf-8'));
-
-    if (parentId) {
-      tx.moveCall({
-        target: `${PACKAGE_ID}::spirit::mint`,
-        arguments: [
-          tx.object(ADMIN_CAP_ID),
-          tx.pure.vector('u8', nameBytes),
-          tx.pure.vector('u8', hashBytes),
-          tx.pure.u64(generation),
-          tx.pure.option('address', parentId),
-        ],
-      });
-    } else {
-      tx.moveCall({
-        target: `${PACKAGE_ID}::spirit::mint`,
-        arguments: [
-          tx.object(ADMIN_CAP_ID),
-          tx.pure.vector('u8', nameBytes),
-          tx.pure.vector('u8', hashBytes),
-          tx.pure.u64(generation),
-          tx.pure.option('address', null),
-        ],
-      });
+    // Resolve recipient: fall back to the server keypair's address
+    let resolvedRecipient = recipient;
+    if (!resolvedRecipient) {
+      const keypair = await _getKeypair();
+      resolvedRecipient = keypair.getPublicKey().toSuiAddress();
     }
+
+    const tx = new Transaction();
+    tx.moveCall({
+      target: `${PACKAGE_ID}::spirit::mint_v2`,
+      arguments: [
+        tx.object(ADMIN_CAP_ID),
+        tx.pure.vector('u8', Array.from(Buffer.from(name, 'utf-8'))),
+        tx.pure.vector('u8', Array.from(Buffer.from(personalityHash || '', 'utf-8'))),
+        tx.pure.u64(generation),
+        // parent_id is Option<ID>: pass the ID bytes or none
+        tx.pure.option('id', parentId || null),
+        tx.pure.vector('u8', Array.from(Buffer.from(specialization || 'warrior', 'utf-8'))),
+        tx.pure.vector('u8', Array.from(Buffer.from(memwalAccountId || '', 'utf-8'))),
+        tx.pure.vector('u8', Array.from(Buffer.from(avatarBlobId || '', 'utf-8'))),
+        tx.pure.address(resolvedRecipient),
+        tx.object('0x6'), // Sui system clock
+      ],
+    });
 
     return await _executeTransaction(tx);
   } catch (err) {
@@ -222,29 +232,38 @@ async function _mintSpiritReal(name, personalityHash, generation, parentId) {
   }
 }
 
-async function _recordBattleReal(attackerId, defenderId, winnerId, margin, terrain) {
+// _recordBattleReal — calls battle::record_and_transfer (the sole public entry).
+// Signature: record_and_transfer(AdminCap, attacker_id, defender_id, winner_id,
+//                                margin, terrain, recipient, clock, ctx)
+// attacker_id / defender_id / winner_id are ID (not address) — use tx.pure.id().
+async function _recordBattleReal(attackerId, defenderId, winnerId, margin, terrain, recipient) {
   try {
     const { Transaction } = await import('@mysten/sui/transactions');
-    const { SuiJsonRpcClient } = await import('@mysten/sui/jsonRpc');
     const ADMIN_CAP_ID = process.env.ADMIN_CAP_ID;
-    if (!ADMIN_CAP_ID) return null;
+    if (!ADMIN_CAP_ID) {
+      console.warn('[sui:real] ADMIN_CAP_ID not set — cannot record battle');
+      return null;
+    }
 
-    const suiClient = new SuiJsonRpcClient({ url: SUI_RPC_URL });
-    const clockObj = '0x6'; // Sui system clock object
+    // Resolve recipient: fall back to the server keypair's address
+    let resolvedRecipient = recipient;
+    if (!resolvedRecipient) {
+      const keypair = await _getKeypair();
+      resolvedRecipient = keypair.getPublicKey().toSuiAddress();
+    }
 
     const tx = new Transaction();
-    const terrainBytes = Array.from(Buffer.from(terrain || 'plains', 'utf-8'));
-
     tx.moveCall({
-      target: `${PACKAGE_ID}::battle::record`,
+      target: `${PACKAGE_ID}::battle::record_and_transfer`,
       arguments: [
         tx.object(ADMIN_CAP_ID),
         tx.pure.id(attackerId),
         tx.pure.id(defenderId),
         tx.pure.id(winnerId),
         tx.pure.u64(Math.round(margin * 100)),
-        tx.pure.vector('u8', terrainBytes),
-        tx.object(clockObj),
+        tx.pure.vector('u8', Array.from(Buffer.from(terrain || 'plains', 'utf-8'))),
+        tx.pure.address(resolvedRecipient),
+        tx.object('0x6'), // Sui system clock
       ],
     });
 
@@ -255,6 +274,10 @@ async function _recordBattleReal(attackerId, defenderId, winnerId, margin, terra
   }
 }
 
+// _claimTerritoryReal — calls territory::claim_hex.
+// Signature: claim_hex(AdminCap, GameMap (mut), hex_id, controller)
+// Note: no ctx param — claim_hex modifies a shared object directly.
+// GAME_MAP_ID guard is already applied in the public claimTerritory wrapper.
 async function _claimTerritoryReal(hexId, controllerId) {
   try {
     const { Transaction } = await import('@mysten/sui/transactions');
@@ -281,28 +304,6 @@ async function _claimTerritoryReal(hexId, controllerId) {
   }
 }
 
-async function _collectSpawnFeeReal(recipientAddress) {
-  try {
-    const { Transaction } = await import('@mysten/sui/transactions');
-    const SPAWN_FEE = 10_000_000; // 0.01 SUI in MIST
-
-    const tx = new Transaction();
-    const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(SPAWN_FEE)]);
-
-    tx.moveCall({
-      target: `${PACKAGE_ID}::spawn::collect_fee`,
-      arguments: [
-        coin,
-        tx.pure.address(recipientAddress),
-      ],
-    });
-
-    await _executeTransaction(tx);
-  } catch (err) {
-    console.error('[sui:real] collectSpawnFee failed:', err.message);
-  }
-}
-
 // ── v2 Real implementations ──────────────────────────────────────────────────
 
 async function _mintSpiritV2Real(name, personalityHash, generation, parentId, specialization, memwalAccountId, avatarBlobId, recipient) {
@@ -319,7 +320,8 @@ async function _mintSpiritV2Real(name, personalityHash, generation, parentId, sp
         tx.pure.vector('u8', Array.from(Buffer.from(name, 'utf-8'))),
         tx.pure.vector('u8', Array.from(Buffer.from(personalityHash || '', 'utf-8'))),
         tx.pure.u64(generation),
-        tx.pure.option('address', parentId || null),
+        // parent_id is Option<ID> — must use 'id' not 'address'
+        tx.pure.option('id', parentId || null),
         tx.pure.vector('u8', Array.from(Buffer.from(specialization || '', 'utf-8'))),
         tx.pure.vector('u8', Array.from(Buffer.from(memwalAccountId || '', 'utf-8'))),
         tx.pure.vector('u8', Array.from(Buffer.from(avatarBlobId || '', 'utf-8'))),

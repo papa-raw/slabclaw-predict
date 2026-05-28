@@ -286,6 +286,11 @@ export default function Lobby({ playerId, gameState, chainInfo }) {
                 />
               </button>
             </div>
+            {!gameState.players[playerId]?.walletAddress && (
+              <span className="text-xs font-body" style={{ color: '#ef4444' }}>
+                Connect wallet above to play
+              </span>
+            )}
             <span
               className="inline-flex items-center gap-1.5 font-body text-sm italic"
               style={{ color: 'var(--text-muted)' }}

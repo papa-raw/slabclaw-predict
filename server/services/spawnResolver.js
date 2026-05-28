@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { getKey, setKey } from './keyStore.js';
+import { setKey } from './keyStore.js';
 import { storeMemoryServer } from './memwalServer.js';
 import { mintSpirit } from './suiService.js';
 import { calculateChildTraits } from './spawningService.js';
@@ -79,10 +79,9 @@ export async function resolveSpawn(gameState, timer) {
   if (parent.memorableActions.length > 10) parent.memorableActions = parent.memorableActions.slice(-10);
 
   const log = `[SPAWN] ${parent.name} spent ${traits.memoriesSpent} memories to spawn ${traits.childName} at hex ${parent.hexId}`;
-  const parentKey = getKey(parent.id);
   Promise.allSettled([
-    storeMemoryServer(parent.memwalNamespace, log, parentKey, parent.memwalAccountId),
-    storeMemoryServer(childNs, log, childDelegateKey, childAcctId),
+    storeMemoryServer(parent.memwalNamespace, log),
+    storeMemoryServer(childNs, log),
     mintSpirit(traits.childName, crypto.createHash('sha256').update(traits.childPersonality).digest('hex'), child.generation, parent.id)
       .then(objectId => {
         if (objectId) {
