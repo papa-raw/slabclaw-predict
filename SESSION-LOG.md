@@ -95,3 +95,34 @@
 - **Docs rewritten:** `frontend/public/docs/index.html` updated with all current mechanics (whisper system, soul mining, enemy resistance tiers, spawning costs, XP/bond descriptions, game timing).
 - **Vite docs route:** Added middleware plugin to rewrite `/docs/` → `/docs/index.html` before SPA fallback.
 - **Remaining:** Player name selection (lobby input), stats bars deeper revisit, target hex highlight browser verification, demo video, submission.
+
+### Session Log — 2026-05-28
+**Memory-centric pivot — all 6 phases completed on `memory-pivot` branch (worktree).**
+
+Core changes (17 files, +920/-777 lines):
+- **memoryEngine.js (NEW):** Structured memory schema (BATTLE/DECREE/SCOUT/BETRAYAL/ALLIANCE/DEATH_WITNESS/ENCOUNTER), `createMemory()`, `computeBehaviorRules()` (grudges, confidence, fears, traumaTerrain, insubordinate, veteranBonus), `serializeForWalrus()`/`deserializeFromWalrus()`.
+- **gameInit.js:** 6 captains per player (was 3), 12 swarmlings kept → 108 total spirits. Added `memoryLedger: []` and `behaviorRules: null` to captain struct. Removed heroTitle/heroAbility/promotionXP. Reduced ghosts from 5→2.
+- **winService.js:** 96 ticks (~8 min, was 500/~42 min), 45% territory win (was 50%).
+- **tickEngine.js:** Removed promotionService import and checkPromotions call.
+- **spiritDecisionService.js (complete rewrite, 450 lines from 821):** Decision interval 8s (was 15s). Fully deterministic priority pipeline: Rally→GRUDGE same hex→FEAR retreat→TRAUMA insubordination→Battle current→GRUDGE adjacent→DEITY ORDER→SPAWN→Personality fallback. Template-based dialog (no LLM). Movement speeds: scout 6s, normal 10s.
+- **battleArbiterService.js (complete rewrite):** Stat-based combat (bondAvg + combatXP + specBonus + tierBonus + affinityBonus + memoryBonus). Zero LLM calls.
+- **battleResolver.js:** Creates structured BATTLE WIN/LOSS and DEATH_WITNESS memories for captains after each battle.
+- **spawningService.js + spawnResolver.js (complete rewrite):** Costs 5 memories from captain's ledger (memory economy), 60s duration, no LLM calls. Deterministic child traits.
+- **whisperService.js:** Creates DECREE memories (friendly) and ENCOUNTER memories (enemy) for captains.
+- **game.js routes:** Auto-load captain memories from Walrus on ready (Spirit NFT query). Auto-persist captain memory ledgers to Walrus blobs on end-persist. New `/api/game/spirit/:id/memories` endpoint.
+- **SpiritPanel.jsx:** Behavior rules display (GRUDGE/CONFIDENT/FEARS/TRAUMA/INSUBORDINATE/VETERAN badges). Color-coded memory timeline. Fixed API field name bug (d.memories → d.memoryLedger). Removed PROMOTION_THRESHOLDS import.
+- **PlayerHud.jsx:** Removed hero tier references, added captain memory count to stats.
+- **HexMap.jsx:** Removed hero tier filter, veteran captains (5+ memories) scale 1.1x.
+- **App.jsx:** Game-over screen shows memory ledger summary (grudges, trauma, fears formed), captain memory blob persistence to Walrus with WalrusScan links, "Play Again — memories will auto-load" button, countdown timer in header.
+- **OnchainFooter.jsx:** Replaced Windfall Router link with live captain memory count.
+
+Live-tested full game loop:
+- 108 spirits spawned on 169-hex map
+- 53 captain memories created across 8-minute game
+- Behavior rules computed correctly (grudges, fears, trauma terrain avoidance, veteran bonuses)
+- Game ended at tick 96 with territory-based winner
+- Zero LLM calls during gameplay (all deterministic)
+
+**Bug fixed:** SpiritPanel `d.memories` → `d.memoryLedger` (API field name mismatch — memories never loaded from API endpoint).
+
+**Remaining:** Merge `memory-pivot` branch back to main. Activate real MemWal/Walrus testnet (currently mock). Demo video (5 min max). Submission materials for Sui Overflow.

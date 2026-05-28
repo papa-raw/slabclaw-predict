@@ -23,3 +23,9 @@
 **Root cause:** `isPaused` derived state and its `useEffect` (keyboard listener for Space) were placed AFTER early `return` statements for lobby/finished/loading screens in App.jsx. React requires identical hook count on every render.
 **Fix:** Moved `const isPaused = gameState?.status === 'paused'` and the `useEffect` for keyboard handling above all early returns
 **Mechanism:** When gameState transitioned from lobby to active, the component rendered past the early returns for the first time, encountering new hooks that didn't exist in the previous render
+
+### 2026-05-28 — SpiritPanel memory API field mismatch
+**Symptom:** Clicking "show memories" on a spirit loaded nothing from the API — always showed "No memories yet" even for captains with memories
+**Root cause:** API returns `d.memoryLedger` but SpiritPanel read `d.memories` — undefined always fell back to `[]`
+**Fix:** Changed `d.memories` to `d.memoryLedger` in the fetch handler (SpiritPanel.jsx line 58)
+**Mechanism:** The structured memory ledger was inline in the game state (from WebSocket updates) so the timeline display worked — only the API-fetch fallback path was broken
