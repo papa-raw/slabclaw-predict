@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { SPEC_COLORS, SPEC_ICONS, getPlayerColor } from '@lib/terrainTypes.js';
-import { AFFINITIES, CAPTAIN_CLASSES, PROMOTION_THRESHOLDS } from '@lib/classSystem.js';
+import { AFFINITIES, CAPTAIN_CLASSES } from '@lib/classSystem.js';
 import { getAvatarUrl } from '@lib/avatarUrl.js';
 import LineageSection from './LineageSection.jsx';
 
@@ -55,7 +55,7 @@ export default function SpiritPanel({ spirit, gameState, playerId, onClose }) {
     setLoadingMem(true);
     fetch(`/api/game/spirit/${spirit.id}/memories`)
       .then(r => r.json())
-      .then(d => setMemories(d.memories || []))
+      .then(d => setMemories(d.memoryLedger || []))
       .catch(() => setMemories([]))
       .finally(() => setLoadingMem(false));
   }, [showMemories, spirit?.id]);

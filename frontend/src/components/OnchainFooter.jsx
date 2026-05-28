@@ -40,18 +40,18 @@ export default function OnchainFooter({ chainInfo }) {
           Memory Registry
         </a>
       </div>
-      <div className="flex items-center gap-1.5 text-xs font-mono">
-        <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#86efac' }} />
-        <span style={{ color: 'var(--text-muted)' }}>LLM —</span>
-        <a
-          href="https://windfallrouter.xyz"
-          target="_blank" rel="noopener noreferrer"
-          className="underline"
-          style={{ color: 'var(--spirit-dim)' }}
-        >
-          Windfall Router
-        </a>
-      </div>
+      {chainInfo.stats && (
+        <div className="flex items-center gap-1.5 text-xs font-mono">
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#2dd4bf' }} />
+          <span style={{ color: '#2dd4bf' }}>
+            {chainInfo.stats.totalCaptainMemories || 0} captain memories
+          </span>
+          <span style={{ color: 'var(--text-muted)' }}>·</span>
+          <span style={{ color: 'var(--text-muted)' }}>
+            {chainInfo.stats.totalMemories || 0} on MemWal
+          </span>
+        </div>
+      )}
     </div>
   );
 }

@@ -231,6 +231,11 @@ function GameApp() {
     const totalBattles = (gameState.events || []).filter(e => e.type === 'battle_resolved').length;
     const totalSpawns = (gameState.events || []).filter(e => e.type === 'spawn_complete').length;
     const totalDeaths = Object.values(gameState.spirits).filter(s => !s.alive).length;
+    const allCaptains = Object.values(gameState.spirits).filter(s => s.tier === 'captain');
+    const totalCaptainMemories = allCaptains.reduce((sum, c) => sum + (c.memoryLedger || []).length, 0);
+    const captainsWithGrudges = allCaptains.filter(c => c.behaviorRules && Object.keys(c.behaviorRules.grudges || {}).length > 0).length;
+    const captainsWithTrauma = allCaptains.filter(c => c.behaviorRules && (c.behaviorRules.traumaTerrain || []).length > 0).length;
+    const captainsWithFears = allCaptains.filter(c => c.behaviorRules && Object.keys(c.behaviorRules.fears || {}).length > 0).length;
 
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-abyss)' }}>
@@ -270,6 +275,33 @@ function GameApp() {
             <span>☽ {totalDeaths} fallen</span>
           </div>
 
+          {totalCaptainMemories > 0 && (
+            <div className="rounded-lg p-3 text-left" style={{ background: 'rgba(45,212,191,0.05)', border: '1px solid rgba(45,212,191,0.2)' }}>
+              <div className="text-xs font-mono mb-2 tracking-wider" style={{ color: '#2dd4bf' }}>MEMORY LEDGER</div>
+              <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                <div className="flex justify-between">
+                  <span style={{ color: 'var(--text-muted)' }}>Captain memories</span>
+                  <span style={{ color: '#2dd4bf' }}>{totalCaptainMemories}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span style={{ color: 'var(--text-muted)' }}>Grudges formed</span>
+                  <span style={{ color: '#ef4444' }}>{captainsWithGrudges}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span style={{ color: 'var(--text-muted)' }}>Terrain trauma</span>
+                  <span style={{ color: '#fbbf24' }}>{captainsWithTrauma}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span style={{ color: 'var(--text-muted)' }}>Fears acquired</span>
+                  <span style={{ color: '#a855f7' }}>{captainsWithFears}</span>
+                </div>
+              </div>
+              <p className="text-xs mt-2 italic" style={{ color: 'var(--text-muted)' }}>
+                These memories persist across games on Walrus — your captains will remember.
+              </p>
+            </div>
+          )}
+
           <div className="rounded-lg p-3 text-center" style={{ background: 'var(--bg-surface)', border: '1px solid var(--gold-dim)' }}>
             {persistStatus === 'persisting' && (
               <p className="text-sm font-mono" style={{ color: 'var(--text-secondary)' }}>
@@ -277,10 +309,29 @@ function GameApp() {
               </p>
             )}
             {persistStatus === 'done' && persistResults && (
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <p className="text-sm font-mono" style={{ color: 'var(--gold-bright)' }}>
-                  Swarm persisted
+                  Swarm persisted to Walrus
                 </p>
+                {persistResults.memoryBlobs?.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-xs font-mono" style={{ color: '#2dd4bf' }}>
+                      {persistResults.memoryBlobs.length} captain memory ledgers stored on Walrus
+                    </p>
+                    {persistResults.memoryBlobs.map(blob => (
+                      <div key={blob.spiritId} className="flex items-center justify-between text-xs px-2 py-0.5 rounded" style={{ background: 'rgba(45,212,191,0.08)' }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>{blob.spiritName}</span>
+                        <span className="font-mono" style={{ color: '#2dd4bf' }}>{blob.memoryCount} memories</span>
+                        {blob.blobId && (
+                          <a href={`https://walruscan.com/testnet/blob/${blob.blobId}`} target="_blank" rel="noopener noreferrer"
+                            className="text-teal-500 hover:text-teal-300 transition-colors" style={{ fontSize: '9px' }}>
+                            view on Walrus
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                   {persistResults.roster?.minted?.length || 0} minted, {persistResults.roster?.updated?.length || 0} updated
                   {persistResults.journal ? ' · Journal saved' : ''}
@@ -301,11 +352,15 @@ function GameApp() {
           </div>
 
           <button
-            onClick={() => fetch('/api/game/restart', { method: 'POST' })}
-            className="font-mono text-sm transition-colors"
-            style={{ color: 'var(--text-muted)', textDecoration: 'underline', textUnderlineOffset: '4px' }}
+            onClick={() => {
+              setPersistStatus('idle');
+              setPersistResults(null);
+              fetch('/api/game/restart', { method: 'POST' });
+            }}
+            className="font-mono text-sm px-4 py-2 rounded transition-colors"
+            style={{ color: '#2dd4bf', border: '1px solid rgba(45,212,191,0.3)', background: 'rgba(45,212,191,0.08)' }}
           >
-            Start New Game
+            Play Again — memories will auto-load from Walrus
           </button>
         </div>
       </div>
@@ -375,6 +430,14 @@ function GameApp() {
           >
             {isPaused ? '▶ Resume' : '⏸ Pause'}
           </button>
+          {gameState._tickCount != null && (
+            <span className="text-xs font-mono tabular-nums px-2 py-1 rounded" style={{
+              color: gameState._tickCount > 80 ? '#ef4444' : '#2dd4bf',
+              background: gameState._tickCount > 80 ? 'rgba(239,68,68,0.08)' : 'rgba(45,212,191,0.06)',
+            }}>
+              {Math.max(0, Math.ceil((96 - gameState._tickCount) * 5 / 60))}:{String(Math.max(0, ((96 - gameState._tickCount) * 5) % 60)).padStart(2, '0')}
+            </span>
+          )}
           <button
             onClick={handleExit}
             className="px-2 py-1 rounded text-xs font-mono transition-colors hover:text-red-400"

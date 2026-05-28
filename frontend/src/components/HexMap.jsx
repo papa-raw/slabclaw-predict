@@ -693,10 +693,9 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
           const hexSpirits = hex.spiritIds.map(id => spirits[id]).filter(s => s && s.alive);
           if (hexSpirits.length === 0) return [];
 
-          const heroes = hexSpirits.filter(s => s.tier === 'hero');
           const captains = hexSpirits.filter(s => s.tier === 'captain');
           const swarmlings = hexSpirits.filter(s => s.tier === 'swarmling');
-          const featured = [...heroes, ...captains];
+          const featured = captains;
 
           const elements = [];
 
@@ -786,8 +785,8 @@ export default function HexMap({ hexes, spirits, playerId, selectedSpirit, onSel
             const isSpawning = spirit.currentAction?.type === 'spawning';
             const animState = isBattling ? 'attack' : isMoving ? 'walk' : isSpawning ? 'spawn' : 'idle';
             const face = spiritFacing.current[spirit.id] || 1;
-            const isHero = spirit.tier === 'hero';
-            const scale = isHero ? 1.3 : 1;
+            const hasMemories = (spirit.memoryLedger || []).length > 5;
+            const scale = hasMemories ? 1.1 : 1;
 
             elements.push(
               <g
