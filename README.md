@@ -123,4 +123,4 @@ The oracle produces a weighted median price per card/grade combination, used to 
 
 ## License
 
-MIT
+All rights reserved. This repository is public for hackathon judging purposes only. No license is granted to use, copy, modify, or distribute this code without explicit written permission from the author.
