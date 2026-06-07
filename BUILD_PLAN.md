@@ -19,7 +19,7 @@ From API research (agent a3ecd0e), the DeepBook Predict system on testnet:
 
 **Key insight**: DeepBook Predict uses Block Scholes as the oracle provider. All current markets are crypto (BTC). We'd be the first non-crypto oracle + the first real-world asset prediction market on the platform. This is exactly what judges want to see.
 
-**Integration approach**: We do NOT replace Block Scholes. We create our own oracle (OracleCap) that feeds into DeepBook Predict's settlement mechanism. Our Move contracts bridge SlabClaw's off-chain price data into DeepBook's on-chain oracle format.
+**Integration approach**: We do NOT replace Block Scholes. We create our own oracle (OracleCap) that feeds into DeepBook Predict's settlement mechanism. Our Move contracts bridge SlabClaw's off-chain price data into DeepBook's onchain oracle format.
 
 ---
 
@@ -153,7 +153,7 @@ sui move test
 
 ### Phase 2: Oracle Bridge Service (Days 3-4)
 
-Off-chain Node.js service that reads SlabClaw prices and submits on-chain.
+Off-chain Node.js service that reads SlabClaw prices and submits onchain.
 
 ```
 oracle-bridge/
@@ -162,7 +162,7 @@ oracle-bridge/
 │   ├── index.mjs          # Main loop
 │   ├── price-reader.mjs   # Reads from SlabClaw API (with auth)
 │   ├── settlement.mjs     # Computes TWAP, liquidity checks
-│   ├── sui-client.mjs     # Submits on-chain transactions
+│   ├── sui-client.mjs     # Submits onchain transactions
 │   └── config.mjs         # Asset mappings, thresholds
 ```
 
