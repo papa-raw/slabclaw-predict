@@ -4,7 +4,7 @@
 
 > *"Will PSA 10 Karen's Umbreon exceed $15,000 by July 7, 2026?"* — YES/NO, on-chain, settled against real marketplace data.
 
-**Sui Overflow 2026** · **Walrus track** (memory-backed agents / MemWal) · Explorations / RWA price discovery (secondary)
+**Sui Overflow 2026 · Walrus track** — memory-backed agents / MemWal
 
 ---
 
@@ -114,10 +114,9 @@ docs/                         problem statements + oracle-source research
 
 Sui Move (2024 edition) · React + Vite + Tailwind · `@mysten/dapp-kit` (wallet + signing) · `@mysten/sui` (RPC) · Walrus / MemWal (agent memory + evidence) · TinyFish (source scraping swarm).
 
-## Track positioning
+## Walrus track
 
-- **Walrus (primary).** The memory-backed multi-agent oracle is the deliverable; the markets are the showcase.
-- **Explorations / RWA price discovery (secondary).** Prediction markets as a coordination mechanism for real-world asset valuation.
+The submission is the **memory-backed multi-agent oracle** — a long-running, multi-agent system whose state and learning persist on **MemWal (Walrus Memory)**, with evidence artifacts on Walrus. The collectibles prediction market is the showcase that makes the oracle's value legible: real markets that can only settle if the agents produce a trustworthy, manipulation-resistant price.
 
 ## License
 
