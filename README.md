@@ -118,7 +118,6 @@ Sui Move (2024 edition) · React + Vite + Tailwind · `@mysten/dapp-kit` (wallet
 
 - **Walrus (primary).** The memory-backed multi-agent oracle is the deliverable; the markets are the showcase.
 - **Explorations / RWA price discovery (secondary).** Prediction markets as a coordination mechanism for real-world asset valuation.
-- **Not DeepBook.** DeepBook Predict prices against a BTC **volatility surface** with sub-hour expiries; illiquid collectibles have no vol surface, so the protocol structurally cannot price them. (See `docs/DeepBook-Predict-Problem-Statement.pdf`.)
 
 ## License
 
