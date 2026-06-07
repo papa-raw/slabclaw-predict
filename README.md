@@ -2,7 +2,7 @@
 
 **Prediction markets on real-world collectibles, settled on Sui — priced by a memory-backed, manipulation-resistant multi-agent oracle.**
 
-> *"Will PSA 10 Karen's Umbreon exceed $15,000 by July 7, 2026?"* — YES/NO, on-chain, settled against real marketplace data.
+> *"Will PSA 10 Karen's Umbreon exceed $15,000 by July 7, 2026?"* — YES/NO, onchain, settled against real marketplace data.
 
 **Sui Overflow 2026 · Walrus track** — memory-backed agents / MemWal
 
@@ -21,9 +21,9 @@ The Walrus track asks for *AI agents / agentic workflows with long-term memory (
 - **Multi-agent** — one specialist agent per source (eBay · Fanatics/PWCC · Heritage · Goldin · ALT · CardLadder · Courtyard · TCGplayer · GemRate pop). Each is an expert on its venue's quirks, bot-protection, and PDF result formats.
 - **Long-running + stateful** — agents continuously monitor prices and **remember**: a card's comp history, each source's reliability weight, and previously-seen wash-trade / thin-market manipulation. Cold-start gets smarter every run because memory lives on **MemWal**, not in a single process.
 - **Coordinated** — agents reconcile heterogeneous inputs (last-sale, range, index, auction-realized) into one consensus via **median-of-medians + confidence-weighted median + MAD outlier rejection**, with a **UMA-style dispute/bond** escalation for high-value cards.
-- **Artifact-driven** — every resolution emits an evidence bundle (consensus price, contributing comps, source weights, timestamps) stored on **Walrus** and referenced on-chain, so resolutions are **independently auditable**: don't trust the oracle, verify the blob.
+- **Artifact-driven** — every resolution emits an evidence bundle (consensus price, contributing comps, source weights, timestamps) stored on **Walrus** and referenced onchain, so resolutions are **independently auditable**: don't trust the oracle, verify the blob.
 
-This is durable, portable, multi-agent memory — applied to a real $2B+/yr market that has never had a trustworthy on-chain price.
+This is durable, portable, multi-agent memory — applied to a real $2B+/yr market that has never had a trustworthy onchain price.
 
 ## Architecture
 
@@ -63,7 +63,7 @@ This is durable, portable, multi-agent memory — applied to a real $2B+/yr mark
 | Exact-product oracle (grader+grade, cross-grade stripped) + offline snapshot fallback | ✅ working |
 | **Multi-agent oracle swarm + MemWal memory** (the Walrus deliverable) | 🚧 in progress |
 | Source scanners (ALT, CardLadder, Courtyard, …) + PDF smart-resolvers | 🚧 in progress |
-| Walrus evidence-artifact upload + on-chain reference | 🚧 in progress |
+| Walrus evidence-artifact upload + onchain reference | 🚧 in progress |
 
 > Independent source landscape + manipulation-resistant aggregation design: [`docs/deep-research-oracle-sources.json`](docs/deep-research-oracle-sources.json).
 

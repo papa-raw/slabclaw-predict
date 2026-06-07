@@ -20,7 +20,7 @@
 ### 2026-06-07 — On-chain market IDs scrambled in a single PTB
 **Symptom:** After creating 3 markets in one transaction, `objectChanges` order did NOT match `moveCall` order — constants mislabeled (Charizard id was actually Gengar).
 **Root cause:** `objectChanges` ordering is not guaranteed to match call order within one PTB.
-**Fix:** Create each market in its OWN transaction (`seed-new-cards.mjs`) so each tx's single created Market maps unambiguously; verify by reading on-chain `strike_usd_cents`/`asset_id`.
+**Fix:** Create each market in its OWN transaction (`seed-new-cards.mjs`) so each tx's single created Market maps unambiguously; verify by reading onchain `strike_usd_cents`/`asset_id`.
 
 ### 2026-06-07 — Renamed component, stale JSX reference (no build error)
 **Symptom:** Opening a market detail would throw at runtime.
