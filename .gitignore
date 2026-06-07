@@ -1,13 +1,33 @@
-CLAUDE.md
+# Dependencies
 node_modules/
+
+# Build output
 dist/
 build/
+contracts/slabclaw_predict/build/
+
+# Environment & secrets
 .env
 .env.local
+.env.production
+
+# Internal docs (not for public)
+CLAUDE.md
+BUILD_PLAN.md
+
+# One-off scripts
+oracle-bridge/add-umbreon.mjs
+
+# OS
 .DS_Store
 *.log
+
+# Deployment
 .vercel
-contracts/anima_swarm/build/
+
+# Legacy (anima-swarm → prepivot)
+prepivot/
 _data/
 _harness/
 sdk-tests/
+contracts/anima_swarm/

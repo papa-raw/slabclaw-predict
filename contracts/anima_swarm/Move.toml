@@ -1,9 +1,0 @@
-[package]
-name = "anima_swarm"
-edition = "2024"
-
-[dependencies]
-# Sui framework is auto-included. Add only custom dependencies here.
-
-[addresses]
-anima_swarm = "0x0"

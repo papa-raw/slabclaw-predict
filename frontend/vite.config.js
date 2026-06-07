@@ -1,37 +1,12 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [
-    {
-      name: 'spa-routes',
-      configureServer(server) {
-        server.middlewares.use((req, res, next) => {
-          if (req.url === '/docs' || req.url === '/docs/') {
-            req.url = '/docs/index.html';
-          }
-          if (req.url?.startsWith('/explorer')) {
-            req.url = '/index.html';
-          }
-          next();
-        });
-      },
-    },
-    react(),
-  ],
-  resolve: {
-    alias: {
-      '@lib': path.resolve(__dirname, '../lib'),
-    },
-  },
+  plugins: [react()],
   server: {
+    port: 5174,
     proxy: {
-      '/api': { target: 'http://localhost:3001' },
-      '/ws': { target: 'ws://localhost:3001', ws: true },
+      '/api': { target: 'http://localhost:3456' },
     },
   },
 });
