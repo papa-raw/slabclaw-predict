@@ -99,7 +99,7 @@ export default function RegistryCardLadder({ card, grader = 'PSA', grade = 10, o
             {rows.map((l, i) => <ListingRow key={i} l={l} />)}
             {hidden > 0 && (
               <tr className="border-t border-sc-border/60 cursor-pointer hover:bg-white/[0.02]" onClick={() => setShowAll(true)}>
-                <td colSpan={6} className="px-3 py-1.5 text-[10px] uppercase tracking-wide text-sc-dim">
+                <td colSpan={5} className="px-3 py-1.5 text-[10px] uppercase tracking-wide text-sc-dim">
                   +{hidden} more · <span className="text-sc-accent">show all</span>
                 </td>
               </tr>
@@ -144,9 +144,6 @@ function ListingRow({ l }) {
       </td>
       <td className={`text-right px-2 py-1.5 ${spreadCls}`}>
         {spread != null ? `${isDeal ? '-' : '+'}${absPct.toFixed(1)}%` : '—'}
-      </td>
-      <td className="text-right px-2 py-1.5 text-sc-dim">
-        {l.pop_exact != null ? l.pop_exact.toLocaleString() : '—'}
       </td>
       <td className="text-right px-3 py-1.5">
         {l.url

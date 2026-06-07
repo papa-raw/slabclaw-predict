@@ -15,6 +15,14 @@ CARDS = ["jp-vs-091", "neo1-1st-18", "base5-1st-83"]  # Umbreon, Typhlosion, Dar
 con = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
 con.row_factory = sqlite3.Row
 
+# Never surface upstream aggregator links/hosts in the shipped snapshot.
+def clean_url(u):
+    return None if (u and "pricecharting" in u.lower()) else u
+LOCAL_IMG = {"jp-vs-091": "/cards/jp-vs-091.jpg"}
+def clean_img(pid, u):
+    if pid in LOCAL_IMG: return LOCAL_IMG[pid]
+    return None if (u and "pricecharting" in u.lower()) else u
+
 def q(sql, args=()):
     return [dict(r) for r in con.execute(sql, args).fetchall()]
 
@@ -25,7 +33,7 @@ def build(pid):
     product = {
         "id": prod["id"], "name": prod["name"], "number": prod["number"],
         "variant": prod["variant"], "set": prod["setname"], "setId": prod["set_id"],
-        "edition": prod["edition"], "language": prod["lang"], "image": prod["image"],
+        "edition": prod["edition"], "language": prod["lang"], "image": clean_img(pid, prod["image"]),
     }
 
     oracles = [{
@@ -46,14 +54,14 @@ def build(pid):
     # PSA comps (8/9/10) — chart uses PSA 10 only; include a couple grades for context
     soldComps = [{
         "id": c["id"], "product_id": c["product_id"], "grader": c["grader"], "grade": c["grade"],
-        "source": c["source"], "price": c["price"], "sale_date": c["sale_date"], "title": c["title"], "url": c["url"],
+        "source": "comp", "price": c["price"], "sale_date": c["sale_date"], "title": None, "url": clean_url(c["url"]),
     } for c in q("""SELECT * FROM sold_comps WHERE product_id=? AND grader='PSA' AND grade IN (8,9,10)
                     AND sale_date IS NOT NULL ORDER BY sale_date""", (pid,))]
 
     soldTransactions = [{
         "platform": t["platform"], "salePrice": t["sale_price"], "saleDate": t["sale_date"],
         "saleType": t["sale_type"], "grader": t["grader"], "grade": t["grade"],
-        "certNumber": t["cert_number"], "url": t["listing_url"], "title": t["raw_title"],
+        "certNumber": t["cert_number"], "url": clean_url(t["listing_url"]), "title": t["raw_title"],
     } for t in q("""SELECT * FROM sold_transactions WHERE product_id=? AND grader='PSA' AND grade IN (8,9,10)
                     AND sale_date IS NOT NULL ORDER BY sale_date""", (pid,))]
 
@@ -83,7 +91,7 @@ def build(pid):
             "platform": l["platform"], "grader": l["grader"], "grade": l["grade"], "grade_band": gb,
             "price": l["price_usd"], "spread": l["spread"], "oracle_price": l["oracle_price"],
             "oracle_tier": l["oracle_tier"], "grader_matched": l["grader_matched"],
-            "url": l["url"], "title": l["title"], "pop_exact": l["pop_exact"], "pop_total": l["pop_total"],
+            "url": clean_url(l["url"]), "title": l["title"], "pop_exact": l["pop_exact"], "pop_total": l["pop_total"],
             "listing_type": l["listing_type"], "marketplace": l["marketplace_id"], "condition": l["condition_id"],
         })
     bands = sorted(bands.values(), key=lambda b: -(b["grade_band"] or 0))

@@ -35,7 +35,10 @@ export default function Footer({ onFunded }) {
         <span className="hidden sm:inline">·</span>
         <span className="hidden sm:inline">Sui Overflow 2026 — DeepBook track</span>
         <span className="hidden md:inline">·</span>
-        <span className="hidden md:inline">Built by paparaw.eth</span>
+        <span className="hidden md:inline">Built by{' '}
+          <a href="https://x.com/papa_raw" target="_blank" rel="noopener noreferrer"
+            className="text-sc-dim hover:text-sc-accent transition">paparaw.eth</a>
+        </span>
 
         {/* faucet — pushed right */}
         <div className="flex items-center gap-2.5 ml-auto">
