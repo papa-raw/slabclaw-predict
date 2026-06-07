@@ -5,13 +5,17 @@ export const CONFIG = {
   // Sui network
   rpcUrl: 'https://fullnode.testnet.sui.io:443',
 
-  // Package + objects from deployment
-  packageId: '0x4b9ff1da0e53e129e711ff0a0a8b1c532734f27f2b9f6eb3eadd383cb1b77368',
-  adminCapId: '0x14b5855d11c30364983c2b12b71a73644ff7a906c0fe7320fe1a5085fd5852b7',
-  registryId: '0xd3ad92dd510c3bdcd4d600140a6425d0b205a54fe8b9dcd5ad4c5f0991713819',
+  // Package + objects from TEST_USD deployment (2026-06-07, settles in tUSD)
+  packageId: '0xdc18fc79030aea4a39198d95c73271c41d955b3b548dc5090627bf224af7b141',
+  adminCapId: '0xb7034e084e679df692432a398fbe48d9b6545802ec0740bfedb7addaf4ec4668',
+  registryId: '0x4ce60524409d492d25c46c4d03eb0fa884f51bbdecb4412093723b54b215da3d',
 
-  // OracleCap — authorized oracle operator
-  oracleCapId: '0x4c293a92e3baea5730fd7188efbe3a8165e9b812f1937c779f071e5bb80c1a39',
+  // Shared faucet holding the TEST_USD treasury (public mint)
+  faucetId: '0x53100cc63e89f2a600b65af0efa894f22b20de78f455cafc4f0713c51c26c671',
+  testUsdType: '0xdc18fc79030aea4a39198d95c73271c41d955b3b548dc5090627bf224af7b141::test_usd::TEST_USD',
+
+  // OracleCap — authorized via authorize_oracle after deploy (filled by seed script)
+  oracleCapId: null,
 
   // SlabClaw backend API
   slabclawApi: 'http://localhost:3456',

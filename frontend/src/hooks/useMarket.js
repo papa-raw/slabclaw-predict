@@ -9,18 +9,20 @@ function parseMarketFields(fields) {
     return String(bcsBytes);
   };
 
+  // Field names match the on-chain Market struct: total_yes, total_no, pool
+  // (Balance<TEST_USD> flattens to its u64 value string over JSON-RPC).
   return {
     assetId: toStr(fields.asset_id),
     strikeUsdCents: Number(fields.strike_usd_cents),
     expiryMs: Number(fields.expiry_ms),
     state: Number(fields.state),
-    totalYes: Number(fields.total_yes_shares),
-    totalNo: Number(fields.total_no_shares),
-    poolBalance: Number(fields.pool_balance),
-    proposedPrice: fields.proposed_price_usd_cents ? Number(fields.proposed_price_usd_cents) : null,
+    totalYes: Number(fields.total_yes),
+    totalNo: Number(fields.total_no),
+    poolBalance: Number(fields.pool?.fields?.value ?? fields.pool ?? 0),
+    proposedPrice: fields.proposed_price ? Number(fields.proposed_price) : null,
     proposedAt: fields.proposed_at_ms ? Number(fields.proposed_at_ms) : null,
-    disputeBond: Number(fields.dispute_bond),
-    outcome: fields.outcome !== undefined ? Number(fields.outcome) : null,
+    disputeBond: Number(fields.dispute_bond?.fields?.value ?? fields.dispute_bond ?? 0),
+    outcome: fields.outcome === null || fields.outcome === undefined ? null : fields.outcome,
     description: toStr(fields.description),
   };
 }

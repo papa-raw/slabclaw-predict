@@ -20,12 +20,14 @@ module slabclaw_predict::market {
     use sui::event;
     use sui::clock::{Self, Clock};
     use sui::balance::{Self, Balance};
-    use sui::sui::SUI;
     use sui::coin::{Self, Coin};
     use sui::table::{Self, Table};
     use std::option::{Self, Option};
     use slabclaw_predict::registry::{Self, AdminCap, AssetRegistry};
     use slabclaw_predict::oracle::OracleCap;
+    // Settlement currency: faucet-minted test USD (9 decimals, mirrors MIST so
+    // all share-math constants below are unchanged from the SUI version).
+    use slabclaw_predict::test_usd::TEST_USD;
 
     // ── Constants ───────────────────────────────────────────────────────
 
@@ -62,7 +64,7 @@ module slabclaw_predict::market {
         /// Current market state
         state: u8,
         /// SUI pool backing all positions
-        pool: Balance<SUI>,
+        pool: Balance<TEST_USD>,
         /// Position tracking: address → Position
         positions: Table<address, Position>,
         /// Total YES shares outstanding (in MIST)
@@ -77,7 +79,7 @@ module slabclaw_predict::market {
         /// Number of oracle sources in the proposal
         proposed_sources: u64,
         /// Dispute bond balance (held during dispute)
-        dispute_bond: Balance<SUI>,
+        dispute_bond: Balance<TEST_USD>,
         /// Disputer address
         disputer: Option<address>,
         /// Final outcome: true = YES wins (price > strike), false = NO wins
@@ -198,7 +200,7 @@ module slabclaw_predict::market {
     /// Prediction: asset price WILL exceed strike at expiry.
     public entry fun buy_yes(
         market: &mut Market,
-        payment: Coin<SUI>,
+        payment: Coin<TEST_USD>,
         clock: &Clock,
         ctx: &mut TxContext,
     ) {
@@ -238,7 +240,7 @@ module slabclaw_predict::market {
     /// Prediction: asset price will NOT exceed strike at expiry.
     public entry fun buy_no(
         market: &mut Market,
-        payment: Coin<SUI>,
+        payment: Coin<TEST_USD>,
         clock: &Clock,
         ctx: &mut TxContext,
     ) {
@@ -314,7 +316,7 @@ module slabclaw_predict::market {
     /// Only one dispute per market (first valid disputer wins).
     public entry fun dispute(
         market: &mut Market,
-        bond: Coin<SUI>,
+        bond: Coin<TEST_USD>,
         clock: &Clock,
         ctx: &mut TxContext,
     ) {

@@ -1,114 +1,110 @@
-import { MARKET_STATE, MARKET_STATE_COLORS } from '../constants';
+import { MARKET_STATE } from '../constants';
+import { useCard } from '../hooks/useRegistry';
+import { oracleForGrade, smoothOracleHistory, distanceToStrike } from '../lib/registry';
+import { usd, pct, arrow, timeUntil, sui } from '../lib/format';
+import GradeBadge from './GradeBadge';
+import Sparkline from './Sparkline';
+import { EditionMarks } from './EditionBadges';
 
-function formatUsd(cents) {
-  if (!cents && cents !== 0) return '—';
-  return '$' + (cents / 100).toLocaleString('en-US', { maximumFractionDigits: 0 });
-}
-
-function formatSui(mist) {
-  if (!mist && mist !== 0) return '0';
-  return (mist / 1_000_000_000).toFixed(2);
-}
-
-function timeUntil(ms) {
-  const diff = ms - Date.now();
-  if (diff <= 0) return 'Expired';
-  const days = Math.floor(diff / 86400000);
-  const hours = Math.floor((diff % 86400000) / 3600000);
-  if (days > 0) return `${days}d ${hours}h`;
-  const mins = Math.floor((diff % 3600000) / 60000);
-  return `${hours}h ${mins}m`;
+// Strip redundant "1st Edition" / "— 1st Edition" from set name when edition badge already shows it
+function cleanSet(set, edition) {
+  if (!set) return set;
+  const ed = (edition || '').toLowerCase();
+  if (ed === '1st edition' || ed === '1st') {
+    return set.replace(/\s*[—–-]\s*1st Edition/i, '').replace(/\s+1st Edition/i, '').trim();
+  }
+  return set;
 }
 
 export default function MarketCard({ market, meta, onSelect }) {
+  const { data: card } = useCard(meta?.productId);
+
   const totalShares = market.totalYes + market.totalNo;
-  const yesPercent = totalShares > 0
-    ? Math.round((market.totalYes / totalShares) * 100)
-    : 50;
-  const noPercent = 100 - yesPercent;
-  const stateLabel = MARKET_STATE[market.state] || 'Unknown';
-  const stateColor = MARKET_STATE_COLORS[market.state] || 'text-sc-muted';
+  const yesPct = totalShares > 0 ? Math.round((market.totalYes / totalShares) * 100) : 50;
+  const noPct = 100 - yesPct;
   const expired = market.expiryMs <= Date.now();
+  const strikeDollars = market.strikeUsdCents / 100;
+
+  const oracle = card ? oracleForGrade(card, meta.grader, meta.grade) : null;
+  const rawSeries = card ? smoothOracleHistory(card, meta.grader, meta.grade) : [];
+  const recentMs = Date.now() - 180 * 86400_000; // last 6 months — trims TWAP warmup ramp
+  const series = rawSeries.filter(p => p.t >= recentMs);
+  const dist = oracle ? distanceToStrike(oracle.price, market.strikeUsdCents) : null;
+  const oracleAbove = oracle && oracle.price >= strikeDollars;
 
   return (
     <button
       onClick={() => onSelect(market)}
-      className="bg-sc-card border border-sc-border rounded-xl p-4 text-left hover:border-sc-accent/40 transition-all group w-full"
+      className="group w-full text-left bg-sc-card border border-sc-border rounded-xl p-3.5 hover:border-sc-accent/50 hover:bg-sc-card/80 transition-all"
     >
-      <div className="flex gap-4">
-        {/* Card image */}
-        <div className="w-20 h-28 rounded-lg overflow-hidden bg-sc-surface flex-shrink-0">
+      {/* Top: image + identity + headline strike */}
+      <div className="flex gap-3.5">
+        <div className="w-[72px] h-[100px] rounded-lg overflow-hidden bg-sc-surface shrink-0 ring-1 ring-sc-border shadow-md shadow-black/20">
           {meta?.image ? (
-            <img
-              src={meta.image}
-              alt={meta.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            />
+            <img src={meta.image} alt={meta.name} className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform" loading="lazy" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-sc-muted text-xs">
-              No img
-            </div>
+            <div className="w-full h-full grid place-items-center text-[9px] text-sc-muted">no img</div>
           )}
         </div>
 
-        {/* Market info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <div>
-              <h3 className="font-semibold text-sm truncate">
-                {meta?.name || market.assetId}
-              </h3>
-              <p className="text-xs text-sc-muted mt-0.5">
-                {meta?.set} · {meta?.grader} {meta?.grade}
-              </p>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-semibold text-[13px] text-white truncate">{meta?.name}</span>
+                <span className="text-[11px] text-sc-muted shrink-0">#{meta?.number}</span>
+              </div>
+              <div className="text-[11px] text-sc-muted truncate">{cleanSet(meta?.set, meta?.edition)}</div>
+              <div className="mt-1 flex items-center gap-1.5">
+                <GradeBadge grader={meta?.grader} grade={meta?.grade} />
+                <EditionMarks edition={meta?.edition} language={meta?.language} variant={meta?.variant} />
+              </div>
             </div>
-            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${stateColor} bg-sc-surface`}>
-              {stateLabel}
-            </span>
-          </div>
-
-          {/* Question */}
-          <p className="text-xs text-sc-text/80 mt-2">
-            Will {meta?.grader || 'PSA'} {meta?.grade || 10}{' '}
-            <span className="font-medium">{meta?.name || 'this card'}</span>{' '}
-            exceed{' '}
-            <span className="text-sc-accent font-semibold">
-              {formatUsd(market.strikeUsdCents)}
-            </span>
-            ?
-          </p>
-
-          {/* Probability bar */}
-          <div className="mt-3 flex items-center gap-2">
-            <div className="flex-1 h-2 bg-sc-surface rounded-full overflow-hidden flex">
-              <div
-                className="bg-sc-yes h-full transition-all"
-                style={{ width: `${yesPercent}%` }}
-              />
-              <div
-                className="bg-sc-no h-full transition-all"
-                style={{ width: `${noPercent}%` }}
-              />
+            <div className="text-right shrink-0">
+              <div className="text-[9px] text-sc-muted uppercase tracking-wide">Strike</div>
+              <div className="text-[15px] font-bold text-sc-accent tnum leading-tight">{usd(strikeDollars)}</div>
             </div>
           </div>
 
-          {/* Stats row */}
-          <div className="mt-2 flex items-center gap-4 text-[11px] font-mono">
-            <span className="text-sc-yes">
-              YES {yesPercent}%
-            </span>
-            <span className="text-sc-no">
-              NO {noPercent}%
-            </span>
-            <span className="text-sc-muted ml-auto">
-              {formatSui(market.poolBalance)} SUI
-            </span>
-            <span className="text-sc-muted">
-              {expired ? 'Expired' : timeUntil(market.expiryMs)}
-            </span>
+          {/* Oracle vs strike — inline with identity */}
+          <div className="mt-2">
+            <div className="text-[9px] text-sc-muted uppercase tracking-wide">Oracle now</div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[15px] font-semibold tnum text-white">{oracle ? usd(oracle.price) : '—'}</span>
+              {dist != null && (
+                <span className={`text-[11px] font-semibold tnum ${oracleAbove ? 'text-sc-yes' : 'text-sc-no'}`}>
+                  {arrow(dist)} {pct(Math.abs(dist), { sign: false })} {oracleAbove ? 'over' : 'under'}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Market-implied YES/NO bar */}
+      <div className="mt-3">
+        <div className="h-1.5 rounded-full overflow-hidden flex bg-sc-surface">
+          <div className="bg-sc-yes h-full" style={{ width: `${yesPct}%` }} />
+          <div className="bg-sc-no h-full" style={{ width: `${noPct}%` }} />
+        </div>
+        <div className="mt-1.5 flex items-center gap-3 text-[11px] font-semibold tnum">
+          <span className="text-sc-yes">YES {yesPct}%</span>
+          <span className="text-sc-no">NO {noPct}%</span>
+          <span className="text-sc-muted ml-auto font-normal">{sui(market.poolBalance)} tUSD pool</span>
+          <span className={`font-normal ${expired ? 'text-sc-no' : 'text-sc-dim'}`}>
+            {expired ? 'Expired' : timeUntil(market.expiryMs)}
+          </span>
+        </div>
+      </div>
+
+      {/* Sparkline — full width below the bar */}
+      <div className="mt-2">
+        <Sparkline points={series} strike={strikeDollars} height={40} />
+      </div>
+
+      {market.state !== 0 && (
+        <div className="mt-2 text-[10px] text-sc-amber uppercase tracking-wide">{MARKET_STATE[market.state]}</div>
+      )}
     </button>
   );
 }

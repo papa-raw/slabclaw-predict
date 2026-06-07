@@ -1,0 +1,24 @@
+[
+  {
+    "productId": "neo1-1st-18",
+    "name": "Typhlosion",
+    "set": "Neo Genesis — 1st Edition",
+    "number": "18",
+    "grader": "PSA",
+    "grade": 10,
+    "strikeUsdCents": 400000,
+    "assetId": "NEO1_1ST_18_PSA_1000",
+    "marketId": "0x6d2131461188679225353fb3c299cc16a761e575b68d7b246d9672b025fc5253"
+  },
+  {
+    "productId": "base5-1st-83",
+    "name": "Dark Raichu",
+    "set": "Team Rocket — 1st Edition",
+    "number": "83",
+    "grader": "PSA",
+    "grade": 10,
+    "strikeUsdCents": 600000,
+    "assetId": "BASE5_1ST_83_PSA_1000",
+    "marketId": "0x87a8163df2c4667140f88869df65825182609e633e3b9d772ab6e3a92b6bcade"
+  }
+]

@@ -1,156 +1,72 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useMultipleMarkets } from './hooks/useMarket';
-import { useOraclePrice } from './hooks/useOracle';
-import { DEMO_MARKETS, EXPLORER_URL, PACKAGE_ID } from './constants';
+import { DEMO_MARKETS } from './constants';
 import Header from './components/Header';
 import MarketCard from './components/MarketCard';
-import TradingPanel from './components/TradingPanel';
-
-function OracleProvider({ productId, grader, grade, children }) {
-  const { data, loading, error } = useOraclePrice(productId, grader, grade);
-  return children({ oracle: data, oracleLoading: loading, oracleError: error });
-}
+import MarketDetail from './components/MarketDetail';
+import Footer from './components/Footer';
 
 export default function App() {
-  const [selectedMarket, setSelectedMarket] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
   const marketIds = DEMO_MARKETS.map((m) => m.id);
   const { markets, isLoading, error, refetch } = useMultipleMarkets(marketIds);
 
-  // Merge on-chain data with demo metadata
-  const enriched = markets.map((m) => {
-    const meta = DEMO_MARKETS.find((d) => d.id === m.id);
-    return { ...m, meta };
-  });
+  const enriched = markets.map((m) => ({ ...m, meta: DEMO_MARKETS.find((d) => d.id === m.id) }));
+  const selected = enriched.find((m) => m.id === selectedId) || null;
 
-  const selectedMeta = selectedMarket
-    ? DEMO_MARKETS.find((d) => d.id === selectedMarket.id)
-    : null;
 
   return (
     <div className="min-h-screen bg-sc-bg">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-4 lg:px-6 py-7 pb-24">
         {/* Hero */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold font-display">
-            Prediction Markets for Collectibles
-          </h2>
-          <p className="text-sc-muted mt-2 text-sm max-w-xl">
-            Trade on the future prices of graded Pokemon cards. Powered by a
-            10-platform price oracle and settled on{' '}
-            <a
-              href="https://sui.io"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sc-accent hover:underline"
-            >
-              Sui
-            </a>
-            .
+        <div className="mb-6">
+          <h2 className="text-xl lg:text-2xl font-bold text-white">Prediction markets for graded collectibles</h2>
+          <p className="text-sc-dim mt-1.5 text-sm max-w-2xl">
+            Bet YES/NO on whether a graded card exceeds a strike price by expiry — priced against a
+            real 10-platform oracle and a live history of sold comps. Settled on{' '}
+            <a href="https://sui.io" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">Sui</a> via DeepBook Predict.
           </p>
-        </div>
-
-        {/* Stats bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-          <StatBox label="Markets" value={markets.length} />
-          <StatBox
-            label="Total Volume"
-            value={
-              formatSui(
-                enriched.reduce((sum, m) => sum + (m.poolBalance || 0), 0)
-              ) + ' SUI'
-            }
-          />
-          <StatBox label="Oracle Sources" value="10 platforms" />
-          <StatBox label="Card Universe" value="5,166 cards" />
         </div>
 
         {/* Markets grid */}
         {isLoading ? (
-          <div className="text-center py-20 text-sc-muted">
-            Loading markets from Sui testnet...
-          </div>
+          <SkeletonGrid />
         ) : error ? (
-          <div className="text-center py-20 text-sc-no">
-            Failed to load markets: {error.message}
+          <div className="text-center py-16 text-sc-no text-sm">
+            Failed to load markets from Sui testnet: {error.message}
           </div>
         ) : enriched.length === 0 ? (
-          <div className="text-center py-20 text-sc-muted">
-            No markets found
-          </div>
+          <div className="text-center py-16 text-sc-muted text-sm">No markets found</div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
             {enriched.map((m) => (
-              <MarketCard
-                key={m.id}
-                market={m}
-                meta={m.meta}
-                onSelect={setSelectedMarket}
-              />
+              <MarketCard key={m.id} market={m} meta={m.meta} onSelect={(mk) => setSelectedId(mk.id)} />
             ))}
           </div>
         )}
 
         {/* How it works */}
-        <div className="mt-16 border-t border-sc-border pt-8">
-          <h3 className="text-lg font-semibold font-display mb-4">How It Works</h3>
-          <div className="grid sm:grid-cols-3 gap-6">
-            <Step
-              n={1}
-              title="Pick a Market"
-              desc="Each market asks: will a specific graded card exceed a strike price by the expiry date?"
-            />
-            <Step
-              n={2}
-              title="Buy YES or NO"
-              desc="Deposit SUI to buy shares. Your payout depends on how many shares are on each side."
-            />
-            <Step
-              n={3}
-              title="Oracle Settles"
-              desc="At expiry, SlabClaw's 10-platform oracle proposes the price. After a 24h dispute window, winners claim their payout."
-            />
+        <div className="mt-14 border-t border-sc-border pt-7">
+          <h3 className="text-base font-semibold text-white mb-4">How it works</h3>
+          <div className="grid sm:grid-cols-3 gap-5">
+            <Step n={1} title="Read the evidence" desc="Each market shows the oracle value over time, the strike line, and every recent sold comp — so you bet with data, not vibes." />
+            <Step n={2} title="Grab tUSD & bet" desc="Mint test USD from the footer faucet, then buy YES or NO. Your payout scales with how the pool splits between sides." />
+            <Step n={3} title="Oracle settles" desc="At expiry the 10-platform oracle proposes the price. After a 24h dispute window, winners claim." />
           </div>
         </div>
-
-        {/* Footer */}
-        <footer className="mt-16 border-t border-sc-border pt-6 pb-8 flex flex-wrap items-center gap-4 text-xs text-sc-muted">
-          <a
-            href={`${EXPLORER_URL}/object/${PACKAGE_ID}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-sc-accent transition-colors font-mono"
-          >
-            Contract: {PACKAGE_ID.slice(0, 10)}...
-          </a>
-          <span>·</span>
-          <span>Sui Overflow 2026 — DeepBook Track</span>
-          <span>·</span>
-          <span>Built by paparaw.eth</span>
-        </footer>
       </main>
 
-      {/* Trading modal */}
-      {selectedMarket && selectedMeta && (
-        <OracleProvider
-          productId={selectedMeta.productId}
-          grader={selectedMeta.grader}
-          grade={selectedMeta.grade}
-        >
-          {({ oracle }) => (
-            <TradingPanel
-              market={selectedMarket}
-              meta={selectedMeta}
-              oracle={oracle}
-              onClose={() => setSelectedMarket(null)}
-              onTxSuccess={() => {
-                refetch();
-                setTimeout(() => refetch(), 3000);
-              }}
-            />
-          )}
-        </OracleProvider>
+      <Footer onFunded={refetch} />
+
+      {selected && (
+        <MarketDetail
+          market={selected}
+          meta={selected.meta}
+          onClose={() => setSelectedId(null)}
+          onTxSuccess={() => { refetch(); setTimeout(refetch, 3000); }}
+        />
       )}
     </div>
   );
@@ -158,9 +74,9 @@ export default function App() {
 
 function StatBox({ label, value }) {
   return (
-    <div className="bg-sc-card border border-sc-border rounded-lg p-3">
-      <div className="text-xs text-sc-muted">{label}</div>
-      <div className="text-sm font-semibold font-mono mt-1">{value}</div>
+    <div className="bg-sc-card border border-sc-border rounded-lg px-3 py-2.5">
+      <div className="text-[10px] text-sc-muted uppercase tracking-wide">{label}</div>
+      <div className="text-sm font-semibold tnum text-white mt-0.5">{value}</div>
     </div>
   );
 }
@@ -168,17 +84,32 @@ function StatBox({ label, value }) {
 function Step({ n, title, desc }) {
   return (
     <div className="flex gap-3">
-      <div className="w-7 h-7 rounded-full bg-sc-accent/15 text-sc-accent text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
-        {n}
-      </div>
+      <div className="w-6 h-6 rounded-full bg-sc-accent/15 text-sc-accent text-xs font-bold grid place-items-center shrink-0 mt-0.5">{n}</div>
       <div>
-        <h4 className="text-sm font-semibold">{title}</h4>
-        <p className="text-xs text-sc-muted mt-1">{desc}</p>
+        <h4 className="text-sm font-semibold text-white">{title}</h4>
+        <p className="text-xs text-sc-dim mt-1 leading-relaxed">{desc}</p>
       </div>
     </div>
   );
 }
 
-function formatSui(mist) {
-  return (mist / 1_000_000_000).toFixed(2);
+function SkeletonGrid() {
+  return (
+    <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="bg-sc-card border border-sc-border rounded-xl p-3.5 animate-pulse">
+          <div className="flex gap-3">
+            <div className="w-[52px] h-[72px] rounded-md bg-sc-surface" />
+            <div className="flex-1 space-y-2 pt-1">
+              <div className="h-3 bg-sc-surface rounded w-2/3" />
+              <div className="h-2.5 bg-sc-surface rounded w-1/2" />
+              <div className="h-4 bg-sc-surface rounded w-1/3" />
+            </div>
+          </div>
+          <div className="h-9 bg-sc-surface rounded mt-3" />
+          <div className="h-1.5 bg-sc-surface rounded-full mt-3" />
+        </div>
+      ))}
+    </div>
+  );
 }

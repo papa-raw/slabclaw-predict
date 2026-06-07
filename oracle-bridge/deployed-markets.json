@@ -1,0 +1,38 @@
+[
+  {
+    "productId": "base1-1st-4",
+    "name": "Charizard",
+    "set": "Base Set — 1st Edition",
+    "number": "4",
+    "grader": "PSA",
+    "grade": 10,
+    "strikeUsdCents": 700000,
+    "expiryMs": 1783414818889,
+    "assetId": "BASE1_1ST_4_PSA_1000",
+    "marketId": "0x09f9b745630256da872981c21431d8c1d8caa731ecfe746a848c3d1e353d3a52"
+  },
+  {
+    "productId": "jp-vs-091",
+    "name": "Karen's Umbreon",
+    "set": "Pokémon Card VS — 1st Ed",
+    "number": "091",
+    "grader": "PSA",
+    "grade": 10,
+    "strikeUsdCents": 1500000,
+    "expiryMs": 1783414818889,
+    "assetId": "JP_VS_091_PSA_1000",
+    "marketId": "0x525bf6e947b3561e9a859b16e01c3d784ba2e769fd1ce5b2d8fc5f4bd19c49c8"
+  },
+  {
+    "productId": "base3-1st-5",
+    "name": "Gengar 1st Edition",
+    "set": "Fossil — 1st Edition",
+    "number": "5",
+    "grader": "PSA",
+    "grade": 10,
+    "strikeUsdCents": 15000,
+    "expiryMs": 1783414818889,
+    "assetId": "BASE3_1ST_5_PSA_1000",
+    "marketId": "0x9ff720825c07801568a46dede7e6f8f54b16b90077e5dc0bf287483661fdc44e"
+  }
+]

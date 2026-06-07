@@ -3,7 +3,7 @@ module slabclaw_predict::market_tests {
     use sui::test_scenario::{Self as ts};
     use sui::clock::{Self};
     use sui::coin::{Self};
-    use sui::sui::SUI;
+    use slabclaw_predict::test_usd::TEST_USD;
     use slabclaw_predict::market::{Self, Market};
     use slabclaw_predict::oracle;
     use slabclaw_predict::registry;
@@ -147,7 +147,7 @@ module slabclaw_predict::market_tests {
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
             clock::set_for_testing(&mut clock, 1_700_000_000_000);
 
-            let payment = coin::mint_for_testing<SUI>(10 * ONE_SUI, ts::ctx(&mut scenario));
+            let payment = coin::mint_for_testing<TEST_USD>(10 * ONE_SUI, ts::ctx(&mut scenario));
             market::buy_yes(&mut market, payment, &clock, ts::ctx(&mut scenario));
 
             assert!(market::total_yes(&market) == 10 * ONE_SUI, 0);
@@ -167,7 +167,7 @@ module slabclaw_predict::market_tests {
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
             clock::set_for_testing(&mut clock, 1_700_000_000_000);
 
-            let payment = coin::mint_for_testing<SUI>(5 * ONE_SUI, ts::ctx(&mut scenario));
+            let payment = coin::mint_for_testing<TEST_USD>(5 * ONE_SUI, ts::ctx(&mut scenario));
             market::buy_no(&mut market, payment, &clock, ts::ctx(&mut scenario));
 
             assert!(market::total_yes(&market) == 10 * ONE_SUI, 4);
@@ -213,7 +213,7 @@ module slabclaw_predict::market_tests {
             let mut market = ts::take_shared<Market>(&scenario);
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
             clock::set_for_testing(&mut clock, 1_050_000_000_000);
-            let payment = coin::mint_for_testing<SUI>(10 * ONE_SUI, ts::ctx(&mut scenario));
+            let payment = coin::mint_for_testing<TEST_USD>(10 * ONE_SUI, ts::ctx(&mut scenario));
             market::buy_yes(&mut market, payment, &clock, ts::ctx(&mut scenario));
             clock::destroy_for_testing(clock);
             ts::return_shared(market);
@@ -225,7 +225,7 @@ module slabclaw_predict::market_tests {
             let mut market = ts::take_shared<Market>(&scenario);
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
             clock::set_for_testing(&mut clock, 1_050_000_000_000);
-            let payment = coin::mint_for_testing<SUI>(5 * ONE_SUI, ts::ctx(&mut scenario));
+            let payment = coin::mint_for_testing<TEST_USD>(5 * ONE_SUI, ts::ctx(&mut scenario));
             market::buy_no(&mut market, payment, &clock, ts::ctx(&mut scenario));
             clock::destroy_for_testing(clock);
             ts::return_shared(market);
@@ -314,7 +314,7 @@ module slabclaw_predict::market_tests {
             let mut market = ts::take_shared<Market>(&scenario);
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
             clock::set_for_testing(&mut clock, 1_050_000_000_000);
-            let payment = coin::mint_for_testing<SUI>(5 * ONE_SUI, ts::ctx(&mut scenario));
+            let payment = coin::mint_for_testing<TEST_USD>(5 * ONE_SUI, ts::ctx(&mut scenario));
             market::buy_no(&mut market, payment, &clock, ts::ctx(&mut scenario));
             clock::destroy_for_testing(clock);
             ts::return_shared(market);
@@ -326,7 +326,7 @@ module slabclaw_predict::market_tests {
             let mut market = ts::take_shared<Market>(&scenario);
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
             clock::set_for_testing(&mut clock, 1_050_000_000_000);
-            let payment = coin::mint_for_testing<SUI>(5 * ONE_SUI, ts::ctx(&mut scenario));
+            let payment = coin::mint_for_testing<TEST_USD>(5 * ONE_SUI, ts::ctx(&mut scenario));
             market::buy_yes(&mut market, payment, &clock, ts::ctx(&mut scenario));
             clock::destroy_for_testing(clock);
             ts::return_shared(market);
@@ -388,7 +388,7 @@ module slabclaw_predict::market_tests {
             let mut market = ts::take_shared<Market>(&scenario);
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
             clock::set_for_testing(&mut clock, 1_050_000_000_000);
-            let payment = coin::mint_for_testing<SUI>(10 * ONE_SUI, ts::ctx(&mut scenario));
+            let payment = coin::mint_for_testing<TEST_USD>(10 * ONE_SUI, ts::ctx(&mut scenario));
             market::buy_yes(&mut market, payment, &clock, ts::ctx(&mut scenario));
             clock::destroy_for_testing(clock);
             ts::return_shared(market);
@@ -398,7 +398,7 @@ module slabclaw_predict::market_tests {
             let mut market = ts::take_shared<Market>(&scenario);
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
             clock::set_for_testing(&mut clock, 1_050_000_000_000);
-            let payment = coin::mint_for_testing<SUI>(10 * ONE_SUI, ts::ctx(&mut scenario));
+            let payment = coin::mint_for_testing<TEST_USD>(10 * ONE_SUI, ts::ctx(&mut scenario));
             market::buy_no(&mut market, payment, &clock, ts::ctx(&mut scenario));
             clock::destroy_for_testing(clock);
             ts::return_shared(market);
@@ -424,7 +424,7 @@ module slabclaw_predict::market_tests {
             let mut market = ts::take_shared<Market>(&scenario);
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
             clock::set_for_testing(&mut clock, 1_100_000_000_002);
-            let bond = coin::mint_for_testing<SUI>(10 * ONE_SUI, ts::ctx(&mut scenario));
+            let bond = coin::mint_for_testing<TEST_USD>(10 * ONE_SUI, ts::ctx(&mut scenario));
             market::dispute(&mut market, bond, &clock, ts::ctx(&mut scenario));
             assert!(market::state(&market) == market::state_disputed(), 0);
             clock::destroy_for_testing(clock);

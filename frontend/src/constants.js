@@ -1,8 +1,15 @@
 /// SlabClaw Predict — on-chain constants and config.
 
-export const PACKAGE_ID = '0x4b9ff1da0e53e129e711ff0a0a8b1c532734f27f2b9f6eb3eadd383cb1b77368';
-export const REGISTRY_ID = '0xd3ad92dd510c3bdcd4d600140a6425d0b205a54fe8b9dcd5ad4c5f0991713819';
+// TEST_USD deployment (2026-06-07). Markets settle in faucet-minted tUSD.
+export const PACKAGE_ID = '0xdc18fc79030aea4a39198d95c73271c41d955b3b548dc5090627bf224af7b141';
+export const REGISTRY_ID = '0x4ce60524409d492d25c46c4d03eb0fa884f51bbdecb4412093723b54b215da3d';
+export const FAUCET_ID = '0x53100cc63e89f2a600b65af0efa894f22b20de78f455cafc4f0713c51c26c671';
+export const TEST_USD_TYPE = `${PACKAGE_ID}::test_usd::TEST_USD`;
 export const CLOCK_ID = '0x6';
+
+// Faucet drip + bet denomination (tUSD has 9 decimals, mirrors MIST).
+export const USD_DECIMALS = 9;
+export const FAUCET_DRIP = 10_000; // tUSD per faucet click
 
 export const NETWORK = 'testnet';
 export const RPC_URL = 'https://fullnode.testnet.sui.io:443';
@@ -23,45 +30,63 @@ export const MARKET_STATE_COLORS = {
   3: 'text-sc-muted',
 };
 
-// Hardcoded testnet markets for demo (read from chain in production)
+// Era metadata for the navbar KPI strip (mirrors registry.html). Keyed to
+// /api/registry/era-trends ("base", "rocket", "neo", "ecard", "promo").
+export const ERAS = [
+  { key: 'base', label: 'Base' },
+  { key: 'rocket', label: 'Rocket' },
+  { key: 'neo', label: 'Neo' },
+  { key: 'ecard', label: 'e-Card' },
+  { key: 'promo', label: 'Promo' },
+];
+
+// Testnet markets. `productId` MUST match a SlabClaw registry id so the
+// off-chain oracle/evidence layer can hydrate each market (live + snapshot).
 export const DEMO_MARKETS = [
   {
-    id: '0x18b66b969c73540f13f0e8a1e0d3e52dd851846426a7f3c23da780753b12d1a5',
-    assetId: 'BASE1_4_PSA_1000',
-    name: 'Charizard',
-    set: 'Base Set',
-    number: '4',
+    id: '0x6d2131461188679225353fb3c299cc16a761e575b68d7b246d9672b025fc5253',
+    assetId: 'NEO1_1ST_18_PSA_1000',
+    name: 'Typhlosion',
+    set: 'Neo Genesis — 1st Edition',
+    year: 2000,
+    number: '18',
     grader: 'PSA',
     grade: 10,
-    strikeUsdCents: 700000,
-    expiryMs: 1783409438449,
-    image: 'https://images.pokemontcg.io/base1/4.png',
-    productId: 'base1-4',
+    strikeUsdCents: 400000,
+    edition: '1st Edition',
+    language: 'en',
+    image: 'https://images.pokemontcg.io/neo1/18.png',
+    productId: 'neo1-1st-18',
   },
   {
-    id: '0xc6fa8bd10463d6bbf34a1b47c78d266ffa5d1c9f28e07f5bcca1efa4ebb83d7b',
+    id: '0x9ff720825c07801568a46dede7e6f8f54b16b90077e5dc0bf287483661fdc44e',
     assetId: 'JP_VS_091_PSA_1000',
     name: "Karen's Umbreon",
-    set: 'Pokemon Card VS',
+    set: 'Pokémon Card VS — 1st Edition',
+    year: 2001,
     number: '091',
     grader: 'PSA',
     grade: 10,
     strikeUsdCents: 1500000,
-    expiryMs: 1783409438449,
-    image: 'https://storage.googleapis.com/images.pricecharting.com/93ce0926881c51b6c05f154908369f0d8832e13c0d12a632f366b0d7ebbdf90f/240.jpg',
+    chartStartMs: 1759276800000, // start chart at Oct 1, 2025
+    edition: '1st Edition',
+    language: 'ja',
+    image: '/cards/jp-vs-091.jpg',
     productId: 'jp-vs-091',
   },
   {
-    id: '0x232b13e7c776a2b120be6d05679f199eac0d4b388bf022ffa53d78a31a513909',
-    assetId: 'BASE3_1ST_5_PSA_1000',
-    name: 'Gengar 1st Edition',
-    set: 'Fossil',
-    number: '5',
+    id: '0x87a8163df2c4667140f88869df65825182609e633e3b9d772ab6e3a92b6bcade',
+    assetId: 'BASE5_1ST_83_PSA_1000',
+    name: 'Dark Raichu',
+    set: 'Team Rocket — 1st Edition',
+    year: 2000,
+    number: '83',
     grader: 'PSA',
     grade: 10,
-    strikeUsdCents: 15000,
-    expiryMs: 1783409440632,
-    image: 'https://images.pokemontcg.io/base3/5.png',
-    productId: 'base3-1st-5',
+    strikeUsdCents: 600000,
+    edition: '1st Edition',
+    language: 'en',
+    image: 'https://images.pokemontcg.io/base5/83.png',
+    productId: 'base5-1st-83',
   },
 ];
