@@ -14,8 +14,8 @@ export const CONFIG = {
   faucetId: '0x53100cc63e89f2a600b65af0efa894f22b20de78f455cafc4f0713c51c26c671',
   testUsdType: '0xdc18fc79030aea4a39198d95c73271c41d955b3b548dc5090627bf224af7b141::test_usd::TEST_USD',
 
-  // OracleCap — authorized via authorize_oracle after deploy (filled by seed script)
-  oracleCapId: null,
+  // OracleCap — authorized oracle operator on the TEST_USD package (2026-06-07)
+  oracleCapId: '0x183ae11027654706f8061221e62f5eccd56d0e0d56357293cf9e9f715fa424ac',
 
   // SlabClaw backend API
   slabclawApi: 'http://localhost:3456',

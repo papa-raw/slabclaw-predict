@@ -1,9 +1,9 @@
 /// MarketDetail — full evidence-rich market page (echoes registry card-detail layout).
-/// Chart (centerpiece) + evidence ladder + recent comps + resolution + on-chain trade.
+/// Chart (centerpiece) + evidence ladder + recent comps + resolution + onchain trade.
 
 import { useState } from 'react';
 import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
-import { buildBuyYes, buildBuyNo, buildClaim } from '../lib/transactions';
+import { buildBuyYes, buildBuyNo, buildClaim, buildDispute, buildFinalize } from '../lib/transactions';
 import { MARKET_STATE, EXPLORER_URL } from '../constants';
 import { useCard } from '../hooks/useRegistry';
 import { useTusdBalance } from '../hooks/useTusd';
@@ -43,15 +43,17 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
           <span className="text-[10px] font-semibold text-sc-amber tracking-wide">PREDICT</span>
         </button>
 
-        {/* Center: card identity */}
-        <div className="flex items-center gap-2 min-w-0 flex-1 justify-center">
-          <span className="text-[13px] font-semibold text-white truncate">{meta.name}</span>
-          <span className="text-[11px] text-sc-muted shrink-0">#{meta.number}</span>
-          <GradeBadge grader={meta.grader} grade={meta.grade} />
-          <EditionMarks edition={meta.edition} language={meta.language} variant={meta.variant} />
-          {market.state !== 0 && (
-            <span className="text-[10px] text-sc-amber uppercase tracking-wide">{MARKET_STATE[market.state]}</span>
-          )}
+        {/* Center: card identity chip */}
+        <div className="flex items-center min-w-0 flex-1 justify-center">
+          <div className="inline-flex items-center gap-2 bg-sc-surface/60 border border-sc-border/60 rounded-full px-3.5 py-1">
+            <span className="text-[13px] font-semibold text-white truncate">{meta.name}</span>
+            <span className="text-[11px] text-sc-muted shrink-0">#{meta.number}</span>
+            <GradeBadge grader={meta.grader} grade={meta.grade} />
+            <EditionMarks edition={meta.edition} language={meta.language} variant={meta.variant} />
+            {market.state !== 0 && (
+              <span className={`text-[10px] uppercase tracking-wide ${market.state === 2 ? 'text-sc-no font-semibold' : 'text-sc-amber'}`}>{MARKET_STATE[market.state]}</span>
+            )}
+          </div>
         </div>
 
         {/* Right: testnet + wallet */}
@@ -89,7 +91,14 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
               <span className="text-sc-border">·</span>
               <span>{meta.grader} {meta.grade}</span>
               <span className="text-sc-border">·</span>
-              <span className="font-mono text-[10px] text-sc-dim" title="On-chain asset id">{meta.assetId}</span>
+              <span className="inline-flex items-center gap-1 font-mono text-[10px] text-sc-dim">
+                {meta.assetId}
+                <InfoTip>
+                  The immutable <span className="text-sc-text">onchain asset ID</span> this market settles on.
+                  It encodes set · card number · grader · grade (grade in basis points — PSA 10 = 1000),
+                  binding the market to exactly one product so resolution is never ambiguous.
+                </InfoTip>
+              </span>
             </div>
 
             {/* stat cards — pill-style with subtle bg */}
@@ -117,6 +126,11 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
             </div>
           </div>
         </div>
+
+        {/* dispute/resolution banner for non-active markets */}
+        {market.state !== 0 && (
+          <DisputePanel market={market} meta={meta} strikeDollars={strikeDollars} onTxSuccess={onTxSuccess} />
+        )}
 
         {/* chart (with tabs) + trade, side by side */}
         <div className="grid lg:grid-cols-3 gap-5 mb-5">
@@ -149,6 +163,265 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
         <RegistryCardLadder card={card} grader={meta.grader} grade={meta.grade} oracle={oracle} />
       </div>
     </div>
+  );
+}
+
+// ── Dispute / Resolution Panel ──────────────────────────────────────
+// Full-width banner showing the current resolution state + dispute flow steps + participation CTAs.
+const MIN_DISPUTE_BOND = 10_000; // tUSD (matches contract MIN_DISPUTE_BOND / 1e9)
+
+function DisputePanel({ market, meta, strikeDollars, onTxSuccess }) {
+  const account = useCurrentAccount();
+  const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
+  const [status, setStatus] = useState(null); // null | 'signing' | 'success' | 'error'
+  const [txDigest, setTxDigest] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+  const [bondAmount, setBondAmount] = useState(String(MIN_DISPUTE_BOND));
+
+  const proposedDollars = market.proposedPrice ? market.proposedPrice / 100 : null;
+  const proposedAbove = proposedDollars != null && proposedDollars > strikeDollars;
+  const proposedOutcome = proposedAbove ? 'YES' : 'NO';
+  const isDisputed = market.state === 2;
+  const isProposed = market.state === 1;
+  const isSettled = market.state === 3;
+
+  // Dispute window: proposedAt + 24h
+  const disputeDeadlineMs = market.proposedAt ? market.proposedAt + 86_400_000 : null;
+  const disputeWindowOpen = disputeDeadlineMs && Date.now() < disputeDeadlineMs;
+
+  // truncate address: 0xabcd…1234
+  const short = (addr) => {
+    if (!addr) return '—';
+    const s = typeof addr === 'string' ? addr : addr?.toString?.() ?? '—';
+    return s.length > 16 ? `${s.slice(0, 6)}…${s.slice(-4)}` : s;
+  };
+
+  async function run(buildTx, label) {
+    if (!account) return;
+    setStatus('signing'); setErrorMsg(null); setTxDigest(null);
+    try {
+      const result = await signAndExecute({ transaction: buildTx() });
+      setTxDigest(result.digest); setStatus('success'); onTxSuccess?.();
+    } catch (err) {
+      setErrorMsg(err.message || `${label} failed`); setStatus('error');
+    }
+  }
+
+  const submitDispute = () => {
+    const amt = parseFloat(bondAmount);
+    if (isNaN(amt) || amt < MIN_DISPUTE_BOND) return;
+    run(() => buildDispute(market.id, amt), 'Dispute');
+  };
+
+  const submitFinalize = () => {
+    run(() => buildFinalize(market.id), 'Finalize');
+  };
+
+  // Color scheme by state
+  const borderCls = isDisputed ? 'border-sc-no/40' : isProposed ? 'border-sc-amber/40' : 'border-sc-border';
+  const bgCls = isDisputed ? 'bg-sc-no/5' : isProposed ? 'bg-sc-amber/5' : 'bg-sc-surface/30';
+
+  return (
+    <div className={`mb-5 rounded-xl ${bgCls} border ${borderCls} overflow-hidden`}>
+      {/* header */}
+      <div className={`px-4 py-2.5 border-b ${borderCls} flex items-center justify-between`}>
+        <div className="flex items-center gap-2.5">
+          <span className={`text-[11px] font-bold uppercase tracking-wide ${isDisputed ? 'text-sc-no' : isProposed ? 'text-sc-amber' : 'text-sc-muted'}`}>
+            {MARKET_STATE[market.state]}
+          </span>
+          {isDisputed && <span className="text-[10px] text-sc-dim">Oracle proposal challenged — awaiting admin resolution</span>}
+          {isProposed && disputeWindowOpen && <span className="text-[10px] text-sc-dim">Dispute window closes in {timeUntil(disputeDeadlineMs)}</span>}
+          {isProposed && !disputeWindowOpen && <span className="text-[10px] text-sc-yes">Dispute window closed — ready to finalize</span>}
+        </div>
+        <a href={`${EXPLORER_URL}/object/${market.id}`} target="_blank" rel="noopener noreferrer"
+          className="text-[10px] text-sc-accent hover:underline font-mono shrink-0">View onchain ↗</a>
+      </div>
+
+      <div className="px-4 py-3">
+        {/* Flow steps — visualize where we are in the resolution lifecycle */}
+        <div className="flex items-center gap-0 mb-4 overflow-x-auto">
+          <FlowStep n={1} label="Expired" done active={false} />
+          <FlowArrow />
+          <FlowStep n={2} label="Oracle proposed" done active={false} />
+          <FlowArrow />
+          {isDisputed || isSettled ? (
+            <>
+              <FlowStep n={3} label="Disputed" done={isSettled} active={isDisputed} disputed={isDisputed} />
+              <FlowArrow />
+              <FlowStep n={4} label="Admin resolves" done={isSettled} active={false} />
+            </>
+          ) : (
+            <>
+              <FlowStep n={3} label="Dispute window" done={!disputeWindowOpen} active={disputeWindowOpen} />
+              <FlowArrow />
+              <FlowStep n={4} label="Finalize" done={isSettled} active={isProposed && !disputeWindowOpen} />
+            </>
+          )}
+          <FlowArrow />
+          <FlowStep n={5} label="Claim" done={false} active={false} />
+        </div>
+
+        {/* Detail grid */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {proposedDollars != null && (
+            <div className="bg-sc-surface/50 rounded-lg px-3 py-2">
+              <div className="text-[9px] text-sc-muted uppercase tracking-wide">Oracle proposed</div>
+              <div className={`text-[15px] font-bold tnum ${proposedAbove ? 'text-sc-yes' : 'text-sc-no'}`}>{usd(proposedDollars)}</div>
+              <div className="text-[10px] text-sc-dim">→ {proposedOutcome} wins · strike {usd(strikeDollars)}</div>
+            </div>
+          )}
+
+          {market.proposedSources != null && (
+            <div className="bg-sc-surface/50 rounded-lg px-3 py-2">
+              <div className="text-[9px] text-sc-muted uppercase tracking-wide">Oracle sources</div>
+              <div className="text-[15px] font-bold tnum text-white">{market.proposedSources}</div>
+              <div className="text-[10px] text-sc-dim">platforms confirmed price</div>
+            </div>
+          )}
+
+          {isDisputed && market.disputeBond > 0 && (
+            <div className="bg-sc-surface/50 rounded-lg px-3 py-2">
+              <div className="text-[9px] text-sc-muted uppercase tracking-wide">Dispute bond</div>
+              <div className="text-[15px] font-bold tnum text-sc-no">{sui(market.disputeBond)} tUSD</div>
+              <div className="text-[10px] text-sc-dim">staked by disputer</div>
+            </div>
+          )}
+
+          {isDisputed && market.disputer && (
+            <div className="bg-sc-surface/50 rounded-lg px-3 py-2">
+              <div className="text-[9px] text-sc-muted uppercase tracking-wide">Disputer</div>
+              <div className="text-[13px] font-mono tnum text-white mt-0.5">{short(market.disputer)}</div>
+              <div className="text-[10px] text-sc-dim">challenged the oracle</div>
+            </div>
+          )}
+
+          {isSettled && (
+            <div className="bg-sc-surface/50 rounded-lg px-3 py-2">
+              <div className="text-[9px] text-sc-muted uppercase tracking-wide">Outcome</div>
+              <div className={`text-[15px] font-bold ${market.outcome === true ? 'text-sc-yes' : 'text-sc-no'}`}>
+                {market.outcome === true ? 'YES' : 'NO'}
+              </div>
+              <div className="text-[10px] text-sc-dim">winners can claim</div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Participation CTAs ────────────────────────────────────── */}
+
+        {/* PROPOSED + window open → Dispute CTA */}
+        {isProposed && disputeWindowOpen && (
+          <div className="mt-4 pt-3 border-t border-sc-border/40">
+            <div className="text-[11px] text-sc-dim leading-relaxed mb-3">
+              <span className="text-sc-amber font-semibold">Think the oracle is wrong?</span>{' '}
+              The oracle proposed <span className="text-white font-semibold">{usd(proposedDollars)}</span> which would make{' '}
+              <span className={proposedAbove ? 'text-sc-yes font-semibold' : 'text-sc-no font-semibold'}>{proposedOutcome}</span> the winning side.
+              Post a tUSD bond (min {MIN_DISPUTE_BOND.toLocaleString()} tUSD) to challenge. If the dispute is valid, your bond is returned.
+              If frivolous, it's added to the pool.
+            </div>
+            {account ? (
+              <div className="flex items-end gap-3">
+                <div className="flex-1 max-w-[200px]">
+                  <div className="text-[9px] text-sc-muted uppercase tracking-wide mb-1">Bond amount (tUSD)</div>
+                  <input type="number" value={bondAmount} onChange={(e) => setBondAmount(e.target.value)}
+                    min={MIN_DISPUTE_BOND} step="1000"
+                    className="w-full bg-sc-surface border border-sc-border rounded-lg px-3 py-2 text-sm font-mono tnum focus:outline-none focus:border-sc-no" />
+                </div>
+                <button onClick={submitDispute}
+                  disabled={status === 'signing' || parseFloat(bondAmount) < MIN_DISPUTE_BOND}
+                  className="px-5 py-2 rounded-lg bg-sc-no text-black font-semibold text-sm hover:opacity-90 disabled:opacity-50 transition">
+                  {status === 'signing' ? 'Confirm in wallet…' : 'Dispute'}
+                </button>
+              </div>
+            ) : (
+              <div className="text-[11px] text-sc-muted">Connect wallet to dispute</div>
+            )}
+          </div>
+        )}
+
+        {/* PROPOSED + window closed → Finalize CTA */}
+        {isProposed && !disputeWindowOpen && (
+          <div className="mt-4 pt-3 border-t border-sc-border/40">
+            <div className="text-[11px] text-sc-dim leading-relaxed mb-3">
+              The dispute window has closed with no challenges. Anyone can finalize this market to settle it
+              at the oracle's proposed price of <span className="text-white font-semibold">{usd(proposedDollars)}</span>.
+              {' '}<span className={proposedAbove ? 'text-sc-yes font-semibold' : 'text-sc-no font-semibold'}>{proposedOutcome}</span> wins.
+            </div>
+            {account ? (
+              <button onClick={submitFinalize} disabled={status === 'signing'}
+                className="px-5 py-2 rounded-lg bg-sc-yes text-black font-semibold text-sm hover:opacity-90 disabled:opacity-50 transition">
+                {status === 'signing' ? 'Confirm in wallet…' : 'Finalize Market'}
+              </button>
+            ) : (
+              <div className="text-[11px] text-sc-muted">Connect wallet to finalize</div>
+            )}
+          </div>
+        )}
+
+        {/* DISPUTED → Awaiting admin resolution */}
+        {isDisputed && (
+          <div className="mt-3 pt-3 border-t border-sc-border/40 text-[11px] text-sc-dim leading-relaxed">
+            <span className="text-sc-no font-semibold">Dispute active.</span>{' '}
+            The oracle proposed <span className="text-white font-semibold">{usd(proposedDollars)}</span> which would make{' '}
+            <span className={proposedAbove ? 'text-sc-yes font-semibold' : 'text-sc-no font-semibold'}>{proposedOutcome}</span> the winning side.
+            A disputer has challenged this with a <span className="text-white">{sui(market.disputeBond)} tUSD</span> bond.
+            The admin reviews evidence and resolves with the correct price. If the dispute was valid, the bond is returned;
+            if frivolous, it's added to the pool. In v2, resolution moves to{' '}
+            <a href="https://docs.uma.xyz/protocol-overview/how-does-umas-oracle-work" target="_blank" rel="noopener noreferrer"
+              className="text-sc-accent hover:underline">UMA-style</a> SUI-staked community voting.
+          </div>
+        )}
+
+        {/* SETTLED → Claim reminder */}
+        {isSettled && (
+          <div className="mt-3 pt-3 border-t border-sc-border/40 text-[11px] text-sc-dim leading-relaxed">
+            Market settled at <span className="text-white font-semibold">{usd(proposedDollars)}</span>.
+            {' '}<span className={market.outcome === true ? 'text-sc-yes font-semibold' : 'text-sc-no font-semibold'}>
+              {market.outcome === true ? 'YES' : 'NO'}
+            </span> wins. Use the trade panel on the right to claim your winnings.
+          </div>
+        )}
+
+        {/* Transaction feedback */}
+        {status === 'success' && txDigest && (
+          <a href={`${EXPLORER_URL}/tx/${txDigest}`} target="_blank" rel="noopener noreferrer"
+            className="block mt-3 p-2 rounded-lg bg-sc-yes/10 border border-sc-yes/20 text-[11px] text-sc-yes hover:underline font-mono truncate">
+            ✓ {txDigest}
+          </a>
+        )}
+        {status === 'error' && errorMsg && (
+          <div className="mt-3 p-2 rounded-lg bg-sc-no/10 border border-sc-no/20 text-[11px] text-sc-no">{errorMsg}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FlowStep({ n, label, done, active, disputed }) {
+  const bg = active
+    ? (disputed ? 'bg-sc-no/20 border-sc-no/50 text-sc-no' : 'bg-sc-amber/20 border-sc-amber/50 text-sc-amber')
+    : done
+      ? 'bg-sc-yes/10 border-sc-yes/30 text-sc-yes'
+      : 'bg-sc-surface/50 border-sc-border text-sc-muted';
+  return (
+    <div className={`flex items-center gap-2 border rounded-lg px-2.5 py-1.5 shrink-0 ${bg}`}>
+      <span className="text-[10px] font-bold">{n}</span>
+      <span className="text-[10px] font-semibold whitespace-nowrap">{label}</span>
+    </div>
+  );
+}
+
+function FlowArrow() {
+  return <span className="text-sc-muted text-[10px] px-1 shrink-0">→</span>;
+}
+
+function InfoTip({ children }) {
+  return (
+    <span className="relative inline-flex items-center align-middle group/info">
+      <span className="ml-0.5 w-3 h-3 rounded-full border border-sc-muted/70 text-sc-muted text-[8px] font-bold leading-none flex items-center justify-center cursor-help">i</span>
+      <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 w-60 rounded-md border border-sc-border bg-black px-2.5 py-2 text-[10px] leading-relaxed text-sc-dim opacity-0 group-hover/info:opacity-100 transition-opacity z-50 shadow-xl normal-case font-sans">
+        {children}
+      </span>
+    </span>
   );
 }
 
@@ -195,7 +468,7 @@ function Resolution({ oracle, bare }) {
       <ol className="space-y-1.5 text-sc-dim list-decimal list-inside">
         <li>At expiry, SlabClaw's multi-platform oracle proposes the settlement price{oracle ? <> (currently sourced from <span className="text-sc-text font-mono">{sourceLabel(oracle.source)}</span>, {oracle.saleCount} comp{oracle.saleCount === 1 ? '' : 's'})</> : ''}.</li>
         <li>YES wins if the oracle price exceeds the strike; otherwise NO wins.</li>
-        <li>24h dispute window — anyone can challenge with a tUSD bond (UMA-style).</li>
+        <li>24h dispute window — anyone can challenge with a SUI bond (<a href="https://docs.uma.xyz/protocol-overview/how-does-umas-oracle-work" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">UMA-style</a>).</li>
         <li>Undisputed → auto-settles. Evidence snapshots stored on Walrus.</li>
       </ol>
       {oracle && (

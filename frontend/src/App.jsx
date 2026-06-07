@@ -26,11 +26,15 @@ export default function App() {
           <p className="text-sc-dim mt-1.5 text-sm max-w-2xl">
             Bet YES/NO on whether a graded card exceeds a strike price by expiry — priced against a
             real 10-platform oracle and a live history of sold comps. Settled on{' '}
-            <a href="https://sui.io" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">Sui</a> via DeepBook Predict.
+            <a href="https://sui.io" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">Sui</a> via{' '}
+            <a href="https://www.deepbook.tech" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">DeepBook</a> Predict.
+            Each market shows the oracle value over time, the strike line, and every recent sold comp — so you bet with data, not vibes.
+            Mint test USD from the faucet below, buy YES or NO, and at expiry the oracle proposes the price.
+            After a 24h dispute window, winners claim.
           </p>
         </div>
 
-        {/* Markets grid */}
+        {/* Markets */}
         {isLoading ? (
           <SkeletonGrid />
         ) : error ? (
@@ -40,22 +44,8 @@ export default function App() {
         ) : enriched.length === 0 ? (
           <div className="text-center py-16 text-sc-muted text-sm">No markets found</div>
         ) : (
-          <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-            {enriched.map((m) => (
-              <MarketCard key={m.id} market={m} meta={m.meta} onSelect={(mk) => setSelectedId(mk.id)} />
-            ))}
-          </div>
+          <MarketSections markets={enriched} onSelect={(mk) => setSelectedId(mk.id)} />
         )}
-
-        {/* How it works */}
-        <div className="mt-14 border-t border-sc-border pt-7">
-          <h3 className="text-base font-semibold text-white mb-4">How it works</h3>
-          <div className="grid sm:grid-cols-3 gap-5">
-            <Step n={1} title="Read the evidence" desc="Each market shows the oracle value over time, the strike line, and every recent sold comp — so you bet with data, not vibes." />
-            <Step n={2} title="Grab tUSD & bet" desc="Mint test USD from the footer faucet, then buy YES or NO. Your payout scales with how the pool splits between sides." />
-            <Step n={3} title="Oracle settles" desc="At expiry the 10-platform oracle proposes the price. After a 24h dispute window, winners claim." />
-          </div>
-        </div>
       </main>
 
       <Footer onFunded={refetch} />
@@ -72,23 +62,41 @@ export default function App() {
   );
 }
 
-function StatBox({ label, value }) {
+function MarketSections({ markets, onSelect }) {
+  const active = markets.filter((m) => m.state === 0);
+  const past = markets.filter((m) => m.state !== 0);
+
   return (
-    <div className="bg-sc-card border border-sc-border rounded-lg px-3 py-2.5">
-      <div className="text-[10px] text-sc-muted uppercase tracking-wide">{label}</div>
-      <div className="text-sm font-semibold tnum text-white mt-0.5">{value}</div>
-    </div>
+    <>
+      {active.length > 0 && (
+        <>
+          <SectionHeader label="Active" count={active.length} />
+          <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+            {active.map((m) => (
+              <MarketCard key={m.id} market={m} meta={m.meta} onSelect={onSelect} />
+            ))}
+          </div>
+        </>
+      )}
+      {past.length > 0 && (
+        <div className={active.length > 0 ? 'mt-8' : ''}>
+          <SectionHeader label="Past" count={past.length} muted />
+          <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+            {past.map((m) => (
+              <MarketCard key={m.id} market={m} meta={m.meta} onSelect={onSelect} />
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
-function Step({ n, title, desc }) {
+function SectionHeader({ label, count, muted }) {
   return (
-    <div className="flex gap-3">
-      <div className="w-6 h-6 rounded-full bg-sc-accent/15 text-sc-accent text-xs font-bold grid place-items-center shrink-0 mt-0.5">{n}</div>
-      <div>
-        <h4 className="text-sm font-semibold text-white">{title}</h4>
-        <p className="text-xs text-sc-dim mt-1 leading-relaxed">{desc}</p>
-      </div>
+    <div className="flex items-center gap-2.5 mb-3">
+      <h3 className={`text-sm font-semibold uppercase tracking-wide ${muted ? 'text-sc-muted' : 'text-white'}`}>{label}</h3>
+      <span className={`text-[10px] font-mono tnum px-1.5 py-0.5 rounded-full ${muted ? 'bg-sc-surface text-sc-muted' : 'bg-sc-accent/15 text-sc-accent'}`}>{count}</span>
     </div>
   );
 }

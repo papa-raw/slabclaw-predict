@@ -4,10 +4,12 @@
   "type": "module",
   "description": "Off-chain bridge: SlabClaw 10-platform oracle → Sui on-chain prediction markets",
   "scripts": {
-    "dev": "node bridge.mjs",
-    "register": "node register-assets.mjs",
-    "create-market": "node create-market.mjs",
+    "bridge": "node bridge.mjs",
+    "bridge:watch": "node bridge.mjs --watch",
     "propose": "node propose-resolution.mjs",
+    "finalize": "node finalize.mjs",
+    "seed": "node seed-new-cards.mjs",
+    "snapshot": "python3 build-snapshot.py",
     "demo": "node demo.mjs"
   },
   "dependencies": {

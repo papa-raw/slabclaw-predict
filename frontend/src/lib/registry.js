@@ -157,9 +157,10 @@ export function smoothOracleHistory(card, grader, grade, { windowDays = 30, step
     return wLen > 0 ? wSum / wLen : prevP;
   }
 
-  // Start generating from first comp + window (so the average is meaningful)
-  // but no earlier than the first comp itself
-  const genStart = Math.min(comps[0].t + WINDOW_MS, comps[comps.length - 1].t);
+  // Start the line at the very first comp so it spans the full comp history
+  // (no leading gap). Early points just have a shorter effective window,
+  // anchored to the first comp's price — which is exactly what we want.
+  const genStart = comps[0].t;
   const out = [];
   const end = Date.now();
   for (let t = genStart; t <= end; t += STEP_MS) {

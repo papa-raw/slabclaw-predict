@@ -1,4 +1,4 @@
-/// SlabClaw Predict — on-chain constants and config.
+/// SlabClaw Predict — onchain constants and config.
 
 // TEST_USD deployment (2026-06-07). Markets settle in faucet-minted tUSD.
 export const PACKAGE_ID = '0xdc18fc79030aea4a39198d95c73271c41d955b3b548dc5090627bf224af7b141';
@@ -88,5 +88,20 @@ export const DEMO_MARKETS = [
     language: 'en',
     image: 'https://images.pokemontcg.io/base5/83.png',
     productId: 'base5-1st-83',
+  },
+  {
+    id: '0x2dae76174f4acb3a543c9701940420da1ff2f05a2733fb794a7366e22ea5fd58',
+    assetId: 'BASE2_1ST_3_PSA_1000',
+    name: 'Flareon',
+    set: 'Jungle — 1st Edition',
+    year: 1999,
+    number: '3',
+    grader: 'PSA',
+    grade: 10,
+    strikeUsdCents: 250000,
+    edition: '1st Edition',
+    language: 'en',
+    image: 'https://images.pokemontcg.io/base2/3.png',
+    productId: 'base2-1st-3',
   },
 ];

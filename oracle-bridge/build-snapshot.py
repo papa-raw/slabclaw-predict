@@ -10,7 +10,7 @@ import json, sqlite3, os
 
 DB = "/Users/pat/Desktop/1_projects/slabclaw/slabclaw-app/backend/data/slabclaw.db"
 OUT = os.path.join(os.path.dirname(__file__), "../frontend/src/data/registry-snapshot.json")
-CARDS = ["jp-vs-091", "neo1-1st-18", "base5-1st-83"]  # Umbreon, Typhlosion, Dark Raichu
+CARDS = ["jp-vs-091", "neo1-1st-18", "base5-1st-83", "base2-1st-3"]  # Umbreon, Typhlosion, Dark Raichu, Flareon
 
 con = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
 con.row_factory = sqlite3.Row

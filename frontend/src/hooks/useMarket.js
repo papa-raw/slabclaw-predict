@@ -1,4 +1,4 @@
-/// useMarket — fetch and parse on-chain Market objects from Sui.
+/// useMarket — fetch and parse onchain Market objects from Sui.
 
 import { useSuiClientQuery } from '@mysten/dapp-kit';
 
@@ -9,7 +9,7 @@ function parseMarketFields(fields) {
     return String(bcsBytes);
   };
 
-  // Field names match the on-chain Market struct: total_yes, total_no, pool
+  // Field names match the onchain Market struct: total_yes, total_no, pool
   // (Balance<TEST_USD> flattens to its u64 value string over JSON-RPC).
   return {
     assetId: toStr(fields.asset_id),
@@ -22,8 +22,10 @@ function parseMarketFields(fields) {
     proposedPrice: fields.proposed_price ? Number(fields.proposed_price) : null,
     proposedAt: fields.proposed_at_ms ? Number(fields.proposed_at_ms) : null,
     disputeBond: Number(fields.dispute_bond?.fields?.value ?? fields.dispute_bond ?? 0),
+    disputer: fields.disputer ?? null,
     outcome: fields.outcome === null || fields.outcome === undefined ? null : fields.outcome,
     description: toStr(fields.description),
+    proposedSources: fields.proposed_sources ? Number(fields.proposed_sources) : null,
   };
 }
 

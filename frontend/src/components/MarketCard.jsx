@@ -1,4 +1,4 @@
-import { MARKET_STATE } from '../constants';
+import { MARKET_STATE, MARKET_STATE_COLORS } from '../constants';
 import { useCard } from '../hooks/useRegistry';
 import { oracleForGrade, smoothOracleHistory, distanceToStrike } from '../lib/registry';
 import { usd, pct, arrow, timeUntil, sui } from '../lib/format';
@@ -32,10 +32,12 @@ export default function MarketCard({ market, meta, onSelect }) {
   const dist = oracle ? distanceToStrike(oracle.price, market.strikeUsdCents) : null;
   const oracleAbove = oracle && oracle.price >= strikeDollars;
 
+  const isDisputed = market.state === 2;
+
   return (
     <button
       onClick={() => onSelect(market)}
-      className="group w-full text-left bg-sc-card border border-sc-border rounded-xl p-3.5 hover:border-sc-accent/50 hover:bg-sc-card/80 transition-all"
+      className={`group w-full text-left bg-sc-card border rounded-xl p-3.5 hover:bg-sc-card/80 transition-all ${isDisputed ? 'border-sc-no/40 hover:border-sc-no/60' : 'border-sc-border hover:border-sc-accent/50'}`}
     >
       {/* Top: image + identity + headline strike */}
       <div className="flex gap-3.5">
@@ -102,9 +104,77 @@ export default function MarketCard({ market, meta, onSelect }) {
         <Sparkline points={series} strike={strikeDollars} height={40} />
       </div>
 
-      {market.state !== 0 && (
-        <div className="mt-2 text-[10px] text-sc-amber uppercase tracking-wide">{MARKET_STATE[market.state]}</div>
-      )}
+      {market.state !== 0 && <StateBanner market={market} />}
     </button>
+  );
+}
+
+// State-specific banner for non-active markets (proposed, disputed, settled)
+function StateBanner({ market }) {
+  const proposedDollars = market.proposedPrice ? market.proposedPrice / 100 : null;
+  const strikeDollars = market.strikeUsdCents / 100;
+  const proposedAbove = proposedDollars != null && proposedDollars > strikeDollars;
+
+  // DISPUTED — red banner with dispute details
+  if (market.state === 2) {
+    return (
+      <div className="mt-2.5 rounded-lg bg-sc-no/10 border border-sc-no/30 px-3 py-2">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-wide text-sc-no">Disputed</span>
+          {market.disputeBond > 0 && (
+            <span className="text-[10px] tnum text-sc-dim">{sui(market.disputeBond)} tUSD bond</span>
+          )}
+        </div>
+        {proposedDollars != null && (
+          <div className="mt-1 text-[11px] text-sc-dim">
+            Oracle proposed <span className={`font-semibold ${proposedAbove ? 'text-sc-yes' : 'text-sc-no'}`}>{usd(proposedDollars)}</span>
+            <span className="text-sc-muted"> → {proposedAbove ? 'YES' : 'NO'} wins</span>
+            <span className="text-sc-no ml-1.5">· challenged</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // PROPOSED — amber banner with proposed price + countdown
+  if (market.state === 1) {
+    const deadlineMs = market.proposedAt ? market.proposedAt + 86_400_000 : null;
+    return (
+      <div className="mt-2.5 rounded-lg bg-sc-amber/10 border border-sc-amber/30 px-3 py-2">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-wide text-sc-amber">Proposed</span>
+          {deadlineMs && <span className="text-[10px] tnum text-sc-dim">dispute window: {timeUntil(deadlineMs)}</span>}
+        </div>
+        {proposedDollars != null && (
+          <div className="mt-1 text-[11px] text-sc-dim">
+            Oracle: <span className={`font-semibold ${proposedAbove ? 'text-sc-yes' : 'text-sc-no'}`}>{usd(proposedDollars)}</span>
+            <span className="text-sc-muted"> → {proposedAbove ? 'YES' : 'NO'} wins if unchallenged</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // SETTLED — muted banner
+  if (market.state === 3) {
+    const outcomeLabel = market.outcome === true ? 'YES' : market.outcome === false ? 'NO' : '—';
+    const outcomeCls = market.outcome === true ? 'text-sc-yes' : market.outcome === false ? 'text-sc-no' : 'text-sc-muted';
+    return (
+      <div className="mt-2.5 rounded-lg bg-white/[0.03] border border-sc-border px-3 py-2">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-wide text-sc-muted">Settled</span>
+          {proposedDollars != null && <span className="text-[10px] tnum text-sc-dim">at {usd(proposedDollars)}</span>}
+        </div>
+        <div className="mt-1 text-[11px]">
+          <span className={`font-semibold ${outcomeCls}`}>{outcomeLabel}</span>
+          <span className="text-sc-muted"> wins · claim open</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback
+  return (
+    <div className="mt-2 text-[10px] text-sc-amber uppercase tracking-wide">{MARKET_STATE[market.state]}</div>
   );
 }

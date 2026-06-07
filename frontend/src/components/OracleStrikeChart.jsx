@@ -30,6 +30,7 @@ export default function OracleStrikeChart({
 }) {
   const [hover, setHover] = useState(null);         // index into series (comp dot)
   const [twapHover, setTwapHover] = useState(null); // index into oracleLine
+  const [coneHover, setConeHover] = useState(false); // hovering the forecast cone
   const svgRef = useRef(null);
 
   const model = useMemo(() => {
@@ -38,14 +39,47 @@ export default function OracleStrikeChart({
 
     const now = Date.now();
     const ts = all.map((p) => p.t);
-    let tMin = startMs ?? (ts.length ? Math.min(...ts) : now - 90 * DAY);
+    // Start the axis where the data actually begins (= where the oracle line
+    // starts). `startMs` is applied upstream as a filter that trims early comps;
+    // it is NOT a hard axis floor, so there's no dead space before the first point.
+    let tMin = ts.length ? Math.min(...ts) : now - 90 * DAY;
     let tMax = Math.max(expiryMs || now, ts.length ? Math.max(...ts) : now, now);
-    if (startMs == null) tMin -= (tMax - tMin) * 0.03;
+    tMin -= (tMax - tMin) * 0.02; // small left breathing room
+
+    // ── 99% forecast cone — where the oracle may land by expiry ──
+    // Zero-drift geometric Brownian motion using realized daily volatility of
+    // the sold comps. Fans out from (now, oracleNow) to expiry.
+    let cone = null;
+    if (oracleNow != null && expiryMs && expiryMs > now) {
+      const sorted = [...series].filter((p) => p.price > 0).sort((a, b) => a.t - b.t);
+      let v = 0, n = 0;
+      for (let i = 1; i < sorted.length; i++) {
+        const dtd = (sorted[i].t - sorted[i - 1].t) / DAY;
+        if (dtd <= 0) continue;
+        const r = Math.log(sorted[i].price / sorted[i - 1].price);
+        v += (r * r) / dtd; n += 1;
+      }
+      if (n >= 2) {
+        const sigmaD = Math.min(Math.sqrt(v / n), 0.035); // per-day vol, capped
+        const Z = 1.96; // 95% two-sided
+        const STEPS = 24;
+        const upper = [], lower = [];
+        for (let k = 0; k <= STEPS; k++) {
+          const t = now + (expiryMs - now) * (k / STEPS);
+          const hw = Math.min(Z * sigmaD * Math.sqrt(Math.max(0, (t - now) / DAY)), Math.log(2));
+          upper.push({ t, price: oracleNow * Math.exp(hw) });
+          lower.push({ t, price: oracleNow * Math.exp(-hw) });
+        }
+        cone = { upper, lower, hi: upper[upper.length - 1].price, lo: lower[lower.length - 1].price };
+      }
+    }
 
     const prices = [
       ...all.map((p) => p.price),
       strike,
       oracleNow,
+      cone?.hi,
+      cone?.lo,
     ].filter((v) => v != null && !isNaN(v));
     let pMin = Math.min(...prices);
     let pMax = Math.max(...prices);
@@ -67,7 +101,15 @@ export default function OracleStrikeChart({
       ? oracleLine.map((p, i) => `${i ? 'L' : 'M'}${x(p.t).toFixed(1)},${y(p.price).toFixed(1)}`).join(' ')
       : null;
 
-    return { x, y, tFromX, tMin, tMax, pMin, pMax, priceTicks, timeTicks, oraclePath, now };
+    let conePaths = null;
+    if (cone) {
+      const up = cone.upper.map((p, i) => `${i ? 'L' : 'M'}${x(p.t).toFixed(1)},${y(p.price).toFixed(1)}`).join(' ');
+      const lo = cone.lower.map((p, i) => `${i ? 'L' : 'M'}${x(p.t).toFixed(1)},${y(p.price).toFixed(1)}`).join(' ');
+      const area = up + ' ' + [...cone.lower].reverse().map((p) => `L${x(p.t).toFixed(1)},${y(p.price).toFixed(1)}`).join(' ') + ' Z';
+      conePaths = { up, lo, area, hi: cone.hi, loVal: cone.lo, hiY: y(cone.hi), loY: y(cone.lo) };
+    }
+
+    return { x, y, tFromX, tMin, tMax, pMin, pMax, priceTicks, timeTicks, oraclePath, conePaths, now };
   }, [series, oracleLine, oracleNow, strike, expiryMs, startMs]);
 
   // Find nearest TWAP point by mouse x position
@@ -76,6 +118,9 @@ export default function OracleStrikeChart({
     const rect = svgRef.current.getBoundingClientRect();
     const svgX = ((e.clientX - rect.left) / rect.width) * W;
     if (svgX < M.left || svgX > M.left + PLOT_W) { setTwapHover(null); return; }
+    // forecast region (right of now) → no TWAP crosshair; cone handles its own hover
+    const nowX = model.x(model.now);
+    if (svgX > nowX) { setTwapHover(null); return; }
 
     const t = model.tFromX(svgX);
     let best = 0;
@@ -88,7 +133,7 @@ export default function OracleStrikeChart({
     setTwapHover(best);
   }, [model, oracleLine]);
 
-  const clearHovers = useCallback(() => { setHover(null); setTwapHover(null); }, []);
+  const clearHovers = useCallback(() => { setHover(null); setTwapHover(null); setConeHover(false); }, []);
 
   if (!model) {
     return (
@@ -98,7 +143,7 @@ export default function OracleStrikeChart({
     );
   }
 
-  const { x, y, priceTicks, timeTicks, oraclePath, now } = model;
+  const { x, y, priceTicks, timeTicks, oraclePath, conePaths, now } = model;
   const strikeY = y(strike);
   const expiryX = expiryMs ? x(expiryMs) : null;
   const nowX = x(now);
@@ -113,6 +158,18 @@ export default function OracleStrikeChart({
         {/* YES / NO zones */}
         <rect x={M.left} y={M.top} width={PLOT_W} height={Math.max(0, strikeY - M.top)} fill="#4CAF50" opacity="0.06" />
         <rect x={M.left} y={strikeY} width={PLOT_W} height={Math.max(0, M.top + PLOT_H - strikeY)} fill="#ef4444" opacity="0.06" />
+
+        {/* 99% forecast cone — shape always shown; labels reveal on hover */}
+        {conePaths && (
+          <g>
+            <path d={conePaths.area} fill="#ffffff" fillOpacity={coneHover ? 0.1 : 0.06} stroke="none"
+              style={{ cursor: 'help' }}
+              onMouseEnter={() => { setConeHover(true); setTwapHover(null); }}
+              onMouseLeave={() => setConeHover(false)} />
+            <path d={conePaths.up} fill="none" stroke="#ffffff" strokeOpacity={coneHover ? 0.5 : 0.28} strokeWidth="1" strokeDasharray="3 3" className="pointer-events-none" />
+            <path d={conePaths.lo} fill="none" stroke="#ffffff" strokeOpacity={coneHover ? 0.5 : 0.28} strokeWidth="1" strokeDasharray="3 3" className="pointer-events-none" />
+          </g>
+        )}
 
         {/* price gridlines + right-axis labels */}
         {priceTicks.map((p, i) => (
@@ -203,21 +260,36 @@ export default function OracleStrikeChart({
         <TwapTooltip pt={twapPt} model={model} strike={strike} />
       )}
 
-      {/* footer: legend + stats */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px] mt-2 pt-2 px-1 border-t border-sc-border/60">
-        <span className="flex items-center gap-1 text-sc-muted"><span className="inline-block w-2 h-2 rounded-full bg-sc-yes" />sold comp ({grader} {grade})</span>
-        <span className="flex items-center gap-1 text-sc-muted"><span className="inline-block w-3 h-0.5 bg-white/70" />oracle TWAP</span>
-        <span className="flex items-center gap-1 text-sc-muted"><span className="inline-block w-3 border-t border-dashed border-sc-accent" />strike {usd(strike)}</span>
-        <span className="flex items-center gap-1 text-sc-muted"><span className="inline-block w-2 h-2 bg-sc-yes/20 border border-sc-yes/40" />YES zone</span>
-        <span className="flex items-center gap-1 text-sc-muted"><span className="inline-block w-2 h-2 bg-sc-no/20 border border-sc-no/40" />NO zone</span>
-        <span className="hidden sm:inline-block w-px h-3 bg-sc-border mx-0.5" />
-        <span className="text-sc-muted tnum">comps <span className="text-sc-text font-semibold">{series.length}</span></span>
-        <span className="text-sc-muted tnum">to expiry <span className="text-sc-text font-semibold">{timeUntil(expiryMs)}</span></span>
-        {oracleNow != null && (
-          <span className="text-sc-muted tnum">oracle vs strike{' '}
-            <span className={`font-semibold ${oracleNow >= strike ? 'text-sc-yes' : 'text-sc-no'}`}>{oracleNow >= strike ? 'ABOVE' : 'BELOW'}</span>
-          </span>
-        )}
+      {/* cone hover — a floating comment, not a chart element */}
+      {coneHover && conePaths && expiryX != null && (
+        <ConeTooltip
+          hi={conePaths.hi}
+          lo={conePaths.loVal}
+          leftPct={((nowX + expiryX) / 2 / W) * 100}
+          topPct={((oracleNow != null ? y(oracleNow) : (conePaths.hiY + conePaths.loY) / 2) / H) * 100}
+          days={timeUntil(expiryMs)}
+        />
+      )}
+
+      {/* footer — one cohesive key: legend cluster (left) + stats cluster (right) */}
+      <div className="mt-3 rounded-lg border border-sc-border/60 bg-sc-surface/30 px-3 py-2 flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px]">
+        <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-sc-muted">
+          <span className="flex items-center gap-1.5"><span className="inline-block w-2 h-2 rounded-full bg-sc-yes" />sold comp · {grader} {grade}</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block w-3.5 h-[2px] rounded bg-white/75" />oracle TWAP</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block w-3.5 border-t border-dashed border-sc-accent" />strike {usd(strike)}</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block w-3.5 h-2.5 rounded-sm bg-white/[0.08] border border-dashed border-white/30" />95% cone</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-sc-yes/20 border border-sc-yes/40" />YES</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-sc-no/20 border border-sc-no/40" />NO</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 ml-auto tnum">
+          <span className="text-sc-muted">comps <span className="text-sc-text font-semibold">{series.length}</span></span>
+          <span className="text-sc-muted">to expiry <span className="text-sc-text font-semibold">{timeUntil(expiryMs)}</span></span>
+          {oracleNow != null && (
+            <span className="text-sc-muted">vs strike{' '}
+              <span className={`font-semibold ${oracleNow >= strike ? 'text-sc-yes' : 'text-sc-no'}`}>{oracleNow >= strike ? 'ABOVE' : 'BELOW'}</span>
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -252,6 +324,22 @@ function TwapTooltip({ pt, model, strike }) {
         <div className={`text-[9px] mt-0.5 font-semibold tnum ${above ? 'text-sc-yes' : 'text-sc-no'}`}>
           {dist >= 0 ? '+' : ''}{dist.toFixed(1)}% vs strike
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ConeTooltip({ hi, lo, leftPct, topPct, days }) {
+  return (
+    <div className="absolute pointer-events-none z-10 -translate-x-1/2 -translate-y-1/2"
+      style={{ left: `${leftPct}%`, top: `${topPct}%` }}>
+      <div className="bg-black/90 border border-white/15 rounded-lg px-4 py-3 text-[11px] leading-relaxed shadow-2xl w-[300px]">
+        <div className="font-semibold text-white text-[12px]">95% confidence interval</div>
+        <div className="text-sc-muted mt-1">
+          In {days}, the oracle is <span className="text-sc-text">95%</span> likely to land between{' '}
+          <span className="text-sc-text tnum">{usd(lo)}</span> and <span className="text-sc-text tnum">{usd(hi)}</span>.
+        </div>
+        <div className="text-[10px] text-sc-muted/70 mt-1.5">from realized comp volatility</div>
       </div>
     </div>
   );

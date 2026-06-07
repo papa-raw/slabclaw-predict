@@ -46,6 +46,32 @@ export function buildClaim(marketId) {
   return tx;
 }
 
+/// Dispute a proposed resolution. Posts a tUSD bond (min 10,000 tUSD).
+/// Only callable when market.state === PROPOSED (1) and within the 24h dispute window.
+export function buildDispute(marketId, bondTusd) {
+  const tx = new Transaction();
+  tx.moveCall({
+    target: `${PACKAGE_ID}::market::dispute`,
+    arguments: [
+      tx.object(marketId),
+      coinWithBalance({ balance: toUnits(bondTusd), type: TEST_USD_TYPE }),
+      tx.object(CLOCK_ID),
+    ],
+  });
+  return tx;
+}
+
+/// Finalize an undisputed resolution. Anyone can call after the 24h dispute window closes.
+/// Only callable when market.state === PROPOSED (1) and window has elapsed.
+export function buildFinalize(marketId) {
+  const tx = new Transaction();
+  tx.moveCall({
+    target: `${PACKAGE_ID}::market::finalize`,
+    arguments: [tx.object(marketId), tx.object(CLOCK_ID)],
+  });
+  return tx;
+}
+
 /// Mint test USD to the connected wallet from the public faucet.
 export function buildFaucetMint(amountTusd) {
   const tx = new Transaction();
