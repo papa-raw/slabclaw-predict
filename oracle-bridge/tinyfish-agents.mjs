@@ -132,15 +132,13 @@ class FanaticsTfAgent extends TinyfishAgent {
 class AltTfAgent extends TinyfishAgent {
   constructor(c) { super('alt', c); }
   async fetchSignal(meta) {
-    const results = await tfSearch(`alt.xyz ${meta.query} PSA 10 value lowest price`);
+    const results = await tfSearch(`alt.xyz ${meta.query} PSA 10 lowest price`);
+    // Strict grade pairing — alt snippets mix grades ("PSA 9 $4,196 … PSA 10 …"),
+    // so use grade10Prices (each $ must immediately follow a PSA-10/GEM-MT-10 token)
+    // instead of grabbing the first dollar amount and landing on a PSA-9 price.
     const prices = results
-      .filter((r) => /alt\.xyz/i.test(r.url || '') && /PSA\s*10/i.test(r.snippet || ''))
-      .flatMap((r) => {
-        const s = r.snippet || '';
-        const m = s.match(/Lowest price\s*\$?([\d,]+)/i) || s.match(/\$\s?([\d,]+)/);
-        return m ? [parseInt(m[1].replace(/,/g, ''), 10)] : [];
-      })
-      .filter((v) => v >= 100 && v <= 2_000_000);
+      .filter((r) => /alt\.xyz/i.test(r.url || ''))
+      .flatMap((r) => grade10Prices(r.snippet || ''));
     const p = median(prices);
     if (!p) return null;
     return { priceCents: Math.round(p * 100), source: 'alt-ask', confidence: 0.4, compCount: 1 };
