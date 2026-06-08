@@ -6,7 +6,7 @@ export function FirstEd({ edition }) {
   if (ed !== '1st edition' && ed !== '1st') return null;
   return (
     <span className="font-bold text-white text-[10px] leading-none">
-      1<sup className="text-[6px] align-super">st</sup>
+      1<sup className="text-[8px] align-super">st</sup>
     </span>
   );
 }
