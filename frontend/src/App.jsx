@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMultipleMarkets } from './hooks/useMarket';
 import { DEMO_MARKETS } from './constants';
 import Header from './components/Header';
@@ -7,9 +7,33 @@ import MarketDetail from './components/MarketDetail';
 import Footer from './components/Footer';
 
 export default function App() {
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedId, setSelectedId] = useState(() =>
+    typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('market') : null,
+  );
   const marketIds = DEMO_MARKETS.map((m) => m.id);
   const { markets, isLoading, error, refetch } = useMultipleMarkets(marketIds);
+
+  // Deep-link the open market to ?market=<id> so the browser Back button closes
+  // it and a specific market (e.g. the disputed Flareon) is shareable.
+  useEffect(() => {
+    const onPop = () => setSelectedId(new URLSearchParams(window.location.search).get('market'));
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  const openMarket = (id) => {
+    setSelectedId(id);
+    const u = new URL(window.location);
+    u.searchParams.set('market', id);
+    window.history.pushState({ scModal: true }, '', u);
+  };
+  const closeMarket = () => {
+    if (window.history.state?.scModal) { window.history.back(); return; } // pop back to the list
+    setSelectedId(null);
+    const u = new URL(window.location);
+    u.searchParams.delete('market');
+    window.history.replaceState({}, '', u);
+  };
 
   const enriched = markets.map((m) => ({ ...m, meta: DEMO_MARKETS.find((d) => d.id === m.id) }));
   const selected = enriched.find((m) => m.id === selectedId) || null;
@@ -44,7 +68,7 @@ export default function App() {
         ) : enriched.length === 0 ? (
           <div className="text-center py-16 text-sc-muted text-sm">No markets found</div>
         ) : (
-          <MarketSections markets={enriched} onSelect={(mk) => setSelectedId(mk.id)} />
+          <MarketSections markets={enriched} onSelect={(mk) => openMarket(mk.id)} />
         )}
       </main>
 
@@ -54,7 +78,7 @@ export default function App() {
         <MarketDetail
           market={selected}
           meta={selected.meta}
-          onClose={() => setSelectedId(null)}
+          onClose={closeMarket}
           onTxSuccess={() => { refetch(); setTimeout(refetch, 3000); }}
         />
       )}
