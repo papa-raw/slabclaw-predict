@@ -28,6 +28,13 @@
       "confidence": 0.95,
       "comps": 10,
       "source": "alt_seeded"
+    },
+    {
+      "date": "2026-06-08T22:00:30.240Z",
+      "priceCents": 419600,
+      "confidence": 0.4,
+      "comps": 1,
+      "source": "alt-ask"
     }
   ],
   "anomalies": []

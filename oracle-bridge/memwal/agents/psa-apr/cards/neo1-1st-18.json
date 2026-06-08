@@ -1,0 +1,13 @@
+{
+  "cardId": "neo1-1st-18",
+  "observations": [
+    {
+      "date": "2026-06-08T22:00:30.805Z",
+      "priceCents": 173100,
+      "confidence": 0.85,
+      "comps": 3,
+      "source": "psa-apr"
+    }
+  ],
+  "anomalies": []
+}
