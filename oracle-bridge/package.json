@@ -10,7 +10,15 @@
     "finalize": "node finalize.mjs",
     "seed": "node seed-new-cards.mjs",
     "snapshot": "python3 build-snapshot.py",
-    "demo": "node demo.mjs"
+    "demo": "node demo.mjs",
+    "swarm": "node swarm.mjs",
+    "swarm:watch": "node swarm.mjs --watch",
+    "swarm:propose": "node swarm.mjs --propose",
+    "swarm:seed": "node seed-history.mjs --clean",
+    "swarm:bridge": "node bridge-swarm.mjs",
+    "swarm:bridge:watch": "node bridge-swarm.mjs --watch",
+    "walrus:upload": "node walrus-evidence.mjs upload",
+    "walrus:log": "node walrus-evidence.mjs log"
   },
   "dependencies": {
     "@mysten/sui": "^1.20.0"

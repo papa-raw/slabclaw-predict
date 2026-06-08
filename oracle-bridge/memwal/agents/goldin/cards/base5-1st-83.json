@@ -1,0 +1,48 @@
+{
+  "cardId": "base5-1st-83",
+  "observations": [
+    {
+      "date": "2026-06-06T05:09:27.469Z",
+      "priceCents": 528031,
+      "confidence": 0.93,
+      "comps": 7,
+      "source": "goldin_seeded"
+    },
+    {
+      "date": "2026-06-06T17:09:27.470Z",
+      "priceCents": 608410,
+      "confidence": 0.84,
+      "comps": 6,
+      "source": "goldin_seeded"
+    },
+    {
+      "date": "2026-06-06T23:09:27.471Z",
+      "priceCents": 538517,
+      "confidence": 0.95,
+      "comps": 7,
+      "source": "goldin_seeded"
+    },
+    {
+      "date": "2026-06-07T11:09:27.472Z",
+      "priceCents": 536002,
+      "confidence": 0.95,
+      "comps": 10,
+      "source": "goldin_seeded"
+    },
+    {
+      "date": "2026-06-07T17:09:27.472Z",
+      "priceCents": 559428,
+      "confidence": 0.95,
+      "comps": 10,
+      "source": "goldin_seeded"
+    },
+    {
+      "date": "2026-06-07T23:09:27.473Z",
+      "priceCents": 539914,
+      "confidence": 0.95,
+      "comps": 12,
+      "source": "goldin_seeded"
+    }
+  ],
+  "anomalies": []
+}

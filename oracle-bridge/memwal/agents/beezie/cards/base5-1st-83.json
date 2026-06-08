@@ -1,0 +1,34 @@
+{
+  "cardId": "base5-1st-83",
+  "observations": [
+    {
+      "date": "2026-06-05T23:09:27.468Z",
+      "priceCents": 603017,
+      "confidence": 0.64,
+      "comps": 5,
+      "source": "beezie_seeded"
+    },
+    {
+      "date": "2026-06-06T11:09:27.469Z",
+      "priceCents": 443046,
+      "confidence": 0.95,
+      "comps": 7,
+      "source": "beezie_seeded"
+    },
+    {
+      "date": "2026-06-06T23:09:27.471Z",
+      "priceCents": 472438,
+      "confidence": 0.95,
+      "comps": 9,
+      "source": "beezie_seeded"
+    },
+    {
+      "date": "2026-06-07T11:09:27.472Z",
+      "priceCents": 655139,
+      "confidence": 0.95,
+      "comps": 11,
+      "source": "beezie_seeded"
+    }
+  ],
+  "anomalies": []
+}

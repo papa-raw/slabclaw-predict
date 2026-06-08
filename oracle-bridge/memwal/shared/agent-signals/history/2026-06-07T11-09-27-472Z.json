@@ -1,0 +1,306 @@
+{
+  "ebay": {
+    "timestamp": "2026-06-07T11:09:27.472Z",
+    "signals": [
+      {
+        "cardId": "neo1-1st-18",
+        "platform": "ebay",
+        "priceCents": 333389,
+        "priceUsd": 3333.89,
+        "confidence": 0.95,
+        "source": "ebay_seeded",
+        "compCount": 11,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "jp-vs-091",
+        "platform": "ebay",
+        "priceCents": 1146434,
+        "priceUsd": 11464.34,
+        "confidence": 0.95,
+        "source": "ebay_seeded",
+        "compCount": 10,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "base5-1st-83",
+        "platform": "ebay",
+        "priceCents": 522313,
+        "priceUsd": 5223.13,
+        "confidence": 0.95,
+        "source": "ebay_seeded",
+        "compCount": 11,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "base2-1st-3",
+        "platform": "ebay",
+        "priceCents": 216925,
+        "priceUsd": 2169.25,
+        "confidence": 0.95,
+        "source": "ebay_seeded",
+        "compCount": 10,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      }
+    ]
+  },
+  "courtyard": {
+    "timestamp": "2026-06-07T11:09:27.472Z",
+    "signals": [
+      {
+        "cardId": "neo1-1st-18",
+        "platform": "courtyard",
+        "priceCents": 357133,
+        "priceUsd": 3571.33,
+        "confidence": 0.95,
+        "source": "courtyard_seeded",
+        "compCount": 8,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "jp-vs-091",
+        "platform": "courtyard",
+        "priceCents": 1280153,
+        "priceUsd": 12801.53,
+        "confidence": 0.95,
+        "source": "courtyard_seeded",
+        "compCount": 9,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "base5-1st-83",
+        "platform": "courtyard",
+        "priceCents": 505548,
+        "priceUsd": 5055.48,
+        "confidence": 0.95,
+        "source": "courtyard_seeded",
+        "compCount": 11,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "base2-1st-3",
+        "platform": "courtyard",
+        "priceCents": 230987,
+        "priceUsd": 2309.87,
+        "confidence": 0.95,
+        "source": "courtyard_seeded",
+        "compCount": 11,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      }
+    ]
+  },
+  "tcgplayer": {
+    "timestamp": "2026-06-07T11:09:27.472Z",
+    "signals": [
+      {
+        "cardId": "neo1-1st-18",
+        "platform": "tcgplayer",
+        "priceCents": 347649,
+        "priceUsd": 3476.49,
+        "confidence": 0.95,
+        "source": "tcgplayer_seeded",
+        "compCount": 9,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "jp-vs-091",
+        "platform": "tcgplayer",
+        "priceCents": 1264429,
+        "priceUsd": 12644.29,
+        "confidence": 0.95,
+        "source": "tcgplayer_seeded",
+        "compCount": 11,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "base5-1st-83",
+        "platform": "tcgplayer",
+        "priceCents": 560061,
+        "priceUsd": 5600.61,
+        "confidence": 0.95,
+        "source": "tcgplayer_seeded",
+        "compCount": 9,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      }
+    ]
+  },
+  "alt": {
+    "timestamp": "2026-06-07T11:09:27.472Z",
+    "signals": [
+      {
+        "cardId": "neo1-1st-18",
+        "platform": "alt",
+        "priceCents": 343969,
+        "priceUsd": 3439.69,
+        "confidence": 0.95,
+        "source": "alt_seeded",
+        "compCount": 10,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "jp-vs-091",
+        "platform": "alt",
+        "priceCents": 1143125,
+        "priceUsd": 11431.25,
+        "confidence": 0.95,
+        "source": "alt_seeded",
+        "compCount": 10,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "base5-1st-83",
+        "platform": "alt",
+        "priceCents": 541720,
+        "priceUsd": 5417.2,
+        "confidence": 0.95,
+        "source": "alt_seeded",
+        "compCount": 10,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      }
+    ]
+  },
+  "cardmarket": {
+    "timestamp": "2026-06-07T11:09:27.472Z",
+    "signals": [
+      {
+        "cardId": "jp-vs-091",
+        "platform": "cardmarket",
+        "priceCents": 1186574,
+        "priceUsd": 11865.74,
+        "confidence": 0.95,
+        "source": "cardmarket_seeded",
+        "compCount": 11,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "base5-1st-83",
+        "platform": "cardmarket",
+        "priceCents": 446128,
+        "priceUsd": 4461.28,
+        "confidence": 0.95,
+        "source": "cardmarket_seeded",
+        "compCount": 10,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      }
+    ]
+  },
+  "beezie": {
+    "timestamp": "2026-06-07T11:09:27.472Z",
+    "signals": [
+      {
+        "cardId": "jp-vs-091",
+        "platform": "beezie",
+        "priceCents": 1176208,
+        "priceUsd": 11762.08,
+        "confidence": 0.95,
+        "source": "beezie_seeded",
+        "compCount": 8,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "base5-1st-83",
+        "platform": "beezie",
+        "priceCents": 655139,
+        "priceUsd": 6551.39,
+        "confidence": 0.95,
+        "source": "beezie_seeded",
+        "compCount": 11,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "base2-1st-3",
+        "platform": "beezie",
+        "priceCents": 230643,
+        "priceUsd": 2306.43,
+        "confidence": 0.95,
+        "source": "beezie_seeded",
+        "compCount": 8,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      }
+    ]
+  },
+  "collector-crypt": {
+    "timestamp": "2026-06-07T11:09:27.472Z",
+    "signals": [
+      {
+        "cardId": "neo1-1st-18",
+        "platform": "collector-crypt",
+        "priceCents": 395215,
+        "priceUsd": 3952.15,
+        "confidence": 0.95,
+        "source": "collector-crypt_seeded",
+        "compCount": 10,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "jp-vs-091",
+        "platform": "collector-crypt",
+        "priceCents": 1256174,
+        "priceUsd": 12561.74,
+        "confidence": 0.95,
+        "source": "collector-crypt_seeded",
+        "compCount": 10,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      }
+    ]
+  },
+  "goldin": {
+    "timestamp": "2026-06-07T11:09:27.472Z",
+    "signals": [
+      {
+        "cardId": "neo1-1st-18",
+        "platform": "goldin",
+        "priceCents": 341750,
+        "priceUsd": 3417.5,
+        "confidence": 0.95,
+        "source": "goldin_seeded",
+        "compCount": 9,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "jp-vs-091",
+        "platform": "goldin",
+        "priceCents": 1314083,
+        "priceUsd": 13140.83,
+        "confidence": 0.95,
+        "source": "goldin_seeded",
+        "compCount": 10,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      },
+      {
+        "cardId": "base5-1st-83",
+        "platform": "goldin",
+        "priceCents": 536002,
+        "priceUsd": 5360.02,
+        "confidence": 0.95,
+        "source": "goldin_seeded",
+        "compCount": 10,
+        "observedAt": "2026-06-07T11:09:27.472Z",
+        "flags": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,184 @@
+{
+  "neo1-1st-18": {
+    "cardId": "neo1-1st-18",
+    "consensusPriceCents": 342668,
+    "confidenceLower": 342668,
+    "confidenceUpper": 345355,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 345355,
+        "confidence": 0.95,
+        "weight": 0.8974518628769651
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 342668,
+        "confidence": 0.95,
+        "weight": 0.95
+      }
+    ],
+    "rejectedSources": [
+      {
+        "platform": "tcgplayer",
+        "priceCents": 370678,
+        "reason": "MAD outlier (z=6.36)",
+        "zScore": 6.35666672869371
+      }
+    ],
+    "flags": [
+      "insufficient_sources"
+    ],
+    "sourceCount": 2,
+    "roundId": "neo1-1st-18_round8",
+    "timestamp": "2026-06-07T17:09:27.472Z"
+  },
+  "jp-vs-091": {
+    "cardId": "jp-vs-091",
+    "consensusPriceCents": 1229999,
+    "confidenceLower": 1178855,
+    "confidenceUpper": 1242596,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 1186251,
+        "confidence": 0.95,
+        "weight": 0.8926730588630895
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 1242596,
+        "confidence": 0.95,
+        "weight": 0.95
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 1229999,
+        "confidence": 0.95,
+        "weight": 0.8500460626202004
+      },
+      {
+        "platform": "alt",
+        "priceCents": 1258638,
+        "confidence": 0.95,
+        "weight": 0.70736168108098
+      },
+      {
+        "platform": "cardmarket",
+        "priceCents": 1178855,
+        "confidence": 0.95,
+        "weight": 0.7090059727613635
+      },
+      {
+        "platform": "goldin",
+        "priceCents": 1168825,
+        "confidence": 0.95,
+        "weight": 0.7848905744664393
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 6,
+    "roundId": "jp-vs-091_round8",
+    "timestamp": "2026-06-07T17:09:27.472Z"
+  },
+  "base5-1st-83": {
+    "cardId": "base5-1st-83",
+    "consensusPriceCents": 507719,
+    "confidenceLower": 497719,
+    "confidenceUpper": 535793,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 535793,
+        "confidence": 0.95,
+        "weight": 0.8924988873558966
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 497719,
+        "confidence": 0.95,
+        "weight": 0.95
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 507719,
+        "confidence": 0.95,
+        "weight": 0.8461249298971711
+      },
+      {
+        "platform": "alt",
+        "priceCents": 474279,
+        "confidence": 0.95,
+        "weight": 0.7188751709909605
+      },
+      {
+        "platform": "cardmarket",
+        "priceCents": 535598,
+        "confidence": 0.95,
+        "weight": 0.711451791828409
+      },
+      {
+        "platform": "goldin",
+        "priceCents": 559428,
+        "confidence": 0.95,
+        "weight": 0.7981594800322395
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 6,
+    "roundId": "base5-1st-83_round8",
+    "timestamp": "2026-06-07T17:09:27.472Z"
+  },
+  "base2-1st-3": {
+    "cardId": "base2-1st-3",
+    "consensusPriceCents": 206848,
+    "confidenceLower": 205977,
+    "confidenceUpper": 208860,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 218866,
+        "confidence": 0.95,
+        "weight": 0.8936320191479453
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 205977,
+        "confidence": 0.95,
+        "weight": 0.95
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 208860,
+        "confidence": 0.95,
+        "weight": 0.8475874789691513
+      },
+      {
+        "platform": "alt",
+        "priceCents": 205420,
+        "confidence": 0.95,
+        "weight": 0.7295261876609245
+      },
+      {
+        "platform": "cardmarket",
+        "priceCents": 206848,
+        "confidence": 0.95,
+        "weight": 0.7249739990869842
+      }
+    ],
+    "rejectedSources": [
+      {
+        "platform": "beezie",
+        "priceCents": 237967,
+        "reason": "MAD outlier (z=9.42)",
+        "zScore": 9.422973092090002
+      }
+    ],
+    "flags": [],
+    "sourceCount": 5,
+    "roundId": "base2-1st-3_round8",
+    "timestamp": "2026-06-07T17:09:27.472Z"
+  }
+}

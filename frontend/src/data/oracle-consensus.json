@@ -1,0 +1,94 @@
+{
+  "_seed": true,
+  "_note": "Seed consensus for the 4 demo markets so OracleConsensusPanel renders before the live swarm runs. Replace with output from agents/coordinator.mjs runCoordinator. Keyed by productId (DEMO_MARKETS).",
+  "roundId": "seed-round-0",
+  "timestamp": 1749300000000,
+  "consensus": {
+    "neo1-1st-18": {
+      "cardId": "neo1-1st-18",
+      "consensusPriceCents": 412500,
+      "confidenceLower": 398000,
+      "confidenceUpper": 431000,
+      "contributingSources": [
+        { "platform": "ebay", "priceCents": 410000, "confidence": 0.92, "reliability": 0.94, "weight": 1.31, "source": "sold-comps", "compCount": 7 },
+        { "platform": "courtyard", "priceCents": 418000, "confidence": 0.81, "reliability": 0.88, "weight": 0.97, "source": "tokenized", "compCount": 3 },
+        { "platform": "tcgplayer", "priceCents": 405000, "confidence": 0.74, "reliability": 0.79, "weight": 0.71, "source": "market", "compCount": 4 },
+        { "platform": "alt", "priceCents": 421000, "confidence": 0.68, "reliability": 0.72, "weight": 0.55, "source": "auction", "compCount": 2 }
+      ],
+      "rejectedSources": [
+        { "platform": "fanatics", "priceCents": 689000, "reason": "MAD outlier z=4.10", "zScore": 4.1 }
+      ],
+      "flags": [],
+      "sourceCount": 4,
+      "roundId": "seed-round-0",
+      "timestamp": 1749300000000,
+      "evidence": {
+        "blobId": "dHWTDxbxXzGV_qwh9qeb52RH31SWssvST40GWj1mtS4",
+        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/dHWTDxbxXzGV_qwh9qeb52RH31SWssvST40GWj1mtS4"
+      }
+    },
+    "jp-vs-091": {
+      "cardId": "jp-vs-091",
+      "consensusPriceCents": 1485000,
+      "confidenceLower": 1410000,
+      "confidenceUpper": 1572000,
+      "contributingSources": [
+        { "platform": "ebay", "priceCents": 1490000, "confidence": 0.88, "reliability": 0.94, "weight": 1.24, "source": "sold-comps", "compCount": 5 },
+        { "platform": "heritage", "priceCents": 1520000, "confidence": 0.79, "reliability": 0.85, "weight": 0.86, "source": "auction", "compCount": 2 },
+        { "platform": "cardmarket", "priceCents": 1452000, "confidence": 0.70, "reliability": 0.76, "weight": 0.62, "source": "market", "compCount": 3 }
+      ],
+      "rejectedSources": [
+        { "platform": "alt", "priceCents": 2240000, "reason": "MAD outlier z=3.82", "zScore": 3.82 }
+      ],
+      "flags": ["wide_disagreement"],
+      "sourceCount": 3,
+      "roundId": "seed-round-0",
+      "timestamp": 1749300000000,
+      "evidence": {
+        "blobId": "kP2nZqL9vX7bR4mY6wC8tH1jD3sF5gA0eU_iO9pQ2rW",
+        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/kP2nZqL9vX7bR4mY6wC8tH1jD3sF5gA0eU_iO9pQ2rW"
+      }
+    },
+    "base5-1st-83": {
+      "cardId": "base5-1st-83",
+      "consensusPriceCents": 612000,
+      "confidenceLower": 588000,
+      "confidenceUpper": 640000,
+      "contributingSources": [
+        { "platform": "ebay", "priceCents": 610000, "confidence": 0.90, "reliability": 0.94, "weight": 1.28, "source": "sold-comps", "compCount": 6 },
+        { "platform": "courtyard", "priceCents": 619000, "confidence": 0.78, "reliability": 0.88, "weight": 0.92, "source": "tokenized", "compCount": 3 },
+        { "platform": "tcgplayer", "priceCents": 605000, "confidence": 0.71, "reliability": 0.79, "weight": 0.66, "source": "market", "compCount": 4 }
+      ],
+      "rejectedSources": [
+        { "platform": "goldin", "priceCents": 1050000, "reason": "MAD outlier z=4.55", "zScore": 4.55 }
+      ],
+      "flags": [],
+      "sourceCount": 3,
+      "roundId": "seed-round-0",
+      "timestamp": 1749300000000,
+      "evidence": {
+        "blobId": "aQ8wE3rT5yU7iO1pS9dF2gH4jK6lZ0xC_vB8nM3qR5t",
+        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/aQ8wE3rT5yU7iO1pS9dF2gH4jK6lZ0xC_vB8nM3qR5t"
+      }
+    },
+    "base2-1st-3": {
+      "cardId": "base2-1st-3",
+      "consensusPriceCents": 251000,
+      "confidenceLower": 238000,
+      "confidenceUpper": 269000,
+      "contributingSources": [
+        { "platform": "ebay", "priceCents": 250000, "confidence": 0.86, "reliability": 0.94, "weight": 1.19, "source": "sold-comps", "compCount": 4 },
+        { "platform": "tcgplayer", "priceCents": 248000, "confidence": 0.69, "reliability": 0.79, "weight": 0.60, "source": "market", "compCount": 3 }
+      ],
+      "rejectedSources": [],
+      "flags": ["insufficient_sources"],
+      "sourceCount": 2,
+      "roundId": "seed-round-0",
+      "timestamp": 1749300000000,
+      "evidence": {
+        "blobId": null,
+        "aggregatorUrl": null
+      }
+    }
+  }
+}

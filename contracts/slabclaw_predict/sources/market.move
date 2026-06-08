@@ -78,6 +78,8 @@ module slabclaw_predict::market {
         proposed_at_ms: u64,
         /// Number of oracle sources in the proposal
         proposed_sources: u64,
+        /// Walrus blob id of the resolution evidence (empty until proposed)
+        evidence_blob_id: vector<u8>,
         /// Dispute bond balance (held during dispute)
         dispute_bond: Balance<TEST_USD>,
         /// Disputer address
@@ -121,6 +123,7 @@ module slabclaw_predict::market {
         proposed_price: u64,
         sources_count: u64,
         dispute_deadline_ms: u64,
+        evidence_blob_id: vector<u8>,
     }
 
     public struct MarketDisputed has copy, drop {
@@ -134,6 +137,7 @@ module slabclaw_predict::market {
         settlement_price: u64,
         outcome_yes: bool,
         total_pool: u64,
+        evidence_blob_id: vector<u8>,
     }
 
     public struct WinningsClaimed has copy, drop {
@@ -177,6 +181,7 @@ module slabclaw_predict::market {
             proposed_price: 0,
             proposed_at_ms: 0,
             proposed_sources: 0,
+            evidence_blob_id: b"",
             dispute_bond: balance::zero(),
             disputer: option::none(),
             outcome: option::none(),
@@ -284,6 +289,7 @@ module slabclaw_predict::market {
         registry: &AssetRegistry,
         price_usd_cents: u64,
         sources_count: u64,
+        evidence_blob_id: vector<u8>,
         clock: &Clock,
     ) {
         let now = clock::timestamp_ms(clock);
@@ -298,17 +304,21 @@ module slabclaw_predict::market {
         assert!(sources_count >= MIN_SOURCES, EInsufficientSources);
         // Price must be positive
         assert!(price_usd_cents > 0, EInvalidPrice);
+        // A market cannot settle without verifiable Walrus evidence.
+        assert!(std::vector::length(&evidence_blob_id) > 0, EMissingEvidence);
 
         market.state = STATE_PROPOSED;
         market.proposed_price = price_usd_cents;
         market.proposed_at_ms = now;
         market.proposed_sources = sources_count;
+        market.evidence_blob_id = evidence_blob_id;
 
         event::emit(ResolutionProposed {
             market_id: object::uid_to_address(&market.id),
             proposed_price: price_usd_cents,
             sources_count,
             dispute_deadline_ms: now + DISPUTE_WINDOW_MS,
+            evidence_blob_id,
         });
     }
 
@@ -362,6 +372,7 @@ module slabclaw_predict::market {
             settlement_price: market.proposed_price,
             outcome_yes,
             total_pool: balance::value(&market.pool),
+            evidence_blob_id: market.evidence_blob_id,
         });
     }
 
@@ -409,6 +420,7 @@ module slabclaw_predict::market {
             settlement_price: correct_price,
             outcome_yes,
             total_pool: balance::value(&market.pool),
+            evidence_blob_id: market.evidence_blob_id,
         });
     }
 
@@ -509,6 +521,7 @@ module slabclaw_predict::market {
     public fun pool_value(market: &Market): u64 { balance::value(&market.pool) }
     public fun proposed_price(market: &Market): u64 { market.proposed_price }
     public fun proposed_at_ms(market: &Market): u64 { market.proposed_at_ms }
+    public fun evidence_blob_id(market: &Market): vector<u8> { market.evidence_blob_id }
     public fun is_settled(market: &Market): bool { market.state == STATE_SETTLED }
     public fun outcome(market: &Market): Option<bool> { market.outcome }
     public fun total_claimed(market: &Market): u64 { market.total_claimed }
@@ -552,6 +565,7 @@ module slabclaw_predict::market {
     const EInsufficientSources: u64 = 16;
     const EInvalidPrice: u64 = 17;
     const ENoWinningSide: u64 = 18;
+    const EMissingEvidence: u64 = 19;
 
     // ── Test helpers ────────────────────────────────────────────────────
 
@@ -576,6 +590,7 @@ module slabclaw_predict::market {
             proposed_price: 0,
             proposed_at_ms: 0,
             proposed_sources: 0,
+            evidence_blob_id: b"",
             dispute_bond: balance::zero(),
             disputer: option::none(),
             outcome: option::none(),
@@ -600,6 +615,7 @@ module slabclaw_predict::market {
             proposed_price: _,
             proposed_at_ms: _,
             proposed_sources: _,
+            evidence_blob_id: _,
             dispute_bond,
             disputer: _,
             outcome: _,

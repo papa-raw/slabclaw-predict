@@ -1,0 +1,13 @@
+{
+  "cardId": "jp-vs-091",
+  "observations": [
+    {
+      "date": "2026-06-08T17:09:27.811Z",
+      "priceCents": 1600000,
+      "confidence": 0.95,
+      "comps": 31,
+      "source": "pc_sold_recent"
+    }
+  ],
+  "anomalies": []
+}

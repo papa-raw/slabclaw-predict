@@ -1,0 +1,76 @@
+{
+  "cardId": "base2-1st-3",
+  "observations": [
+    {
+      "date": "2026-06-05T17:09:27.465Z",
+      "priceCents": 222305,
+      "confidence": 0.38,
+      "comps": 3,
+      "source": "courtyard_seeded"
+    },
+    {
+      "date": "2026-06-05T23:09:27.468Z",
+      "priceCents": 214136,
+      "confidence": 0.77,
+      "comps": 6,
+      "source": "courtyard_seeded"
+    },
+    {
+      "date": "2026-06-06T05:09:27.469Z",
+      "priceCents": 226930,
+      "confidence": 0.8,
+      "comps": 6,
+      "source": "courtyard_seeded"
+    },
+    {
+      "date": "2026-06-06T11:09:27.469Z",
+      "priceCents": 223736,
+      "confidence": 0.82,
+      "comps": 6,
+      "source": "courtyard_seeded"
+    },
+    {
+      "date": "2026-06-06T17:09:27.470Z",
+      "priceCents": 230981,
+      "confidence": 0.95,
+      "comps": 7,
+      "source": "courtyard_seeded"
+    },
+    {
+      "date": "2026-06-06T23:09:27.471Z",
+      "priceCents": 224939,
+      "confidence": 0.95,
+      "comps": 9,
+      "source": "courtyard_seeded"
+    },
+    {
+      "date": "2026-06-07T05:09:27.471Z",
+      "priceCents": 226864,
+      "confidence": 0.95,
+      "comps": 8,
+      "source": "courtyard_seeded"
+    },
+    {
+      "date": "2026-06-07T11:09:27.472Z",
+      "priceCents": 230987,
+      "confidence": 0.95,
+      "comps": 11,
+      "source": "courtyard_seeded"
+    },
+    {
+      "date": "2026-06-07T17:09:27.472Z",
+      "priceCents": 205977,
+      "confidence": 0.95,
+      "comps": 12,
+      "source": "courtyard_seeded"
+    },
+    {
+      "date": "2026-06-07T23:09:27.473Z",
+      "priceCents": 212888,
+      "confidence": 0.95,
+      "comps": 10,
+      "source": "courtyard_seeded"
+    }
+  ],
+  "anomalies": []
+}

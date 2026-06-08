@@ -1,0 +1,181 @@
+{
+  "neo1-1st-18": {
+    "cardId": "neo1-1st-18",
+    "consensusPriceCents": 364379,
+    "confidenceLower": 341837,
+    "confidenceUpper": 368883,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 368883,
+        "confidence": 0.95,
+        "weight": 0.8677936571969695
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 377213,
+        "confidence": 0.82,
+        "weight": 0.82
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 351811,
+        "confidence": 0.82,
+        "weight": 0.7419091891681817
+      },
+      {
+        "platform": "alt",
+        "priceCents": 364379,
+        "confidence": 0.82,
+        "weight": 0.4388803999999999
+      },
+      {
+        "platform": "cardmarket",
+        "priceCents": 323612,
+        "confidence": 0.95,
+        "weight": 0.78375
+      },
+      {
+        "platform": "beezie",
+        "priceCents": 341837,
+        "confidence": 0.82,
+        "weight": 0.27464259999999996
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 6,
+    "roundId": "neo1-1st-18_round3",
+    "timestamp": "2026-06-06T11:09:27.469Z"
+  },
+  "jp-vs-091": {
+    "cardId": "jp-vs-091",
+    "consensusPriceCents": 1187419,
+    "confidenceLower": 1147982,
+    "confidenceUpper": 1243399,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 1275753,
+        "confidence": 0.95,
+        "weight": 0.8741842510052447
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 1187419,
+        "confidence": 0.95,
+        "weight": 0.95
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 1243399,
+        "confidence": 0.95,
+        "weight": 0.8674420149344695
+      },
+      {
+        "platform": "alt",
+        "priceCents": 1147982,
+        "confidence": 0.68,
+        "weight": 0.3736293244444444
+      },
+      {
+        "platform": "cardmarket",
+        "priceCents": 1138858,
+        "confidence": 0.82,
+        "weight": 0.6621499999999999
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 5,
+    "roundId": "jp-vs-091_round3",
+    "timestamp": "2026-06-06T11:09:27.469Z"
+  },
+  "base5-1st-83": {
+    "cardId": "base5-1st-83",
+    "consensusPriceCents": 531692,
+    "confidenceLower": 467180,
+    "confidenceUpper": 550630,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 550630,
+        "confidence": 0.95,
+        "weight": 0.8797552753015734
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 531692,
+        "confidence": 0.95,
+        "weight": 0.95
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 467180,
+        "confidence": 0.82,
+        "weight": 0.7544679808712902
+      },
+      {
+        "platform": "alt",
+        "priceCents": 579181,
+        "confidence": 0.82,
+        "weight": 0.47956590266666665
+      },
+      {
+        "platform": "beezie",
+        "priceCents": 443046,
+        "confidence": 0.95,
+        "weight": 0.42795504999999995
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 5,
+    "roundId": "base5-1st-83_round3",
+    "timestamp": "2026-06-06T11:09:27.469Z"
+  },
+  "base2-1st-3": {
+    "cardId": "base2-1st-3",
+    "consensusPriceCents": 223736,
+    "confidenceLower": 219842,
+    "confidenceUpper": 223736,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 219842,
+        "confidence": 0.95,
+        "weight": 0.8845932492571387
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 223736,
+        "confidence": 0.82,
+        "weight": 0.82
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 224135,
+        "confidence": 0.68,
+        "weight": 0.629696912314321
+      },
+      {
+        "platform": "beezie",
+        "priceCents": 205599,
+        "confidence": 0.82,
+        "weight": 0.35681783399999994
+      }
+    ],
+    "rejectedSources": [
+      {
+        "platform": "goldin",
+        "priceCents": 196025,
+        "reason": "MAD outlier (z=-3.74)",
+        "zScore": -3.7420373864430467
+      }
+    ],
+    "flags": [],
+    "sourceCount": 4,
+    "roundId": "base2-1st-3_round3",
+    "timestamp": "2026-06-06T11:09:27.469Z"
+  }
+}
