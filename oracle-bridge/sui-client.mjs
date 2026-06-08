@@ -131,7 +131,13 @@ export async function createMarket({ assetId, strikeUsdCents, expiryMs, descript
   return executeTransaction(tx);
 }
 
-export async function proposeResolution({ oracleCapId, marketId, priceUsdCents, sourcesCount }) {
+export async function proposeResolution({ oracleCapId, marketId, priceUsdCents, sourcesCount, evidenceBlobId }) {
+  // Evidence gate: a market can only be proposed with a verifiable Walrus blob.
+  // Fail fast offchain so we never build a transaction the Move layer will abort.
+  if (!evidenceBlobId) {
+    throw new Error('proposeResolution: evidenceBlobId is required (no Walrus evidence — refusing to propose)');
+  }
+
   const tx = new Transaction();
 
   tx.moveCall({
@@ -142,6 +148,7 @@ export async function proposeResolution({ oracleCapId, marketId, priceUsdCents, 
       tx.object(CONFIG.registryId),
       tx.pure.u64(priceUsdCents),
       tx.pure.u64(sourcesCount),
+      tx.pure.vector('u8', Array.from(new TextEncoder().encode(evidenceBlobId))),
       tx.object(CONFIG.clockId),
     ],
   });

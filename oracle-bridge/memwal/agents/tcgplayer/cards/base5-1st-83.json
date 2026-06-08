@@ -1,0 +1,62 @@
+{
+  "cardId": "base5-1st-83",
+  "observations": [
+    {
+      "date": "2026-06-05T17:09:27.465Z",
+      "priceCents": 489756,
+      "confidence": 0.5,
+      "comps": 4,
+      "source": "tcgplayer_seeded"
+    },
+    {
+      "date": "2026-06-05T23:09:27.468Z",
+      "priceCents": 465013,
+      "confidence": 0.52,
+      "comps": 4,
+      "source": "tcgplayer_seeded"
+    },
+    {
+      "date": "2026-06-06T05:09:27.469Z",
+      "priceCents": 493951,
+      "confidence": 0.53,
+      "comps": 4,
+      "source": "tcgplayer_seeded"
+    },
+    {
+      "date": "2026-06-06T11:09:27.469Z",
+      "priceCents": 467180,
+      "confidence": 0.82,
+      "comps": 6,
+      "source": "tcgplayer_seeded"
+    },
+    {
+      "date": "2026-06-07T05:09:27.471Z",
+      "priceCents": 512923,
+      "confidence": 0.95,
+      "comps": 10,
+      "source": "tcgplayer_seeded"
+    },
+    {
+      "date": "2026-06-07T11:09:27.472Z",
+      "priceCents": 560061,
+      "confidence": 0.95,
+      "comps": 9,
+      "source": "tcgplayer_seeded"
+    },
+    {
+      "date": "2026-06-07T17:09:27.472Z",
+      "priceCents": 507719,
+      "confidence": 0.95,
+      "comps": 10,
+      "source": "tcgplayer_seeded"
+    },
+    {
+      "date": "2026-06-07T23:09:27.473Z",
+      "priceCents": 527955,
+      "confidence": 0.95,
+      "comps": 10,
+      "source": "tcgplayer_seeded"
+    }
+  ],
+  "anomalies": []
+}

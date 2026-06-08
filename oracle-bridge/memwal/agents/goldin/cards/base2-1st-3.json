@@ -1,0 +1,27 @@
+{
+  "cardId": "base2-1st-3",
+  "observations": [
+    {
+      "date": "2026-06-06T11:09:27.469Z",
+      "priceCents": 196025,
+      "confidence": 0.95,
+      "comps": 7,
+      "source": "goldin_seeded"
+    },
+    {
+      "date": "2026-06-06T17:09:27.470Z",
+      "priceCents": 230334,
+      "confidence": 0.95,
+      "comps": 7,
+      "source": "goldin_seeded"
+    },
+    {
+      "date": "2026-06-07T23:09:27.473Z",
+      "priceCents": 218275,
+      "confidence": 0.95,
+      "comps": 11,
+      "source": "goldin_seeded"
+    }
+  ],
+  "anomalies": []
+}

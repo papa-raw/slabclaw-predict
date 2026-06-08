@@ -1,0 +1,74 @@
+{
+  "ebay": {
+    "reliability": 0.9285085576228933,
+    "rounds": 42,
+    "hits": 39,
+    "misses": 3,
+    "lastDeviation": 0,
+    "lastUpdated": "2026-06-08T17:09:27.864Z"
+  },
+  "courtyard": {
+    "reliability": 1,
+    "rounds": 37,
+    "hits": 37,
+    "misses": 0,
+    "lastDeviation": 0.024679876302829,
+    "lastUpdated": "2026-06-07T23:09:27.473Z"
+  },
+  "tcgplayer": {
+    "reliability": 0.9049240454459404,
+    "rounds": 32,
+    "hits": 29,
+    "misses": 3,
+    "lastDeviation": 0.008475626704327771,
+    "lastUpdated": "2026-06-07T23:09:27.473Z"
+  },
+  "alt": {
+    "reliability": 0.7517229225571341,
+    "rounds": 27,
+    "hits": 20,
+    "misses": 7,
+    "lastDeviation": 0.8278298485940879,
+    "lastUpdated": "2026-06-08T17:09:27.864Z"
+  },
+  "cardmarket": {
+    "reliability": 0.8068545241845774,
+    "rounds": 16,
+    "hits": 13,
+    "misses": 3,
+    "lastDeviation": 0.10051186110178466,
+    "lastUpdated": "2026-06-07T23:09:27.473Z"
+  },
+  "beezie": {
+    "reliability": 0.5948116073655696,
+    "rounds": 15,
+    "hits": 9,
+    "misses": 6,
+    "lastDeviation": 0.123388387846607,
+    "lastUpdated": "2026-06-07T23:09:27.473Z"
+  },
+  "collector-crypt": {
+    "reliability": 0.4866699848333333,
+    "rounds": 10,
+    "hits": 5,
+    "misses": 5,
+    "lastDeviation": 0.0645745046386439,
+    "lastUpdated": "2026-06-07T23:09:27.473Z"
+  },
+  "goldin": {
+    "reliability": 0.8790024186006463,
+    "rounds": 17,
+    "hits": 15,
+    "misses": 2,
+    "lastDeviation": 0,
+    "lastUpdated": "2026-06-07T23:09:27.473Z"
+  },
+  "pricecharting": {
+    "reliability": 1,
+    "rounds": 4,
+    "hits": 4,
+    "misses": 0,
+    "lastDeviation": 0,
+    "lastUpdated": "2026-06-08T17:09:27.864Z"
+  }
+}

@@ -1,0 +1,282 @@
+{
+  "timestamp": "2026-06-08T17:09:34.699Z",
+  "consensus": {
+    "neo1-1st-18": {
+      "cardId": "neo1-1st-18",
+      "consensusPriceCents": 259999,
+      "confidenceLower": 259999,
+      "confidenceUpper": 259999,
+      "contributingSources": [
+        {
+          "platform": "ebay",
+          "priceCents": 259999,
+          "confidence": 1,
+          "reliability": 0.9467459321803311,
+          "weight": 0.9467457239839105,
+          "source": "ebay_sold",
+          "compCount": 30
+        },
+        {
+          "platform": "alt",
+          "priceCents": 531360,
+          "confidence": 0.3333333333333333,
+          "reliability": 0.7962882500017131,
+          "weight": 0.2654293622471909,
+          "source": "alt_sold",
+          "compCount": 1
+        },
+        {
+          "platform": "pricecharting",
+          "priceCents": 259999,
+          "confidence": 0.95,
+          "reliability": 1,
+          "weight": 0.9499998366402256,
+          "source": "pc_sold_all",
+          "compCount": 30
+        }
+      ],
+      "rejectedSources": [],
+      "flags": [],
+      "sourceCount": 3,
+      "roundId": "neo1-1st-18_1780938567864",
+      "timestamp": "2026-06-08T17:09:27.864Z"
+    },
+    "jp-vs-091": {
+      "cardId": "jp-vs-091",
+      "consensusPriceCents": 1600000,
+      "confidenceLower": 1290000,
+      "confidenceUpper": 1600000,
+      "contributingSources": [
+        {
+          "platform": "ebay",
+          "priceCents": 1290000,
+          "confidence": 1,
+          "reliability": 0.9481263437566634,
+          "weight": 0.9481262732115512,
+          "source": "ebay_sold",
+          "compCount": 31
+        },
+        {
+          "platform": "pricecharting",
+          "priceCents": 1600000,
+          "confidence": 0.95,
+          "reliability": 1,
+          "weight": 0.9499999167493421,
+          "source": "pc_sold_recent",
+          "compCount": 31
+        }
+      ],
+      "rejectedSources": [],
+      "flags": [
+        "insufficient_sources"
+      ],
+      "sourceCount": 2,
+      "roundId": "jp-vs-091_1780938567864",
+      "timestamp": "2026-06-08T17:09:27.864Z"
+    },
+    "base5-1st-83": {
+      "cardId": "base5-1st-83",
+      "consensusPriceCents": 416100,
+      "confidenceLower": 416100,
+      "confidenceUpper": 416100,
+      "contributingSources": [
+        {
+          "platform": "ebay",
+          "priceCents": 416100,
+          "confidence": 1,
+          "reliability": 0.931937903126999,
+          "weight": 0.931937895422486,
+          "source": "ebay_sold",
+          "compCount": 30
+        },
+        {
+          "platform": "alt",
+          "priceCents": 760560,
+          "confidence": 0.6666666666666666,
+          "reliability": 0.7773480134620523,
+          "weight": 0.5182319472804183,
+          "source": "alt_sold",
+          "compCount": 2
+        },
+        {
+          "platform": "pricecharting",
+          "priceCents": 416100,
+          "confidence": 0.95,
+          "reliability": 1,
+          "weight": 0.9499999575892866,
+          "source": "pc_sold_all",
+          "compCount": 30
+        }
+      ],
+      "rejectedSources": [],
+      "flags": [],
+      "sourceCount": 3,
+      "roundId": "base5-1st-83_1780938567864",
+      "timestamp": "2026-06-08T17:09:27.864Z"
+    },
+    "base2-1st-3": {
+      "cardId": "base2-1st-3",
+      "consensusPriceCents": 561600,
+      "confidenceLower": 561600,
+      "confidenceUpper": 561600,
+      "contributingSources": [
+        {
+          "platform": "ebay",
+          "priceCents": 561600,
+          "confidence": 1,
+          "reliability": 0.9283618587429778,
+          "weight": 0.928361857207988,
+          "source": "ebay_sold",
+          "compCount": 12
+        },
+        {
+          "platform": "pricecharting",
+          "priceCents": 561600,
+          "confidence": 0.95,
+          "reliability": 1,
+          "weight": 0.9499999795800266,
+          "source": "pc_sold_all",
+          "compCount": 12
+        }
+      ],
+      "rejectedSources": [],
+      "flags": [
+        "insufficient_sources"
+      ],
+      "sourceCount": 2,
+      "roundId": "base2-1st-3_1780938567864",
+      "timestamp": "2026-06-08T17:09:27.864Z"
+    }
+  },
+  "reputation": {
+    "ebay": {
+      "reliability": 0.9285085576228933,
+      "rounds": 42,
+      "hits": 39,
+      "misses": 3,
+      "lastDeviation": 0,
+      "lastUpdated": "2026-06-08T17:09:27.864Z"
+    },
+    "courtyard": {
+      "reliability": 1,
+      "rounds": 37,
+      "hits": 37,
+      "misses": 0,
+      "lastDeviation": 0.024679876302829,
+      "lastUpdated": "2026-06-07T23:09:27.473Z"
+    },
+    "tcgplayer": {
+      "reliability": 0.9049240454459404,
+      "rounds": 32,
+      "hits": 29,
+      "misses": 3,
+      "lastDeviation": 0.008475626704327771,
+      "lastUpdated": "2026-06-07T23:09:27.473Z"
+    },
+    "alt": {
+      "reliability": 0.7517229225571341,
+      "rounds": 27,
+      "hits": 20,
+      "misses": 7,
+      "lastDeviation": 0.8278298485940879,
+      "lastUpdated": "2026-06-08T17:09:27.864Z"
+    },
+    "cardmarket": {
+      "reliability": 0.8068545241845774,
+      "rounds": 16,
+      "hits": 13,
+      "misses": 3,
+      "lastDeviation": 0.10051186110178466,
+      "lastUpdated": "2026-06-07T23:09:27.473Z"
+    },
+    "beezie": {
+      "reliability": 0.5948116073655696,
+      "rounds": 15,
+      "hits": 9,
+      "misses": 6,
+      "lastDeviation": 0.123388387846607,
+      "lastUpdated": "2026-06-07T23:09:27.473Z"
+    },
+    "collector-crypt": {
+      "reliability": 0.4866699848333333,
+      "rounds": 10,
+      "hits": 5,
+      "misses": 5,
+      "lastDeviation": 0.0645745046386439,
+      "lastUpdated": "2026-06-07T23:09:27.473Z"
+    },
+    "goldin": {
+      "reliability": 0.8790024186006463,
+      "rounds": 17,
+      "hits": 15,
+      "misses": 2,
+      "lastDeviation": 0,
+      "lastUpdated": "2026-06-07T23:09:27.473Z"
+    },
+    "pricecharting": {
+      "reliability": 1,
+      "rounds": 4,
+      "hits": 4,
+      "misses": 0,
+      "lastDeviation": 0,
+      "lastUpdated": "2026-06-08T17:09:27.864Z"
+    }
+  },
+  "agents": [
+    {
+      "name": "ebay",
+      "signals": 4,
+      "errors": 0,
+      "flagged": 0
+    },
+    {
+      "name": "courtyard",
+      "signals": 0,
+      "errors": 4,
+      "flagged": 0
+    },
+    {
+      "name": "tcgplayer",
+      "signals": 0,
+      "errors": 4,
+      "flagged": 0
+    },
+    {
+      "name": "alt",
+      "signals": 2,
+      "errors": 2,
+      "flagged": 0
+    },
+    {
+      "name": "cardmarket",
+      "signals": 0,
+      "errors": 4,
+      "flagged": 0
+    },
+    {
+      "name": "beezie",
+      "signals": 0,
+      "errors": 4,
+      "flagged": 0
+    },
+    {
+      "name": "collector-crypt",
+      "signals": 0,
+      "errors": 4,
+      "flagged": 0
+    },
+    {
+      "name": "goldin",
+      "signals": 0,
+      "errors": 4,
+      "flagged": 0
+    },
+    {
+      "name": "pricecharting",
+      "signals": 4,
+      "errors": 0,
+      "flagged": 0
+    }
+  ],
+  "walrusBlobId": null
+}

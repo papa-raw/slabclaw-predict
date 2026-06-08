@@ -1,0 +1,168 @@
+{
+  "neo1-1st-18": {
+    "cardId": "neo1-1st-18",
+    "consensusPriceCents": 368354,
+    "confidenceLower": 352066,
+    "confidenceUpper": 383495,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 348182,
+        "confidence": 0.38,
+        "weight": 0.38
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 383495,
+        "confidence": 0.63,
+        "weight": 0.63
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 352066,
+        "confidence": 0.63,
+        "weight": 0.63
+      },
+      {
+        "platform": "alt",
+        "priceCents": 368354,
+        "confidence": 0.38,
+        "weight": 0.38
+      },
+      {
+        "platform": "cardmarket",
+        "priceCents": 396347,
+        "confidence": 0.38,
+        "weight": 0.38
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 5,
+    "roundId": "neo1-1st-18_round0",
+    "timestamp": "2026-06-05T17:09:27.465Z"
+  },
+  "jp-vs-091": {
+    "cardId": "jp-vs-091",
+    "consensusPriceCents": 1307031,
+    "confidenceLower": 1162792,
+    "confidenceUpper": 1518000,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 1307031,
+        "confidence": 0.5,
+        "weight": 0.5
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 1195452,
+        "confidence": 0.38,
+        "weight": 0.38
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 1162792,
+        "confidence": 0.5,
+        "weight": 0.5
+      },
+      {
+        "platform": "beezie",
+        "priceCents": 1518000,
+        "confidence": 0.5,
+        "weight": 0.5
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 4,
+    "roundId": "jp-vs-091_round0",
+    "timestamp": "2026-06-05T17:09:27.465Z"
+  },
+  "base5-1st-83": {
+    "cardId": "base5-1st-83",
+    "consensusPriceCents": 553513,
+    "confidenceLower": 518501,
+    "confidenceUpper": 574481,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 553513,
+        "confidence": 0.63,
+        "weight": 0.63
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 574481,
+        "confidence": 0.5,
+        "weight": 0.5
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 489756,
+        "confidence": 0.5,
+        "weight": 0.5
+      },
+      {
+        "platform": "alt",
+        "priceCents": 634244,
+        "confidence": 0.5,
+        "weight": 0.5
+      },
+      {
+        "platform": "cardmarket",
+        "priceCents": 518501,
+        "confidence": 0.38,
+        "weight": 0.38
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 5,
+    "roundId": "base5-1st-83_round0",
+    "timestamp": "2026-06-05T17:09:27.465Z"
+  },
+  "base2-1st-3": {
+    "cardId": "base2-1st-3",
+    "consensusPriceCents": 222305,
+    "confidenceLower": 188503,
+    "confidenceUpper": 243894,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 220402,
+        "confidence": 0.38,
+        "weight": 0.38
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 222305,
+        "confidence": 0.38,
+        "weight": 0.38
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 188503,
+        "confidence": 0.38,
+        "weight": 0.38
+      },
+      {
+        "platform": "beezie",
+        "priceCents": 181861,
+        "confidence": 0.38,
+        "weight": 0.11399999999999999
+      },
+      {
+        "platform": "collector-crypt",
+        "priceCents": 243894,
+        "confidence": 0.5,
+        "weight": 0.5
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 5,
+    "roundId": "base2-1st-3_round0",
+    "timestamp": "2026-06-05T17:09:27.465Z"
+  }
+}

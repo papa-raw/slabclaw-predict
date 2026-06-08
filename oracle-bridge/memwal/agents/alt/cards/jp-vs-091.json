@@ -1,0 +1,34 @@
+{
+  "cardId": "jp-vs-091",
+  "observations": [
+    {
+      "date": "2026-06-06T11:09:27.469Z",
+      "priceCents": 1147982,
+      "confidence": 0.68,
+      "comps": 5,
+      "source": "alt_seeded"
+    },
+    {
+      "date": "2026-06-06T23:09:27.471Z",
+      "priceCents": 1203859,
+      "confidence": 0.95,
+      "comps": 7,
+      "source": "alt_seeded"
+    },
+    {
+      "date": "2026-06-07T11:09:27.472Z",
+      "priceCents": 1143125,
+      "confidence": 0.95,
+      "comps": 10,
+      "source": "alt_seeded"
+    },
+    {
+      "date": "2026-06-07T17:09:27.472Z",
+      "priceCents": 1258638,
+      "confidence": 0.95,
+      "comps": 10,
+      "source": "alt_seeded"
+    }
+  ],
+  "anomalies": []
+}

@@ -1,0 +1,142 @@
+{
+  "neo1-1st-18": {
+    "cardId": "neo1-1st-18",
+    "consensusPriceCents": 363835,
+    "confidenceLower": 350079,
+    "confidenceUpper": 363835,
+    "contributingSources": [
+      {
+        "platform": "courtyard",
+        "priceCents": 350079,
+        "confidence": 0.95,
+        "weight": 0.95
+      },
+      {
+        "platform": "beezie",
+        "priceCents": 366604,
+        "confidence": 0.84,
+        "weight": 0.40365621239999994
+      },
+      {
+        "platform": "goldin",
+        "priceCents": 363835,
+        "confidence": 0.95,
+        "weight": 0.7283333333333333
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 3,
+    "roundId": "neo1-1st-18_round4",
+    "timestamp": "2026-06-06T17:09:27.470Z"
+  },
+  "jp-vs-091": {
+    "cardId": "jp-vs-091",
+    "consensusPriceCents": 1153952,
+    "confidenceLower": 1090266,
+    "confidenceUpper": 1153952,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 1153952,
+        "confidence": 0.84,
+        "weight": 0.7858999987503147
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 1090266,
+        "confidence": 0.95,
+        "weight": 0.95
+      },
+      {
+        "platform": "collector-crypt",
+        "priceCents": 1397991,
+        "confidence": 0.95,
+        "weight": 0.4069166666666666
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 3,
+    "roundId": "jp-vs-091_round4",
+    "timestamp": "2026-06-06T17:09:27.470Z"
+  },
+  "base5-1st-83": {
+    "cardId": "base5-1st-83",
+    "consensusPriceCents": 516171,
+    "confidenceLower": 516171,
+    "confidenceUpper": 527337,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 527337,
+        "confidence": 0.95,
+        "weight": 0.8925269953743189
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 516171,
+        "confidence": 0.95,
+        "weight": 0.95
+      }
+    ],
+    "rejectedSources": [
+      {
+        "platform": "goldin",
+        "priceCents": 608410,
+        "reason": "MAD outlier (z=4.90)",
+        "zScore": 4.897343587676876
+      }
+    ],
+    "flags": [
+      "insufficient_sources"
+    ],
+    "sourceCount": 2,
+    "roundId": "base5-1st-83_round4",
+    "timestamp": "2026-06-06T17:09:27.470Z"
+  },
+  "base2-1st-3": {
+    "cardId": "base2-1st-3",
+    "consensusPriceCents": 230981,
+    "confidenceLower": 226621,
+    "confidenceUpper": 230981,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 226621,
+        "confidence": 0.84,
+        "weight": 0.7920878626326263
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 230981,
+        "confidence": 0.95,
+        "weight": 0.95
+      },
+      {
+        "platform": "alt",
+        "priceCents": 232156,
+        "confidence": 0.95,
+        "weight": 0.5898602111818182
+      },
+      {
+        "platform": "goldin",
+        "priceCents": 230334,
+        "confidence": 0.95,
+        "weight": 0.6141749999999999
+      }
+    ],
+    "rejectedSources": [
+      {
+        "platform": "tcgplayer",
+        "priceCents": 218387,
+        "reason": "MAD outlier (z=-4.42)",
+        "zScore": -4.422750548847421
+      }
+    ],
+    "flags": [],
+    "sourceCount": 4,
+    "roundId": "base2-1st-3_round4",
+    "timestamp": "2026-06-06T17:09:27.470Z"
+  }
+}

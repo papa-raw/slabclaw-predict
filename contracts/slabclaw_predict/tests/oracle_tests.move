@@ -46,6 +46,7 @@ module slabclaw_predict::oracle_tests {
                 b"BASE_CHARIZARD_4_PSA_10",
                 1500000, // $15,000.00
                 5,       // 5 sources
+                b"dHWTDxbxXzGV_qwh9qeb52RH31SWssvST40GWj1mtS4", // Walrus blob id
                 &clock,
             );
 
@@ -53,6 +54,7 @@ module slabclaw_predict::oracle_tests {
             assert!(oracle::attestation_sources(&att) == 5, 1);
             assert!(oracle::attestation_timestamp(&att) == 1_700_000_000_000, 2);
             assert!(oracle::attestation_asset_id(&att) == b"BASE_CHARIZARD_4_PSA_10", 3);
+            assert!(oracle::attestation_evidence(&att) == b"dHWTDxbxXzGV_qwh9qeb52RH31SWssvST40GWj1mtS4", 4);
 
             clock::destroy_for_testing(clock);
             oracle::destroy_oracle_cap_for_testing(cap);
@@ -77,6 +79,7 @@ module slabclaw_predict::oracle_tests {
                 b"TEST_ASSET",
                 1000,
                 2,
+                b"evidence_blob",
                 &clock,
             );
 
@@ -102,6 +105,34 @@ module slabclaw_predict::oracle_tests {
                 b"TEST_ASSET",
                 0, // zero price
                 5,
+                b"evidence_blob",
+                &clock,
+            );
+
+            clock::destroy_for_testing(clock);
+            oracle::destroy_oracle_cap_for_testing(cap);
+        };
+
+        ts::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = oracle::EMissingEvidence)]
+    fun test_attest_empty_evidence_fails() {
+        let mut scenario = ts::begin(ORACLE_OP);
+
+        {
+            let ctx = ts::ctx(&mut scenario);
+            let cap = oracle::create_oracle_cap_for_testing(ctx);
+            let clock = clock::create_for_testing(ctx);
+
+            // Empty evidence blob id — a market cannot settle without Walrus evidence
+            let _att = oracle::attest_price(
+                &cap,
+                b"TEST_ASSET",
+                1000,
+                5,
+                b"", // empty evidence
                 &clock,
             );
 

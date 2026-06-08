@@ -1,0 +1,41 @@
+{
+  "cardId": "neo1-1st-18",
+  "observations": [
+    {
+      "date": "2026-06-05T17:09:27.465Z",
+      "priceCents": 396347,
+      "confidence": 0.38,
+      "comps": 3,
+      "source": "cardmarket_seeded"
+    },
+    {
+      "date": "2026-06-06T11:09:27.469Z",
+      "priceCents": 323612,
+      "confidence": 0.95,
+      "comps": 7,
+      "source": "cardmarket_seeded"
+    },
+    {
+      "date": "2026-06-06T23:09:27.471Z",
+      "priceCents": 295982,
+      "confidence": 0.95,
+      "comps": 7,
+      "source": "cardmarket_seeded"
+    },
+    {
+      "date": "2026-06-07T05:09:27.471Z",
+      "priceCents": 368404,
+      "confidence": 0.95,
+      "comps": 8,
+      "source": "cardmarket_seeded"
+    },
+    {
+      "date": "2026-06-07T23:09:27.473Z",
+      "priceCents": 384306,
+      "confidence": 0.95,
+      "comps": 11,
+      "source": "cardmarket_seeded"
+    }
+  ],
+  "anomalies": []
+}

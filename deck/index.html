@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SlabClaw Predict · A Memory-Backed Oracle Commons · Sui Overflow 2026 (Walrus)</title>
+<style>
+  /* ─────────────────────────  Design tokens  ───────────────────────── */
+  :root{
+    --bg:#06080F;
+    --bg-2:#0A0E1A;
+    --surface:#0E1322;
+    --surface-2:#131A2C;
+    --line:rgba(150,170,210,.14);
+    --line-strong:rgba(150,170,210,.28);
+    --ink:#EAEFF8;
+    --ink-2:#A6B3CC;
+    --ink-3:#6B7892;
+    --aqua:#4DA2FF;        /* Sui blue */
+    --aqua-soft:#6FBCF0;
+    --mint:#46E3BE;        /* Walrus teal */
+    --mint-soft:#7FF0D6;
+    --gain:#34D399;
+    --gold:#F5C451;        /* grade / PSA */
+    --loss:#F8717A;
+    --violet:#A98BFF;
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,"Roboto Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    --r-sm:8px; --r-md:14px; --r-lg:22px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+    line-height:1.5;
+  }
+
+  /* ambient field */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(900px 600px at 78% -8%, rgba(77,162,255,.18), transparent 60%),
+      radial-gradient(760px 560px at 12% 108%, rgba(70,227,190,.14), transparent 60%),
+      radial-gradient(600px 500px at 50% 50%, rgba(169,139,255,.05), transparent 70%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(rgba(150,170,210,.035) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(150,170,210,.035) 1px,transparent 1px);
+    background-size:44px 44px;
+    mask-image:radial-gradient(120% 90% at 50% 30%,#000 35%,transparent 100%);
+  }
+
+  /* ─────────────────────────  Deck frame  ───────────────────────── */
+  #deck{position:fixed;inset:0;z-index:1;display:flex;align-items:center;justify-content:center}
+  .slide{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;justify-content:center;
+    padding:clamp(34px,5.5vw,92px);
+    opacity:0;visibility:hidden;
+    transform:translateY(22px) scale(.992);
+    transition:opacity .5s cubic-bezier(.22,.61,.36,1), transform .5s cubic-bezier(.22,.61,.36,1);
+    max-width:1320px;margin:0 auto;width:100%;
+  }
+  .slide.active{opacity:1;visibility:visible;transform:none}
+  .slide.prev{transform:translateY(-22px) scale(.992)}
+
+  /* kicker / eyebrow */
+  .kicker{
+    font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--mint);display:flex;align-items:center;gap:10px;margin-bottom:22px;
+  }
+  .kicker::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--mint),transparent)}
+
+  h1{font-size:clamp(34px,5.6vw,74px);line-height:1.02;letter-spacing:-.025em;font-weight:680}
+  h2{font-size:clamp(26px,3.9vw,46px);line-height:1.08;letter-spacing:-.02em;font-weight:660;margin-bottom:8px}
+  h3{font-size:clamp(17px,1.7vw,21px);font-weight:640;letter-spacing:-.01em}
+  p{color:var(--ink-2);font-size:clamp(15px,1.35vw,18.5px);max-width:60ch}
+  .lead{font-size:clamp(18px,1.9vw,25px);color:var(--ink);max-width:62ch;line-height:1.45;font-weight:430}
+  .muted{color:var(--ink-3)}
+  .grad{background:linear-gradient(105deg,var(--aqua-soft),var(--mint));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .gold{color:var(--gold)} .mint{color:var(--mint)} .aqua{color:var(--aqua-soft)} .gain{color:var(--gain)} .loss{color:var(--loss)}
+  .mono{font-family:var(--mono)}
+  strong{color:var(--ink);font-weight:640}
+
+  /* chips */
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:8px}
+  .chip{
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;
+    padding:6px 12px;border-radius:999px;border:1px solid var(--line-strong);
+    color:var(--ink-2);background:rgba(255,255,255,.018);white-space:nowrap;
+  }
+  .chip b{color:var(--mint);font-weight:600}
+
+  /* cards / grids */
+  .grid{display:grid;gap:16px}
+  .card{
+    background:linear-gradient(180deg,var(--surface),var(--bg-2));
+    border:1px solid var(--line);border-radius:var(--r-md);
+    padding:20px 22px;position:relative;overflow:hidden;
+  }
+  .card.glow::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+    background:linear-gradient(90deg,var(--aqua),var(--mint),transparent)}
+  .card .ek{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+  .card h3{margin:6px 0 7px}
+  .card p{font-size:14.5px;line-height:1.5}
+
+  .stat{font-family:var(--mono);font-weight:600;letter-spacing:-.01em}
+  .stat .n{font-size:clamp(30px,3.6vw,46px);color:var(--ink);display:block;line-height:1}
+  .stat .l{font-size:12px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;margin-top:8px;font-family:var(--mono)}
+
+  /* pipeline diagram */
+  .flow{display:flex;flex-direction:column;gap:13px}
+  .flow-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .node{
+    border:1px solid var(--line-strong);border-radius:12px;padding:13px 16px;background:rgba(255,255,255,.02);
+    font-size:13.5px;display:flex;flex-direction:column;gap:3px;min-width:0;
+  }
+  .node .t{font-weight:620;color:var(--ink);font-size:13.5px}
+  .node .s{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.03em}
+  .arrow{color:var(--mint);font-size:20px;line-height:1;opacity:.8}
+
+  table.t{width:100%;border-collapse:collapse;font-size:14px}
+  table.t th{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);text-align:left;padding:9px 14px;border-bottom:1px solid var(--line-strong);font-weight:500}
+  table.t td{padding:11px 14px;border-bottom:1px solid var(--line);color:var(--ink-2);vertical-align:top}
+  table.t tr:last-child td{border-bottom:none}
+  table.t td b{color:var(--ink)}
+  .ok{color:var(--gain)} .wip{color:var(--gold)}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:middle}
+  .dot.g{background:var(--gain);box-shadow:0 0 10px var(--gain)}
+  .dot.y{background:var(--gold);box-shadow:0 0 10px var(--gold)}
+
+  ul.list{list-style:none;display:flex;flex-direction:column;gap:13px}
+  ul.list li{padding-left:26px;position:relative;color:var(--ink-2);font-size:clamp(14.5px,1.3vw,17px);line-height:1.5}
+  ul.list li::before{content:"";position:absolute;left:2px;top:9px;width:8px;height:8px;border-radius:2px;
+    background:linear-gradient(135deg,var(--aqua),var(--mint));transform:rotate(45deg)}
+  ul.list li b{color:var(--ink)}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:clamp(22px,3vw,48px);align-items:center}
+  .three{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .four{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+
+  .pill-track{display:flex;flex-direction:column;gap:10px}
+  .stepper{display:flex;gap:10px;flex-wrap:wrap}
+  .step{flex:1;min-width:130px;border:1px solid var(--line);border-radius:12px;padding:14px;background:rgba(255,255,255,.015)}
+  .step .num{font-family:var(--mono);font-size:11px;color:var(--mint);letter-spacing:.1em}
+  .step .h{font-weight:620;margin:5px 0 3px;font-size:14.5px}
+  .step .d{font-size:12.5px;color:var(--ink-3);line-height:1.45}
+
+  .quote{font-size:clamp(22px,3.1vw,40px);line-height:1.18;letter-spacing:-.02em;font-weight:560;max-width:20ch}
+
+  /* ─────────────────────────  Nav / chrome  ───────────────────────── */
+  #bar{position:fixed;left:0;right:0;bottom:0;z-index:30;height:54px;display:flex;align-items:center;
+    gap:18px;padding:0 26px;background:linear-gradient(0deg,rgba(6,8,15,.92),transparent);
+    backdrop-filter:blur(6px)}
+  #progress{position:fixed;top:0;left:0;height:2px;z-index:31;
+    background:linear-gradient(90deg,var(--aqua),var(--mint));transition:width .45s ease;box-shadow:0 0 12px var(--mint)}
+  .brand{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--ink-3)}
+  .brand b{color:var(--ink-2);font-weight:600}
+  #dots{display:flex;gap:7px;margin:0 auto}
+  .ddot{width:7px;height:7px;border-radius:50%;background:rgba(150,170,210,.22);cursor:pointer;transition:.25s;border:none;padding:0}
+  .ddot:hover{background:rgba(150,170,210,.5)}
+  .ddot.on{background:var(--mint);width:20px;border-radius:4px;box-shadow:0 0 10px var(--mint)}
+  #count{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+  #count b{color:var(--ink)}
+  .nav-btn{background:rgba(255,255,255,.04);border:1px solid var(--line-strong);color:var(--ink-2);
+    width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:15px;transition:.2s;display:grid;place-items:center}
+  .nav-btn:hover{background:rgba(255,255,255,.09);color:var(--ink)}
+  .hint{position:fixed;bottom:66px;right:24px;z-index:30;font-family:var(--mono);font-size:11px;color:var(--ink-3);opacity:.7}
+
+  .badge{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;
+    border:1px solid var(--line-strong);border-radius:999px;padding:7px 14px;color:var(--ink-2);background:rgba(255,255,255,.02)}
+  .badge .pulse{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 0 rgba(70,227,190,.6);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(70,227,190,.5)}70%{box-shadow:0 0 0 9px rgba(70,227,190,0)}100%{box-shadow:0 0 0 0 rgba(70,227,190,0)}}
+
+  .footnote{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:18px;letter-spacing:.02em}
+
+  @media (max-width:880px){
+    .two,.three,.four{grid-template-columns:1fr}
+    .hint{display:none}
+    p,.lead{max-width:100%}
+  }
+
+  @media print{
+    body{overflow:visible;background:#fff}
+    .slide{position:relative;opacity:1;visibility:visible;transform:none;page-break-after:always;height:100vh}
+    #bar,#progress,.hint,#dots{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="deck">
+
+  <!-- 1 · Title -->
+  <section class="slide active">
+    <div class="badge" style="margin-bottom:26px"><span class="pulse"></span> SUI OVERFLOW 2026 · WALRUS TRACK · MemWal</div>
+    <h1>SlabClaw <span class="grad">Predict</span></h1>
+    <p class="lead" style="margin-top:20px">
+      Prediction markets on real-world collectibles, settled on Sui — priced by a
+      <strong>memory-backed, manipulation-resistant multi-agent oracle</strong>.
+    </p>
+    <p class="mono" style="margin-top:24px;color:var(--ink-3);font-size:14px">
+      “Will PSA&nbsp;10 Karen’s Umbreon exceed <span class="gold">$15,000</span> by Jul&nbsp;7, 2026?” &nbsp;—&nbsp; YES / NO, onchain.
+    </p>
+    <div class="chips" style="margin-top:30px">
+      <span class="chip"><b>8</b> source-specialist agents</span>
+      <span class="chip"><b>MemWal</b> persistent memory</span>
+      <span class="chip"><b>Walrus</b> verifiable evidence</span>
+      <span class="chip"><b>4</b> live PSA-10 markets</span>
+    </div>
+  </section>
+
+  <!-- 2 · The gap -->
+  <section class="slide">
+    <div class="kicker">The gap</div>
+    <h2>A <span class="gold">$2B+/yr</span> market has never had a price you can trust onchain.</h2>
+    <div class="two" style="margin-top:34px">
+      <div>
+        <ul class="list">
+          <li>Graded cards trade across a dozen unconnected venues — eBay, PWCC, Heritage, Goldin, ALT, Courtyard. <b>No two agree, and no one is neutral.</b></li>
+          <li>Markets are <b>thin</b>. Many cards see 0–2 sales a month. A single <b>wash trade</b> ($200–$3K in fees) can move the “price” at will.</li>
+          <li>Existing feeds are <b>point-in-time, single-source, and unauditable</b>. You take the number on faith.</li>
+        </ul>
+      </div>
+      <div class="card glow">
+        <div class="ek">The consequence</div>
+        <h3 style="margin-top:8px">No trustworthy price → no onchain market.</h3>
+        <p>Prediction markets, lending, fractionalization, insurance — every RWA primitive for collectibles is blocked on the same missing piece: a <span class="mint">credibly-neutral, manipulation-resistant valuation</span> that anyone can verify.</p>
+        <p class="footnote">Ormer-style median estimators measure ~75% better manipulation-resistance than naïve mean/TWAP in thin markets.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Thesis -->
+  <section class="slide">
+    <div class="kicker">The thesis</div>
+    <h2 style="max-width:18ch">The market is the <span class="muted">showcase</span>.<br>The <span class="grad">oracle</span> is the product.</h2>
+    <p class="lead" style="margin-top:26px">
+      Anyone can trade YES/NO on whether a card beats a strike by expiry. To settle, the market needs a real price.
+      That price isn’t a feed — it’s a <strong>swarm of source-specialist agents</strong> that read every major venue,
+      <strong>remember</strong> each card’s history and every manipulation attempt across sessions, reconcile to a
+      manipulation-resistant consensus, and publish the evidence so <span class="mint">anyone can verify it</span>.
+    </p>
+    <div class="chips" style="margin-top:30px">
+      <span class="chip">Multi-agent</span><span class="chip">Long-running &amp; stateful</span>
+      <span class="chip">Coordinated consensus</span><span class="chip">Artifact-driven</span>
+    </div>
+  </section>
+
+  <!-- 4 · Why Walrus -->
+  <section class="slide">
+    <div class="kicker">Why this is a Walrus / MemWal project</div>
+    <h2>The track asks for memory-backed agents. This <span class="mint">is</span> one.</h2>
+    <div class="four" style="margin-top:30px">
+      <div class="card glow">
+        <div class="ek">Multi-agent</div>
+        <h3>One specialist per venue</h3>
+        <p>Each agent is an expert on its source’s quirks, bot-protection, and result formats.</p>
+      </div>
+      <div class="card glow">
+        <div class="ek">Long-running</div>
+        <h3>State over time</h3>
+        <p>Agents monitor continuously and <span class="mint">remember</span> — comp history, source reliability, past manipulation.</p>
+      </div>
+      <div class="card glow">
+        <div class="ek">Coordinated</div>
+        <h3>One consensus</h3>
+        <p>Heterogeneous inputs reconciled by a coordinator into a single manipulation-resistant price.</p>
+      </div>
+      <div class="card glow">
+        <div class="ek">Artifact-driven</div>
+        <h3>Verifiable evidence</h3>
+        <p>Every resolution emits an evidence bundle to <span class="mint">Walrus</span>, referenced onchain.</p>
+      </div>
+    </div>
+    <p class="footnote">Memory lives on <b>MemWal (Walrus Memory)</b>, not in a process — so the swarm gets smarter every run and outlives any single operator.</p>
+  </section>
+
+  <!-- 5 · Architecture -->
+  <section class="slide">
+    <div class="kicker">Architecture</div>
+    <h2>Swarm → memory → consensus → chain</h2>
+    <div class="flow" style="margin-top:26px">
+      <div class="flow-row">
+        <div class="node" style="flex:1"><span class="t">Source-specialist agents <span class="muted">(the swarm)</span></span><span class="s">eBay · PWCC · Heritage · Goldin · ALT · CardLadder · Courtyard · TCGplayer · GemRate(pop)</span></div>
+        <span class="arrow">→</span>
+        <div class="node"><span class="t mint">MemWal</span><span class="s">per-card price memory<br>source reliability<br>manipulation patterns</span></div>
+      </div>
+      <div class="flow-row">
+        <div class="node" style="flex:1"><span class="t">Manipulation-resistant coordinator</span><span class="s">source-gate ≥3 · MAD outlier rejection · confidence-weighted median · reputation EMA · circuit breakers</span></div>
+        <span class="arrow">→</span>
+        <div class="node"><span class="t aqua">Walrus</span><span class="s">verifiable evidence<br>artifact (blob)</span></div>
+      </div>
+      <div class="flow-row">
+        <div class="node" style="flex:1"><span class="t">Oracle bridge <span class="muted">(offchain keeper)</span></span><span class="s">propose_resolution(price, sources, evidence_ref) at expiry</span></div>
+        <span class="arrow">→</span>
+        <div class="node"><span class="t gold">Sui Move</span><span class="s">market · oracle · registry · test_usd</span></div>
+      </div>
+      <div class="flow-row">
+        <div class="node" style="flex:1"><span class="t">React dapp</span><span class="s">browse · faucet tUSD · bet YES/NO · dispute (UMA-style) · settle · claim · view evidence on Walrus</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · The swarm -->
+  <section class="slide">
+    <div class="kicker">The swarm · 8 source-specialist agents</div>
+    <h2>Every venue gets an expert.</h2>
+    <div class="three" style="margin-top:26px">
+      <div class="card"><div class="ek">Raw comps</div><h3 class="gain">eBay / PWCC</h3><p>Grade-matched last-sales — the highest-signal raw comp.</p></div>
+      <div class="card"><div class="ek">Auction realized</div><h3 class="gain">Heritage · Goldin</h3><p>Realized hammer prices from free archives + weekly results.</p></div>
+      <div class="card"><div class="ek">Index / value</div><h3 class="aqua">ALT · CardLadder</h3><p>ALT VALUE point+range; index-derived market value (down-weighted).</p></div>
+      <div class="card"><div class="ek">Tokenized FMV</div><h3 class="aqua">Courtyard · Beezie</h3><p>Onchain tokenized vault prices on Base.</p></div>
+      <div class="card"><div class="ek">JP comps</div><h3 class="aqua">TCGplayer</h3><p>Japan product-line comps for the JP Umbreon.</p></div>
+      <div class="card"><div class="ek">Scarcity</div><h3 class="gold">GemRate (pop)</h3><p>PSA/BGS/SGC/CGC population — a scarcity input, not a price.</p></div>
+    </div>
+    <p class="footnote">Each agent: <b>fetch → parse → self-score confidence → circuit-breakers → write to MemWal → report to coordinator.</b> ~1,140 lines of swarm + coordinator code.</p>
+  </section>
+
+  <!-- 7 · Memory -->
+  <section class="slide">
+    <div class="kicker">MemWal · the memory that makes it smart</div>
+    <h2>Cold-start once. <span class="mint">Smarter every run after.</span></h2>
+    <div class="two" style="margin-top:30px">
+      <div>
+        <ul class="list">
+          <li><b>Per-card price history</b> — last 100 observations per source, so today’s number is judged against the card’s own past, not a vacuum.</li>
+          <li><b>Source reliability weights</b> — an EMA reputation score per agent (<span class="mono">0.7·hit-rate + 0.3·prior</span>). Sources that track consensus earn weight; those that drift lose it.</li>
+          <li><b>Manipulation patterns</b> — every flagged anomaly (price jumps, stale feeds, seller concentration) is remembered per card.</li>
+        </ul>
+      </div>
+      <div class="card glow">
+        <div class="ek">MemWal layout</div>
+        <pre class="mono" style="color:var(--ink-2);font-size:12.5px;line-height:1.7;margin-top:10px;white-space:pre-wrap">memwal/
+  agents/&lt;source&gt;/cards/&lt;cardId&gt;.json
+    └ observations[] · anomalies[]
+  shared/
+    agent-signals/latest.json
+    consensus/history/…
+    reputation/weights.json
+    evidence/history/…</pre>
+        <p class="footnote">Agents read memory warm on start, write after each run — the “remember and build over time” the track is built for.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · Manipulation resistance -->
+  <section class="slide">
+    <div class="kicker">The hard part · manipulation resistance</div>
+    <h2>Thin markets are easy to spoof. We make it expensive and pointless.</h2>
+    <div class="four" style="margin-top:28px">
+      <div class="card glow"><div class="ek">Per-agent</div><h3>Circuit breakers</h3><p>Reject zero-price; flag &gt;5× / &lt;0.2× jumps, &gt;14-day stale feeds, and &gt;60% single-seller concentration.</p></div>
+      <div class="card glow"><div class="ek">Coordinator</div><h3>MAD outlier rejection</h3><p>Modified Z-score (threshold 3.5) drops comps that don’t agree with the robust median.</p></div>
+      <div class="card glow"><div class="ek">Coordinator</div><h3>Confidence-weighted median</h3><p>Pyth-style: weight = confidence × reliability × recency. A wash trade can’t outvote the crowd.</p></div>
+      <div class="card glow"><div class="ek">Onchain</div><h3>Source gate + dispute</h3><p>Refuse to settle under <b>3 independent sources</b>; UMA-style bonded dispute window for high-value cards.</p></div>
+    </div>
+    <p class="footnote">Wide-disagreement breaker trips when the 25–75% interval exceeds 40% of consensus → the oracle declines to settle rather than settle wrong.</p>
+  </section>
+
+  <!-- 9 · Verifiable -->
+  <section class="slide">
+    <div class="two">
+      <div>
+        <div class="kicker">Don’t trust — verify</div>
+        <h2>Every price ships with its receipts.</h2>
+        <p class="lead" style="margin-top:20px">
+          On each consensus the coordinator emits an <strong>evidence bundle</strong> — consensus price, every contributing comp,
+          per-source weights, rejected outliers, the exact aggregation method — and stores it on <span class="mint">Walrus</span>.
+          The blob ID is referenced onchain at resolution.
+        </p>
+        <p style="margin-top:16px">Anyone can pull the blob and re-run the math. The oracle is <span class="mint">auditable by construction</span>, not by promise.</p>
+      </div>
+      <div class="card glow">
+        <div class="ek">evidence bundle · v1.0.0</div>
+        <pre class="mono" style="color:var(--ink-2);font-size:12px;line-height:1.65;margin-top:12px;white-space:pre-wrap">{
+  "swarmId": "slabclaw-oracle-swarm",
+  "cardId": "jp-vs-091",
+  "consensusPriceCents": 1512000,
+  "confidence": [1437000, 1588000],
+  "contributingSources": [ … weights … ],
+  "rejectedSources": [ { "reason":
+      "MAD outlier (z=4.10)" } ],
+  "aggregationMethod":
+      "confidence_weighted_median",
+  "outlierMethod": "MAD_modified_z_score",
+  "minSources": 3
+}</pre>
+        <p class="footnote">→ uploaded to Walrus · blob ID referenced in <span class="mono">propose_resolution</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · Public good / the riff -->
+  <section class="slide">
+    <div class="kicker">The bigger idea</div>
+    <h2>A private feed becomes a <span class="grad">public price commons</span>.</h2>
+    <p class="lead" style="margin-top:22px">
+      Because the swarm’s memory lives on MemWal and its evidence on Walrus, the oracle isn’t owned by us — it
+      <strong>outlives its operator</strong>. That turns a settlement feed for our markets into something larger:
+      a <strong>credibly-neutral public valuation service</strong> for an entire asset class.
+    </p>
+    <div class="three" style="margin-top:30px">
+      <div class="card glow"><div class="ek">Open reads</div><h3>A commons, not a moat</h3><p>Any protocol — lending, fractionalization, insurance, a rival market — can read the same consensus price.</p></div>
+      <div class="card glow"><div class="ek">Credibly neutral</div><h3>No trusted operator</h3><p>The evidence is on Walrus; the math is published. Nobody has to believe us — they verify the blob.</p></div>
+      <div class="card glow"><div class="ek">Durable</div><h3>Public infrastructure</h3><p>Memory + provenance persist on decentralized storage, so the price layer is a standing public good.</p></div>
+    </div>
+    <p class="footnote">Framing for judges: <b>public price infrastructure for real-world assets</b> — the “Chainlink-for-collectibles,” but as a verifiable, credibly-neutral commons on Walrus.</p>
+  </section>
+
+  <!-- 11 · Live today -->
+  <section class="slide">
+    <div class="kicker">Honest status · what’s live today</div>
+    <h2>A working dapp on testnet — not a slide-only prototype.</h2>
+    <table class="t" style="margin-top:22px">
+      <thead><tr><th>Component</th><th style="width:140px">Status</th></tr></thead>
+      <tbody>
+        <tr><td><b>Move contracts</b> — market · oracle · registry · test_usd, on Sui testnet (16/16 tests)</td><td><span class="dot g"></span><span class="ok">deployed</span></td></tr>
+        <tr><td><b>4 PSA-10 markets</b> seeded with live positions (Umbreon · Typhlosion · Dark Raichu · Flareon-dispute)</td><td><span class="dot g"></span><span class="ok">live</span></td></tr>
+        <tr><td><b>React dapp</b> — browse · faucet tUSD · bet YES/NO · oracle-vs-strike chart w/ 95% cone · dispute &amp; finalize flow</td><td><span class="dot g"></span><span class="ok">working</span></td></tr>
+        <tr><td><b>Oracle bridge</b> — reads exact-product PSA-10 oracle, auto-proposes resolution at expiry</td><td><span class="dot g"></span><span class="ok">working</span></td></tr>
+        <tr><td><b>Multi-agent swarm + MemWal-structured memory</b> — 8 agents + coordinator, reputation, evidence bundles</td><td><span class="dot g"></span><span class="ok">running</span></td></tr>
+        <tr><td><b>Walrus network upload + onchain blob reference</b> — bundle built; network publish + on-chain ref being wired</td><td><span class="dot y"></span><span class="wip">in progress</span></td></tr>
+      </tbody>
+    </table>
+    <p class="footnote">Package <span class="mono">0xdc18fc79…af7b141</span> · OracleCap <span class="mono">0x183ae110…</span> · Sui testnet</p>
+  </section>
+
+  <!-- 12 · Demo flow -->
+  <section class="slide">
+    <div class="kicker">The demo · end-to-end in five moves</div>
+    <h2>Market → trade → swarm → settle → verify</h2>
+    <div class="stepper" style="margin-top:30px">
+      <div class="step"><div class="num">01</div><div class="h">Market</div><div class="d">A binary on an exact product — set · number · grader · grade · strike · expiry.</div></div>
+      <div class="step"><div class="num">02</div><div class="h">Trade</div><div class="d">Faucet tUSD, buy YES or NO. Parimutuel pool, fully onchain.</div></div>
+      <div class="step"><div class="num">03</div><div class="h">Price</div><div class="d">At expiry the swarm prices the card → manipulation-resistant consensus + evidence.</div></div>
+      <div class="step"><div class="num">04</div><div class="h">Settle</div><div class="d">Bridge proposes; 24h UMA-style dispute window with bonded challenges.</div></div>
+      <div class="step"><div class="num">05</div><div class="h">Verify</div><div class="d">Winners claim; the evidence blob lives on Walrus — re-run the math yourself.</div></div>
+    </div>
+    <p class="footnote">Flareon market ships pre-seeded in a <b>disputed</b> state so judges can walk the full optimistic-resolution path live.</p>
+  </section>
+
+  <!-- 13 · Roadmap / candor -->
+  <section class="slide">
+    <div class="kicker">Where it’s going · candid roadmap</div>
+    <h2>What closes the loop to mainnet.</h2>
+    <div class="two" style="margin-top:26px">
+      <div class="card glow">
+        <div class="ek">Next 2 weeks (to submission)</div>
+        <ul class="list" style="margin-top:12px">
+          <li>Wire <b>MemWal network persistence</b> + Walrus blob publish, with the blob ID written onchain at resolution.</li>
+          <li>Run <b>/attack</b> adversarially against the swarm; encode each defended vector as a test.</li>
+          <li><b>Oracle-consensus panel</b> in the dapp: per-source values, weights, “X of N agree,” rejected outliers.</li>
+        </ul>
+      </div>
+      <div class="card glow">
+        <div class="ek">Beyond the hackathon</div>
+        <ul class="list" style="margin-top:12px">
+          <li>Open the price feed as a <b>public read API + onchain price object</b> — the commons, for any protocol.</li>
+          <li>Expand the asset registry beyond cards: <b>watches, sneakers, wine</b> — any graded/authenticated RWA.</li>
+          <li>Decentralize the keeper: <b>multiple independent swarm operators</b> staking on the same evidence.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 · Vision close -->
+  <section class="slide" style="align-items:flex-start">
+    <div class="kicker">The vision</div>
+    <p class="quote">Every collectible has a price opinion.<br><span class="grad">We make those opinions verifiable, neutral, and onchain.</span></p>
+    <p class="lead" style="margin-top:28px">
+      The prediction market proves the oracle works. The oracle is the lasting thing: a memory-backed agent swarm
+      that turns a $2B asset class’s scattered, gameable price signals into a <strong>public, auditable valuation commons</strong> on Walrus.
+    </p>
+    <div class="chips" style="margin-top:30px">
+      <span class="chip"><b>SlabClaw Predict</b> · Sui Overflow 2026 · Walrus / MemWal</span>
+      <span class="chip">paparaw.eth</span>
+      <span class="chip">Ecofrontiers SARL</span>
+    </div>
+    <p class="footnote">Don’t trust the oracle — verify the blob.</p>
+  </section>
+
+</div>
+
+<!-- chrome -->
+<div class="hint">← → · space · ⌘P to print</div>
+<div id="bar">
+  <span class="brand"><b>SLABCLAW</b> PREDICT · WALRUS</span>
+  <button class="nav-btn" id="prev" aria-label="previous">‹</button>
+  <div id="dots"></div>
+  <button class="nav-btn" id="next" aria-label="next">›</button>
+  <span id="count"><b>1</b> / 14</span>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const dotsWrap = document.getElementById('dots');
+  const progress = document.getElementById('progress');
+  const countEl = document.getElementById('count');
+  let i = 0;
+
+  slides.forEach((_, n) => {
+    const b = document.createElement('button');
+    b.className = 'ddot' + (n === 0 ? ' on' : '');
+    b.addEventListener('click', () => go(n));
+    dotsWrap.appendChild(b);
+  });
+  const dots = Array.from(document.querySelectorAll('.ddot'));
+
+  function go(n){
+    n = Math.max(0, Math.min(slides.length - 1, n));
+    if (n === i) return;
+    slides[i].classList.remove('active');
+    slides[i].classList.toggle('prev', n > i);
+    i = n;
+    slides[i].classList.remove('prev');
+    slides[i].classList.add('active');
+    dots.forEach((d, k) => d.classList.toggle('on', k === i));
+    progress.style.width = ((i) / (slides.length - 1) * 100) + '%';
+    countEl.innerHTML = '<b>' + (i + 1) + '</b> / ' + slides.length;
+  }
+  const next = () => go(i + 1);
+  const prev = () => go(i - 1);
+
+  document.getElementById('next').addEventListener('click', next);
+  document.getElementById('prev').addEventListener('click', prev);
+  window.addEventListener('keydown', e => {
+    if (['ArrowRight','ArrowDown',' ','PageDown'].includes(e.key)) { e.preventDefault(); next(); }
+    else if (['ArrowLeft','ArrowUp','PageUp'].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(slides.length - 1);
+  });
+  // touch
+  let tx = 0;
+  window.addEventListener('touchstart', e => tx = e.changedTouches[0].clientX, {passive:true});
+  window.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 60) dx < 0 ? next() : prev();
+  }, {passive:true});
+
+  countEl.innerHTML = '<b>1</b> / ' + slides.length;
+  progress.style.width = '0%';
+</script>
+</body>
+</html>

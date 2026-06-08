@@ -1,0 +1,169 @@
+{
+  "neo1-1st-18": {
+    "cardId": "neo1-1st-18",
+    "consensusPriceCents": 326948,
+    "confidenceLower": 275240,
+    "confidenceUpper": 328821,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 343073,
+        "confidence": 0.93,
+        "weight": 0.848625
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 326948,
+        "confidence": 0.8,
+        "weight": 0.8
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 328821,
+        "confidence": 0.66,
+        "weight": 0.57208965
+      },
+      {
+        "platform": "alt",
+        "priceCents": 275240,
+        "confidence": 0.8,
+        "weight": 0.688
+      },
+      {
+        "platform": "beezie",
+        "priceCents": 311887,
+        "confidence": 0.93,
+        "weight": 0.02511
+      },
+      {
+        "platform": "collector-crypt",
+        "priceCents": 237546,
+        "confidence": 0.8,
+        "weight": 0.5199999999999999
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 6,
+    "roundId": "neo1-1st-18_round2",
+    "timestamp": "2026-06-06T05:09:27.469Z"
+  },
+  "jp-vs-091": {
+    "cardId": "jp-vs-091",
+    "consensusPriceCents": 1247414,
+    "confidenceLower": 1177295,
+    "confidenceUpper": 1247414,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 1247414,
+        "confidence": 0.93,
+        "weight": 0.8332541666666665
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 1177295,
+        "confidence": 0.66,
+        "weight": 0.66
+      },
+      {
+        "platform": "beezie",
+        "priceCents": 1278344,
+        "confidence": 0.66,
+        "weight": 0.120846
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 3,
+    "roundId": "jp-vs-091_round2",
+    "timestamp": "2026-06-06T05:09:27.469Z"
+  },
+  "base5-1st-83": {
+    "cardId": "base5-1st-83",
+    "consensusPriceCents": 528031,
+    "confidenceLower": 493951,
+    "confidenceUpper": 528031,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 551976,
+        "confidence": 0.8,
+        "weight": 0.7190333333333334
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 506530,
+        "confidence": 0.66,
+        "weight": 0.66
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 493951,
+        "confidence": 0.53,
+        "weight": 0.4675993752777778
+      },
+      {
+        "platform": "alt",
+        "priceCents": 448537,
+        "confidence": 0.66,
+        "weight": 0.47828
+      },
+      {
+        "platform": "goldin",
+        "priceCents": 528031,
+        "confidence": 0.93,
+        "weight": 0.93
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 5,
+    "roundId": "base5-1st-83_round2",
+    "timestamp": "2026-06-06T05:09:27.469Z"
+  },
+  "base2-1st-3": {
+    "cardId": "base2-1st-3",
+    "consensusPriceCents": 226435,
+    "confidenceLower": 226086,
+    "confidenceUpper": 226930,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 226435,
+        "confidence": 0.8,
+        "weight": 0.7248009090909091
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 226930,
+        "confidence": 0.8,
+        "weight": 0.8
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 226086,
+        "confidence": 0.93,
+        "weight": 0.83205136925
+      }
+    ],
+    "rejectedSources": [
+      {
+        "platform": "alt",
+        "priceCents": 199471,
+        "reason": "MAD outlier (z=-21.27)",
+        "zScore": -21.2699259478673
+      },
+      {
+        "platform": "cardmarket",
+        "priceCents": 218735,
+        "reason": "MAD outlier (z=-5.87)",
+        "zScore": -5.874703199052132
+      }
+    ],
+    "flags": [],
+    "sourceCount": 3,
+    "roundId": "base2-1st-3_round2",
+    "timestamp": "2026-06-06T05:09:27.469Z"
+  }
+}

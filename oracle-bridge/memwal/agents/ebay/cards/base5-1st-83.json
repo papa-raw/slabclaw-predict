@@ -1,0 +1,83 @@
+{
+  "cardId": "base5-1st-83",
+  "observations": [
+    {
+      "date": "2026-06-05T17:09:27.465Z",
+      "priceCents": 553513,
+      "confidence": 0.63,
+      "comps": 5,
+      "source": "ebay_seeded"
+    },
+    {
+      "date": "2026-06-05T23:09:27.468Z",
+      "priceCents": 484372,
+      "confidence": 0.64,
+      "comps": 5,
+      "source": "ebay_seeded"
+    },
+    {
+      "date": "2026-06-06T05:09:27.469Z",
+      "priceCents": 551976,
+      "confidence": 0.8,
+      "comps": 6,
+      "source": "ebay_seeded"
+    },
+    {
+      "date": "2026-06-06T11:09:27.469Z",
+      "priceCents": 550630,
+      "confidence": 0.95,
+      "comps": 8,
+      "source": "ebay_seeded"
+    },
+    {
+      "date": "2026-06-06T17:09:27.470Z",
+      "priceCents": 527337,
+      "confidence": 0.95,
+      "comps": 8,
+      "source": "ebay_seeded"
+    },
+    {
+      "date": "2026-06-06T23:09:27.471Z",
+      "priceCents": 498323,
+      "confidence": 0.95,
+      "comps": 8,
+      "source": "ebay_seeded"
+    },
+    {
+      "date": "2026-06-07T05:09:27.471Z",
+      "priceCents": 522934,
+      "confidence": 0.95,
+      "comps": 9,
+      "source": "ebay_seeded"
+    },
+    {
+      "date": "2026-06-07T11:09:27.472Z",
+      "priceCents": 522313,
+      "confidence": 0.95,
+      "comps": 11,
+      "source": "ebay_seeded"
+    },
+    {
+      "date": "2026-06-07T17:09:27.472Z",
+      "priceCents": 535793,
+      "confidence": 0.95,
+      "comps": 9,
+      "source": "ebay_seeded"
+    },
+    {
+      "date": "2026-06-07T23:09:27.473Z",
+      "priceCents": 511795,
+      "confidence": 0.95,
+      "comps": 11,
+      "source": "ebay_seeded"
+    },
+    {
+      "date": "2026-06-08T17:09:27.859Z",
+      "priceCents": 416100,
+      "confidence": 1,
+      "comps": 30,
+      "source": "ebay_sold"
+    }
+  ],
+  "anomalies": []
+}

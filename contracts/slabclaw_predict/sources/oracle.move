@@ -36,6 +36,8 @@ module slabclaw_predict::oracle {
         timestamp_ms: u64,
         /// Number of marketplace sources that contributed to this price
         sources_count: u64,
+        /// Walrus blob id of the verifiable evidence for this attestation
+        evidence_blob_id: vector<u8>,
     }
 
     // ── Events ──────────────────────────────────────────────────────────
@@ -49,6 +51,7 @@ module slabclaw_predict::oracle {
         price_usd_cents: u64,
         timestamp_ms: u64,
         sources_count: u64,
+        evidence_blob_id: vector<u8>,
     }
 
     // ── Admin functions ─────────────────────────────────────────────────
@@ -78,10 +81,13 @@ module slabclaw_predict::oracle {
         asset_id: vector<u8>,
         price_usd_cents: u64,
         sources_count: u64,
+        evidence_blob_id: vector<u8>,
         clock: &Clock,
     ): PriceAttestation {
         assert!(sources_count >= MIN_SOURCES, EInsufficientSources);
         assert!(price_usd_cents > 0, EInvalidPrice);
+        // A market cannot settle without verifiable Walrus evidence.
+        assert!(std::vector::length(&evidence_blob_id) > 0, EMissingEvidence);
 
         let timestamp_ms = clock::timestamp_ms(clock);
 
@@ -90,6 +96,7 @@ module slabclaw_predict::oracle {
             price_usd_cents,
             timestamp_ms,
             sources_count,
+            evidence_blob_id,
         });
 
         PriceAttestation {
@@ -97,6 +104,7 @@ module slabclaw_predict::oracle {
             price_usd_cents,
             timestamp_ms,
             sources_count,
+            evidence_blob_id,
         }
     }
 
@@ -106,6 +114,7 @@ module slabclaw_predict::oracle {
     public fun attestation_price(att: &PriceAttestation): u64 { att.price_usd_cents }
     public fun attestation_timestamp(att: &PriceAttestation): u64 { att.timestamp_ms }
     public fun attestation_sources(att: &PriceAttestation): u64 { att.sources_count }
+    public fun attestation_evidence(att: &PriceAttestation): vector<u8> { att.evidence_blob_id }
     public fun oracle_operator(cap: &OracleCap): address { cap.operator }
 
     // ── Constants ───────────────────────────────────────────────────────
@@ -118,6 +127,7 @@ module slabclaw_predict::oracle {
 
     const EInsufficientSources: u64 = 0;
     const EInvalidPrice: u64 = 1;
+    const EMissingEvidence: u64 = 2;
 
     // ── Test helpers ────────────────────────────────────────────────────
 
@@ -141,12 +151,14 @@ module slabclaw_predict::oracle {
         price_usd_cents: u64,
         timestamp_ms: u64,
         sources_count: u64,
+        evidence_blob_id: vector<u8>,
     ): PriceAttestation {
         PriceAttestation {
             asset_id,
             price_usd_cents,
             timestamp_ms,
             sources_count,
+            evidence_blob_id,
         }
     }
 }

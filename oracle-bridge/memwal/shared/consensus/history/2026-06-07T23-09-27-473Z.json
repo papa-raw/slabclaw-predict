@@ -1,0 +1,168 @@
+{
+  "neo1-1st-18": {
+    "cardId": "neo1-1st-18",
+    "consensusPriceCents": 351046,
+    "confidenceLower": 338984,
+    "confidenceUpper": 382946,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 338984,
+        "confidence": 0.95,
+        "weight": 0.8950896057443836
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 351046,
+        "confidence": 0.95,
+        "weight": 0.95
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 356644,
+        "confidence": 0.95,
+        "weight": 0.8504831402424695
+      },
+      {
+        "platform": "alt",
+        "priceCents": 382946,
+        "confidence": 0.95,
+        "weight": 0.7392926389069729
+      },
+      {
+        "platform": "cardmarket",
+        "priceCents": 384306,
+        "confidence": 0.95,
+        "weight": 0.7399921997260951
+      },
+      {
+        "platform": "beezie",
+        "priceCents": 307731,
+        "confidence": 0.95,
+        "weight": 0.5535700899909703
+      },
+      {
+        "platform": "collector-crypt",
+        "priceCents": 274210,
+        "confidence": 0.95,
+        "weight": 0.45744243249999994
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 7,
+    "roundId": "neo1-1st-18_round9",
+    "timestamp": "2026-06-07T23:09:27.473Z"
+  },
+  "jp-vs-091": {
+    "cardId": "jp-vs-091",
+    "consensusPriceCents": 1239008,
+    "confidenceLower": 1180221,
+    "confidenceUpper": 1253543,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 1239008,
+        "confidence": 0.95,
+        "weight": 0.8965824372788705
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 1180221,
+        "confidence": 0.95,
+        "weight": 0.8536449420727409
+      },
+      {
+        "platform": "cardmarket",
+        "priceCents": 1363543,
+        "confidence": 0.95,
+        "weight": 0.7539976599178285
+      },
+      {
+        "platform": "goldin",
+        "priceCents": 1253543,
+        "confidence": 0.95,
+        "weight": 0.8094478440096718
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 4,
+    "roundId": "jp-vs-091_round9",
+    "timestamp": "2026-06-07T23:09:27.473Z"
+  },
+  "base5-1st-83": {
+    "cardId": "base5-1st-83",
+    "consensusPriceCents": 532468,
+    "confidenceLower": 511795,
+    "confidenceUpper": 532468,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 511795,
+        "confidence": 0.95,
+        "weight": 0.8980287852377152
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 532468,
+        "confidence": 0.95,
+        "weight": 0.95
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 527955,
+        "confidence": 0.95,
+        "weight": 0.8567386439121447
+      },
+      {
+        "platform": "goldin",
+        "priceCents": 539914,
+        "confidence": 0.95,
+        "weight": 0.8191676865362348
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 4,
+    "roundId": "base5-1st-83_round9",
+    "timestamp": "2026-06-07T23:09:27.473Z"
+  },
+  "base2-1st-3": {
+    "cardId": "base2-1st-3",
+    "consensusPriceCents": 218275,
+    "confidenceLower": 212888,
+    "confidenceUpper": 218359,
+    "contributingSources": [
+      {
+        "platform": "courtyard",
+        "priceCents": 212888,
+        "confidence": 0.95,
+        "weight": 0.95
+      },
+      {
+        "platform": "alt",
+        "priceCents": 218359,
+        "confidence": 0.95,
+        "weight": 0.7482461250054251
+      },
+      {
+        "platform": "collector-crypt",
+        "priceCents": 232370,
+        "confidence": 0.95,
+        "weight": 0.43278828530555546
+      },
+      {
+        "platform": "goldin",
+        "priceCents": 218275,
+        "confidence": 0.95,
+        "weight": 0.8276253059608705
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 4,
+    "roundId": "base2-1st-3_round9",
+    "timestamp": "2026-06-07T23:09:27.473Z"
+  }
+}

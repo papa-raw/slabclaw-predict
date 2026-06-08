@@ -241,9 +241,15 @@ module slabclaw_predict::market_tests {
                 &oracle_cap, &mut market, &registry,
                 1600000, // $16,000 > $15,000 strike
                 5,       // 5 sources
+                b"dHWTDxbxXzGV_qwh9qeb52RH31SWssvST40GWj1mtS4", // Walrus evidence
                 &clock,
             );
             assert!(market::state(&market) == market::state_proposed(), 0);
+            // Evidence blob id is stored onchain at proposal time
+            assert!(
+                market::evidence_blob_id(&market) == b"dHWTDxbxXzGV_qwh9qeb52RH31SWssvST40GWj1mtS4",
+                10,
+            );
             clock::destroy_for_testing(clock);
             ts::return_shared(market);
         };
@@ -257,6 +263,11 @@ module slabclaw_predict::market_tests {
             clock::set_for_testing(&mut clock, 1_100_000_000_001 + 86_400_000 + 1);
             market::finalize(&mut market, &clock);
             assert!(market::is_settled(&market), 1);
+            // Evidence blob id threads through to settlement (carried in MarketSettled)
+            assert!(
+                market::evidence_blob_id(&market) == b"dHWTDxbxXzGV_qwh9qeb52RH31SWssvST40GWj1mtS4",
+                11,
+            );
             clock::destroy_for_testing(clock);
             ts::return_shared(market);
         };
@@ -340,7 +351,7 @@ module slabclaw_predict::market_tests {
             clock::set_for_testing(&mut clock, 1_100_000_000_001);
             market::propose_resolution(
                 &oracle_cap, &mut market, &registry,
-                1600000, 5, &clock,
+                1600000, 5, b"evidence_blob_loser", &clock,
             );
             clock::set_for_testing(&mut clock, 1_100_000_000_001 + 86_400_001);
             market::finalize(&mut market, &clock);
@@ -412,7 +423,7 @@ module slabclaw_predict::market_tests {
             clock::set_for_testing(&mut clock, 1_100_000_000_001);
             market::propose_resolution(
                 &oracle_cap, &mut market, &registry,
-                1600000, 5, &clock,
+                1600000, 5, b"evidence_blob_dispute", &clock,
             );
             clock::destroy_for_testing(clock);
             ts::return_shared(market);
@@ -489,7 +500,7 @@ module slabclaw_predict::market_tests {
             clock::set_for_testing(&mut clock, 1_100_000_000_001);
             market::propose_resolution(
                 &oracle_cap, &mut market, &registry,
-                1600000, 5, &clock,
+                1600000, 5, b"evidence_blob_early", &clock,
             );
             clock::destroy_for_testing(clock);
             ts::return_shared(market);
@@ -503,6 +514,103 @@ module slabclaw_predict::market_tests {
             // Only 1 hour after proposal, not 24h
             clock::set_for_testing(&mut clock, 1_100_000_000_001 + 3_600_000);
             market::finalize(&mut market, &clock);
+            clock::destroy_for_testing(clock);
+            ts::return_shared(market);
+        };
+
+        oracle::destroy_oracle_cap_for_testing(oracle_cap);
+        registry::destroy_registry_for_testing(registry);
+        registry::destroy_admin_cap_for_testing(admin_cap);
+        ts::end(scenario);
+    }
+
+    // ── Walrus evidence tests ───────────────────────────────────────────
+
+    /// propose_resolution with valid evidence sets market.evidence_blob_id
+    /// and the accessor returns it.
+    #[test]
+    fun test_propose_resolution_stores_evidence() {
+        let mut scenario = ts::begin(ADMIN);
+        let (admin_cap, registry, oracle_cap) = setup_market_prereqs(&mut scenario);
+
+        {
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_000_000_000_000);
+            market::create_market(
+                &admin_cap, &registry,
+                b"BASE_CHARIZARD_4_PSA_10", 1500000,
+                1_100_000_000_000, b"Evidence test",
+                &clock, ts::ctx(&mut scenario),
+            );
+            clock::destroy_for_testing(clock);
+        };
+
+        // Before proposal, evidence is empty
+        ts::next_tx(&mut scenario, ADMIN);
+        {
+            let market = ts::take_shared<Market>(&scenario);
+            assert!(market::evidence_blob_id(&market) == b"", 0);
+            ts::return_shared(market);
+        };
+
+        // Oracle proposes with a valid Walrus blob id
+        ts::next_tx(&mut scenario, ORACLE_OP);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_100_000_000_001);
+            market::propose_resolution(
+                &oracle_cap, &mut market, &registry,
+                1600000, 5,
+                b"dHWTDxbxXzGV_qwh9qeb52RH31SWssvST40GWj1mtS4",
+                &clock,
+            );
+            assert!(market::state(&market) == market::state_proposed(), 1);
+            assert!(
+                market::evidence_blob_id(&market) == b"dHWTDxbxXzGV_qwh9qeb52RH31SWssvST40GWj1mtS4",
+                2,
+            );
+            clock::destroy_for_testing(clock);
+            ts::return_shared(market);
+        };
+
+        oracle::destroy_oracle_cap_for_testing(oracle_cap);
+        registry::destroy_registry_for_testing(registry);
+        registry::destroy_admin_cap_for_testing(admin_cap);
+        ts::end(scenario);
+    }
+
+    /// propose_resolution with EMPTY evidence aborts EMissingEvidence (19).
+    #[test]
+    #[expected_failure(abort_code = market::EMissingEvidence)]
+    fun test_propose_resolution_empty_evidence_fails() {
+        let mut scenario = ts::begin(ADMIN);
+        let (admin_cap, registry, oracle_cap) = setup_market_prereqs(&mut scenario);
+
+        {
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_000_000_000_000);
+            market::create_market(
+                &admin_cap, &registry,
+                b"BASE_CHARIZARD_4_PSA_10", 1500000,
+                1_100_000_000_000, b"Empty evidence test",
+                &clock, ts::ctx(&mut scenario),
+            );
+            clock::destroy_for_testing(clock);
+        };
+
+        // Oracle proposes with EMPTY evidence — must abort
+        ts::next_tx(&mut scenario, ORACLE_OP);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_100_000_000_001);
+            market::propose_resolution(
+                &oracle_cap, &mut market, &registry,
+                1600000, 5,
+                b"", // empty — cannot settle without verifiable Walrus evidence
+                &clock,
+            );
             clock::destroy_for_testing(clock);
             ts::return_shared(market);
         };

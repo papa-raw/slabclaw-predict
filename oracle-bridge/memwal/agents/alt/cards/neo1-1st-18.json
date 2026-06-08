@@ -1,0 +1,69 @@
+{
+  "cardId": "neo1-1st-18",
+  "observations": [
+    {
+      "date": "2026-06-05T17:09:27.465Z",
+      "priceCents": 368354,
+      "confidence": 0.38,
+      "comps": 3,
+      "source": "alt_seeded"
+    },
+    {
+      "date": "2026-06-05T23:09:27.468Z",
+      "priceCents": 402600,
+      "confidence": 0.52,
+      "comps": 4,
+      "source": "alt_seeded"
+    },
+    {
+      "date": "2026-06-06T05:09:27.469Z",
+      "priceCents": 275240,
+      "confidence": 0.8,
+      "comps": 6,
+      "source": "alt_seeded"
+    },
+    {
+      "date": "2026-06-06T11:09:27.469Z",
+      "priceCents": 364379,
+      "confidence": 0.82,
+      "comps": 6,
+      "source": "alt_seeded"
+    },
+    {
+      "date": "2026-06-06T23:09:27.471Z",
+      "priceCents": 366717,
+      "confidence": 0.95,
+      "comps": 7,
+      "source": "alt_seeded"
+    },
+    {
+      "date": "2026-06-07T05:09:27.471Z",
+      "priceCents": 342267,
+      "confidence": 0.95,
+      "comps": 8,
+      "source": "alt_seeded"
+    },
+    {
+      "date": "2026-06-07T11:09:27.472Z",
+      "priceCents": 343969,
+      "confidence": 0.95,
+      "comps": 10,
+      "source": "alt_seeded"
+    },
+    {
+      "date": "2026-06-07T23:09:27.473Z",
+      "priceCents": 382946,
+      "confidence": 0.95,
+      "comps": 10,
+      "source": "alt_seeded"
+    },
+    {
+      "date": "2026-06-08T17:09:27.740Z",
+      "priceCents": 531360,
+      "confidence": 0.3333333333333333,
+      "comps": 1,
+      "source": "alt_sold"
+    }
+  ],
+  "anomalies": []
+}

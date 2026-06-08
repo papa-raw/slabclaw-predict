@@ -1,0 +1,165 @@
+{
+  "neo1-1st-18": {
+    "cardId": "neo1-1st-18",
+    "consensusPriceCents": 358370,
+    "confidenceLower": 352117,
+    "confidenceUpper": 365213,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 358370,
+        "confidence": 0.95,
+        "weight": 0.8987440962503553
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 344145,
+        "confidence": 0.95,
+        "weight": 0.95
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 352117,
+        "confidence": 0.95,
+        "weight": 0.8472501264748152
+      },
+      {
+        "platform": "alt",
+        "priceCents": 366717,
+        "confidence": 0.95,
+        "weight": 0.6202913966878787
+      },
+      {
+        "platform": "goldin",
+        "priceCents": 365213,
+        "confidence": 0.95,
+        "weight": 0.6275858333333333
+      }
+    ],
+    "rejectedSources": [
+      {
+        "platform": "cardmarket",
+        "priceCents": 295982,
+        "reason": "MAD outlier (z=-3.79)",
+        "zScore": -3.794558738370989
+      }
+    ],
+    "flags": [],
+    "sourceCount": 5,
+    "roundId": "neo1-1st-18_round5",
+    "timestamp": "2026-06-06T23:09:27.471Z"
+  },
+  "jp-vs-091": {
+    "cardId": "jp-vs-091",
+    "consensusPriceCents": 1203001,
+    "confidenceLower": 1182595,
+    "confidenceUpper": 1203859,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 1177090,
+        "confidence": 0.95,
+        "weight": 0.9013732288751064
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 1203001,
+        "confidence": 0.95,
+        "weight": 0.95
+      },
+      {
+        "platform": "tcgplayer",
+        "priceCents": 1213569,
+        "confidence": 0.95,
+        "weight": 0.8409397438247974
+      },
+      {
+        "platform": "alt",
+        "priceCents": 1203859,
+        "confidence": 0.95,
+        "weight": 0.646472034390979
+      },
+      {
+        "platform": "cardmarket",
+        "priceCents": 1193510,
+        "confidence": 0.95,
+        "weight": 0.7102912499999999
+      },
+      {
+        "platform": "goldin",
+        "priceCents": 1182595,
+        "confidence": 0.95,
+        "weight": 0.6632757499999999
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 6,
+    "roundId": "jp-vs-091_round5",
+    "timestamp": "2026-06-06T23:09:27.471Z"
+  },
+  "base5-1st-83": {
+    "cardId": "base5-1st-83",
+    "consensusPriceCents": 498323,
+    "confidenceLower": 498323,
+    "confidenceUpper": 538517,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 498323,
+        "confidence": 0.95,
+        "weight": 0.9037453019958652
+      },
+      {
+        "platform": "alt",
+        "priceCents": 520657,
+        "confidence": 0.95,
+        "weight": 0.6689416103172937
+      },
+      {
+        "platform": "beezie",
+        "priceCents": 472438,
+        "confidence": 0.95,
+        "weight": 0.5063992307944444
+      },
+      {
+        "platform": "goldin",
+        "priceCents": 538517,
+        "confidence": 0.95,
+        "weight": 0.6977327249999999
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [],
+    "sourceCount": 4,
+    "roundId": "base5-1st-83_round5",
+    "timestamp": "2026-06-06T23:09:27.471Z"
+  },
+  "base2-1st-3": {
+    "cardId": "base2-1st-3",
+    "consensusPriceCents": 224939,
+    "confidenceLower": 223473,
+    "confidenceUpper": 224939,
+    "contributingSources": [
+      {
+        "platform": "ebay",
+        "priceCents": 223473,
+        "confidence": 0.95,
+        "weight": 0.9058963178714868
+      },
+      {
+        "platform": "courtyard",
+        "priceCents": 224939,
+        "confidence": 0.95,
+        "weight": 0.95
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [
+      "insufficient_sources"
+    ],
+    "sourceCount": 2,
+    "roundId": "base2-1st-3_round5",
+    "timestamp": "2026-06-06T23:09:27.471Z"
+  }
+}
