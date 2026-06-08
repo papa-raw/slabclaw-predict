@@ -36,7 +36,6 @@ One **source-specialist agent** per venue. Each: scrape → extract a per-card P
 - [x] **Cross-agent shared context** on Walrus/MemWal: the coordinator reads each agent's latest memory; agents can read each other's (source-disagreement detection).
 - [x] **Walrus evidence artifacts**: on each consensus, upload an evidence bundle (consensus price, contributing comps + sources + weights, timestamps, dispute basis) → blob ID. *(redacted of seller PII before publish — `redact.mjs`)*
 - [x] **Onchain reference**: `propose_resolution` now takes `evidence_blob_id: vector<u8>` stored on `Market` + emitted in events; settlement aborts without it. **Proven onchain via `reseed-and-prove.mjs`.**
-- [x] **MemWal Walrus persistence** (`memwal-sync.mjs`): full agent memory snapshots to Walrus after every run; cold-start restore from blob ID. Live: `puArzfwFivKREcWXy-ndLen8lhufJyoIDr_2nNGfXJc`. Integrated into `swarm.mjs`.
 - [ ] Keeper memory: bridge remembers which markets it has proposed/finalized (idempotent, MemWal-backed).
 
 ## Phase 3 — Bridge + onchain wiring (½ day)
