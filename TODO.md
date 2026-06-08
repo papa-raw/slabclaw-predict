@@ -36,6 +36,7 @@ One **source-specialist agent** per venue. Each: scrape → extract a per-card P
 - [x] **Cross-agent shared context** on Walrus/MemWal: the coordinator reads each agent's latest memory; agents can read each other's (source-disagreement detection).
 - [x] **Walrus evidence artifacts**: on each consensus, upload an evidence bundle (consensus price, contributing comps + sources + weights, timestamps, dispute basis) → blob ID. *(redacted of seller PII before publish — `redact.mjs`)*
 - [x] **Onchain reference**: `propose_resolution` now takes `evidence_blob_id: vector<u8>` stored on `Market` + emitted in events; settlement aborts without it. **Proven onchain via `reseed-and-prove.mjs`.**
+- [x] **MemWal Walrus persistence** (`memwal-sync.mjs`): full agent memory snapshots to Walrus after every run; cold-start restore from blob ID. Live: `puArzfwFivKREcWXy-ndLen8lhufJyoIDr_2nNGfXJc`. Integrated into `swarm.mjs`.
 - [ ] Keeper memory: bridge remembers which markets it has proposed/finalized (idempotent, MemWal-backed).
 
 ## Phase 3 — Bridge + onchain wiring (½ day)
@@ -57,7 +58,7 @@ One **source-specialist agent** per venue. Each: scrape → extract a per-card P
 - [ ] Document the threat model + defenses (great for judges + the Walrus "trust" angle).
 
 ## Phase 6 — Submission essentials (1–2 days)
-- [ ] **End-to-end test** of the full flow (the brief: "we will test the entire flow"): connect wallet → faucet tUSD → bet → swarm prices → bridge proposes → dispute/finalize → claim → evidence on Walrus.
+- [ ] **End-to-end test** of the full flow (the brief: "we will test the entire flow"): connect wallet → faucet tUSD → trade → swarm prices → bridge proposes → dispute/finalize → claim → evidence on Walrus.
 - [ ] **Deploy the frontend** — consider **Walrus Sites** (`site-builder publish frontend/dist`) for an extra Walrus signal.
 - [ ] **Demo video** (≤ 5 min): the agents remembering/coordinating, a real resolution + the Walrus evidence blob.
 - [ ] **DeepSurge submission**: name, logo (1:1), public repo, demo video, deployment. Track = **Walrus**.

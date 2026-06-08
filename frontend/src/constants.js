@@ -8,7 +8,7 @@ export const FAUCET_ID = '0xaebce6a9a79cef13c660f2a17fbcf3f4723a1939757a32f59ac0
 export const TEST_USD_TYPE = `${PACKAGE_ID}::test_usd::TEST_USD`;
 export const CLOCK_ID = '0x6';
 
-// Faucet drip + bet denomination (tUSD has 9 decimals, mirrors MIST).
+// Faucet drip + trade denomination (tUSD has 9 decimals, mirrors MIST).
 export const USD_DECIMALS = 9;
 export const FAUCET_DRIP = 10_000; // tUSD per faucet click
 

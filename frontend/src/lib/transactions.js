@@ -1,5 +1,5 @@
 /// transactions.js — Build Sui Move call transactions for SlabClaw Predict.
-/// Markets settle in TEST_USD (tUSD). Bets spend tUSD coins; gas is still SUI.
+/// Markets settle in TEST_USD (tUSD). Trades spend tUSD coins; gas is still SUI.
 
 import { Transaction, coinWithBalance } from '@mysten/sui/transactions';
 import { PACKAGE_ID, CLOCK_ID, FAUCET_ID, TEST_USD_TYPE, USD_DECIMALS } from '../constants';
