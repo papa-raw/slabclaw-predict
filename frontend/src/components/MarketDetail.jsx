@@ -535,7 +535,7 @@ function Resolution({ oracle, bare }) {
 function TradeBox({ market, meta, oracle, strikeDollars, onTxSuccess }) {
   const account = useCurrentAccount();
   const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
-  const { balance: tusd } = useTusdBalance();
+  const { balance: tusd, isLoading: balLoading } = useTusdBalance();
   const [side, setSide] = useState('yes');
   const [amount, setAmount] = useState('100');
   const [status, setStatus] = useState(null);
@@ -546,7 +546,7 @@ function TradeBox({ market, meta, oracle, strikeDollars, onTxSuccess }) {
   const active = market.state === 0;
   const totalShares = market.totalYes + market.totalNo;
   const yesPct = totalShares > 0 ? Math.round((market.totalYes / totalShares) * 100) : 50;
-  const broke = account && tusd <= 0;
+  const broke = account && !balLoading && tusd <= 0;
 
   async function run(buildTx, okMsg) {
     if (!account) return;
@@ -567,6 +567,7 @@ function TradeBox({ market, meta, oracle, strikeDollars, onTxSuccess }) {
 
   return (
     <div className="bg-sc-card border border-sc-border rounded-xl p-3.5">
+      <fieldset disabled={status === 'signing'} aria-busy={status === 'signing'} className="border-0 p-0 m-0 min-w-0 disabled:opacity-60 transition-opacity">
       <div className="flex gap-2 mb-3">
         <Side active={side === 'yes'} color="yes" pct={yesPct} onClick={() => setSide('yes')} label="YES" />
         <Side active={side === 'no'} color="no" pct={100 - yesPct} onClick={() => setSide('no')} label="NO" />
@@ -585,7 +586,7 @@ function TradeBox({ market, meta, oracle, strikeDollars, onTxSuccess }) {
         <div className="flex items-center justify-between text-[11px] mb-2.5 tnum">
           <span className="text-sc-muted">Balance</span>
           <span className={broke ? 'text-sc-amber font-semibold' : 'text-sc-text font-semibold'}>
-            {tusd.toLocaleString(undefined, { maximumFractionDigits: 0 })} tUSD
+            {balLoading ? '—' : tusd.toLocaleString(undefined, { maximumFractionDigits: 0 })} tUSD
           </span>
         </div>
       )}
@@ -622,6 +623,7 @@ function TradeBox({ market, meta, oracle, strikeDollars, onTxSuccess }) {
       ) : (
         <div className="text-center text-sc-muted text-sm py-4">Market is {MARKET_STATE[market.state]?.toLowerCase()}</div>
       )}
+      </fieldset>
 
       {status === 'success' && txDigest && (
         <a href={`${EXPLORER_URL}/tx/${txDigest}`} target="_blank" rel="noopener noreferrer"
