@@ -47,7 +47,7 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
         <button onClick={onClose} className="flex items-center gap-2 shrink-0 hover:opacity-80 transition-opacity">
           <img src="/assets/app-icon.png" alt="SlabClaw" className="w-7 h-7 object-contain rounded-[2px]" />
           <span className="font-bold text-[14px] tracking-brand text-white">SLABCLAW</span>
-          <span className="text-[10px] font-semibold text-sc-amber tracking-wide">PREDICT</span>
+          <span className="text-[10px] font-semibold text-sc-accent tracking-wide">PREDICT</span>
         </button>
 
         {/* Center: card identity chip */}
@@ -74,7 +74,7 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
         {/* question header */}
         <div className="flex flex-col lg:flex-row lg:items-start gap-5 mb-5">
           {/* card image — larger, elevated */}
-          <div className="w-24 h-[132px] rounded-lg overflow-hidden bg-sc-surface ring-1 ring-sc-border shrink-0 shadow-lg shadow-black/30">
+          <div className="w-24 h-[132px] rounded-lg overflow-hidden bg-sc-surface ring-1 ring-sc-border shrink-0">
             {meta.image && <img src={meta.image} alt={meta.name} className="w-full h-full object-cover" />}
           </div>
 
@@ -341,7 +341,7 @@ function DisputePanel({ market, meta, strikeDollars, onTxSuccess }) {
                   <div className="text-[9px] text-sc-muted uppercase tracking-wide mb-1">Bond amount (tUSD)</div>
                   <input type="number" value={bondAmount} onChange={(e) => setBondAmount(e.target.value)}
                     min={MIN_DISPUTE_BOND} step="1000"
-                    className="w-full bg-sc-surface border border-sc-border rounded-lg px-3 py-2 text-sm font-mono tnum focus:outline-none focus:border-sc-no" />
+                    className="w-full bg-sc-surface border border-sc-border rounded-lg px-3 py-2 text-sm font-mono tnum focus:border-sc-no" />
                 </div>
                 <button onClick={submitDispute}
                   disabled={status === 'signing' || parseFloat(bondAmount) < MIN_DISPUTE_BOND}
@@ -435,7 +435,7 @@ function InfoTip({ children }) {
   return (
     <span className="relative inline-flex items-center align-middle group/info">
       <span className="ml-0.5 w-3 h-3 rounded-full border border-sc-muted/70 text-sc-muted text-[8px] font-bold leading-none flex items-center justify-center cursor-help">i</span>
-      <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 w-60 rounded-md border border-sc-border bg-black px-2.5 py-2 text-[10px] leading-relaxed text-sc-dim opacity-0 group-hover/info:opacity-100 transition-opacity z-50 shadow-xl normal-case font-sans">
+      <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 w-60 rounded-md border border-sc-border bg-black px-2.5 py-2 text-[10px] leading-relaxed text-sc-dim opacity-0 group-hover/info:opacity-100 transition-opacity z-50 normal-case font-sans">
         {children}
       </span>
     </span>
@@ -574,7 +574,7 @@ function TradeBox({ market, meta, oracle, strikeDollars, onTxSuccess }) {
         <>
           <div className="relative mb-2.5">
             <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} min="1" step="10"
-              className="w-full bg-sc-surface border border-sc-border rounded-lg px-3 py-2.5 text-sm font-mono tnum focus:outline-none focus:border-sc-accent" placeholder="Amount" />
+              className="w-full bg-sc-surface border border-sc-border rounded-lg px-3 py-2.5 text-sm font-mono tnum focus:border-sc-accent" placeholder="Amount" />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-sc-muted">tUSD</span>
           </div>
           <div className="flex gap-2 mb-3">

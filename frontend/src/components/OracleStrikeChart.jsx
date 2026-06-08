@@ -302,7 +302,7 @@ function CompTooltip({ p, model, strike }) {
   return (
     <div className="absolute pointer-events-none z-10 -translate-x-1/2 -translate-y-full"
       style={{ left: `${leftPct}%`, top: `calc(${topPct}% - 6px)` }}>
-      <div className="bg-black border border-sc-border rounded-md px-2 py-1 text-[10px] whitespace-nowrap shadow-xl">
+      <div className="bg-black border border-sc-border rounded-md px-2 py-1 text-[10px] whitespace-nowrap">
         <div className="font-semibold tnum text-white">{usd(p.price)} <span className={above ? 'text-sc-yes' : 'text-sc-no'}>{above ? 'YES' : 'NO'}</span></div>
         <div className="text-sc-muted">{shortDate(p.date)} · {p.platform}{p.crossGrader ? ' · cross-grade' : ''}</div>
       </div>
@@ -318,7 +318,7 @@ function TwapTooltip({ pt, model, strike }) {
   return (
     <div className="absolute pointer-events-none z-10 -translate-x-1/2 -translate-y-full"
       style={{ left: `${leftPct}%`, top: `calc(${topPct}% - 10px)` }}>
-      <div className="bg-black/95 border border-white/20 rounded-md px-2.5 py-1.5 text-[10px] whitespace-nowrap shadow-xl">
+      <div className="bg-black/95 border border-white/20 rounded-md px-2.5 py-1.5 text-[10px] whitespace-nowrap">
         <div className="font-bold tnum text-white text-[11px]">{usd(pt.price)} <span className={above ? 'text-sc-yes' : 'text-sc-no'}>{above ? 'YES' : 'NO'}</span></div>
         <div className="text-sc-muted mt-0.5">{shortDate(new Date(pt.t))} · TWAP 30d</div>
         <div className={`text-[9px] mt-0.5 font-semibold tnum ${above ? 'text-sc-yes' : 'text-sc-no'}`}>
@@ -333,7 +333,7 @@ function ConeTooltip({ hi, lo, leftPct, topPct, days }) {
   return (
     <div className="absolute pointer-events-none z-10 -translate-x-1/2 -translate-y-1/2"
       style={{ left: `${leftPct}%`, top: `${topPct}%` }}>
-      <div className="bg-black/90 border border-white/15 rounded-lg px-4 py-3 text-[11px] leading-relaxed shadow-2xl w-[300px]">
+      <div className="bg-black/90 border border-white/15 rounded-lg px-4 py-3 text-[11px] leading-relaxed w-[300px]">
         <div className="font-semibold text-white text-[12px]">95% confidence interval</div>
         <div className="text-sc-muted mt-1">
           In {days}, the oracle is <span className="text-sc-text">95%</span> likely to land between{' '}

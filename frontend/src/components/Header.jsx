@@ -25,7 +25,7 @@ export default function Header() {
         <div className="flex items-center gap-2 shrink-0">
           <img src="/assets/app-icon.png" alt="SlabClaw" className="w-8 h-8 object-contain rounded-[2px]" />
           <span className="font-bold text-[15px] tracking-brand text-white">SLABCLAW</span>
-          <span className="text-[10px] font-semibold text-sc-amber tracking-wide">PREDICT</span>
+          <span className="text-[10px] font-semibold text-sc-accent tracking-wide">PREDICT</span>
         </div>
 
         {/* Era-trend KPI strip (centered) */}

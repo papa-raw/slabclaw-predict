@@ -11,11 +11,13 @@ export default {
           surface: '#111118',   // raised surface
           card: '#15151d',      // card / tile bg
           border: '#23232f',    // hairline border
-          text: '#e6e6f0',
+          bright: '#ffffff',    // primary emphasis — hero numbers, key values
+          text: '#e6e6f0',      // default text
           dim: '#aaaab8',       // secondary text
-          muted: '#6b6b7e',     // tertiary / labels
-          accent: '#f5c542',    // brand gold (was off-brand indigo #6366f1)
-          amber: '#f59e0b',     // secondary amber
+          muted: '#8a8a9c',     // tertiary / labels (was #6b6b7e — failed WCAG AA on sc-card)
+          accent: '#f5c542',    // brand gold — THE single accent (strike line, links, all CTAs)
+          accentHover: '#e0b020', // darker gold for CTA hover
+          amber: '#f59e0b',     // caution/state only (proposed, estimated, low-balance) — NOT a CTA color
           yes: '#4CAF50',       // gain green (registry .gain)
           no: '#ef4444',        // loss red (registry .loss)
           noDim: '#cc4444',

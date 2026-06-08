@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ConnectModal, useCurrentAccount, useDisconnectWallet } from '@mysten/dapp-kit';
 import { shortAddr } from '../lib/format';
 
-const PILL = 'inline-flex items-center gap-1.5 rounded-[5px] bg-sc-amber text-black font-bold text-[12px] leading-none px-3 py-[7px] hover:bg-[#d97706] transition';
+const PILL = 'inline-flex items-center gap-1.5 rounded-[5px] bg-sc-accent text-black font-bold text-[12px] leading-none px-3 py-[7px] hover:bg-sc-accentHover active:scale-[.97] transition';
 
 function CopyIcon({ done }) {
   if (done) {
@@ -45,13 +45,13 @@ export default function WalletButton() {
 
   return (
     <div className="relative" ref={ref}>
-      <button onClick={() => setOpen((o) => !o)} className={PILL}>
+      <button onClick={() => setOpen((o) => !o)} className={PILL} aria-haspopup="menu" aria-expanded={open} aria-label="Wallet account menu">
         <span className="font-mono">{shortAddr(account.address)}</span>
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${open ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9" /></svg>
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-1.5 w-56 rounded-lg border border-sc-border bg-sc-panel shadow-2xl overflow-hidden z-[70]">
+        <div className="absolute right-0 mt-1.5 w-56 rounded-lg border border-sc-border bg-sc-surface overflow-hidden z-[70]">
           <div className="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-sc-border">
             <span className="font-mono text-[12px] text-sc-text truncate">{shortAddr(account.address)}</span>
             <button
