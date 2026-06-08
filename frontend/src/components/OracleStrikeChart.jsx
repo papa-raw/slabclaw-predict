@@ -153,6 +153,7 @@ export default function OracleStrikeChart({
   return (
     <div className="relative">
       <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 'auto' }}
+        role="img" aria-label="Oracle price history charted against the strike price over time, with recent sold comps and a 95% confidence cone"
         onMouseMove={handleMouseMove}
         onMouseLeave={clearHovers}>
         {/* YES / NO zones */}
