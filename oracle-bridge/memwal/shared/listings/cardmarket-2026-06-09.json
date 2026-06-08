@@ -1,0 +1,70 @@
+{
+  "snapshotAt": "2026-06-09T00:46:00Z",
+  "source": "cardmarket (manual export, grades parsed from seller notes)",
+  "currency": "EUR",
+  "note": "Cardmarket lists graded slabs under a raw condition badge (MT/NM/EX) with the actual grade in the seller comment. Grades below parsed from the Product Information notes.",
+  "cards": {
+    "base2-1st-3": {
+      "name": "Flareon",
+      "psa10Count": 0,
+      "listings": [
+        { "seller": "TroTaMunDos", "condition": "EX", "grader": null, "grade": null, "note": "Toploader (raw)", "priceEur": 285.00 },
+        { "seller": "Elsativa", "condition": "NM", "grader": "PSA", "grade": 8, "note": "PSA 8", "priceEur": 350.00 },
+        { "seller": "PeanutLuke", "condition": "NM", "grader": "PSA", "grade": 8, "note": "PSA 8 1st Edition", "priceEur": 356.45 },
+        { "seller": "Papasaur66", "condition": "EX", "grader": null, "grade": null, "note": "raw (no grade)", "priceEur": 400.00 },
+        { "seller": "ts61fa", "condition": "MT", "grader": "PSA", "grade": 9, "note": "PSA 9 First edition", "priceEur": 669.99 }
+      ]
+    },
+    "neo1-1st-18": {
+      "name": "Typhlosion",
+      "psa10Count": 0,
+      "listings": [
+        { "seller": "entchaka", "condition": "EX", "grader": null, "grade": null, "note": "raw", "priceEur": 199.00 },
+        { "seller": "YGO-Collections", "condition": "EX", "grader": null, "grade": null, "note": "raw", "priceEur": 229.95 },
+        { "seller": "Card-foundry", "condition": "EX", "grader": null, "grade": null, "note": "raw", "priceEur": 245.00 },
+        { "seller": "ZombieGamesCafe", "condition": "EX", "grader": null, "grade": null, "note": "1st Ed. raw NM front", "priceEur": 298.04 },
+        { "seller": "Cardrush", "condition": "NM", "grader": "PSA", "grade": 7, "note": "psa 7 first edition perfect Swirl", "priceEur": 375.00 },
+        { "seller": "LastWillTeam", "condition": "NM", "grader": "BGS", "grade": 8, "note": "BGS 8", "priceEur": 500.00 },
+        { "seller": "AnDeXCards", "condition": "NM", "grader": "PSA", "grade": 8, "note": "PSA 8", "priceEur": 529.99 },
+        { "seller": "MundoDistorsion18", "condition": "MT", "grader": "BGS", "grade": 9, "note": "BGS 9", "priceEur": 620.00 },
+        { "seller": "entchaka", "condition": "NM", "grader": "AIG", "grade": 8, "note": "AI Grading 8", "priceEur": 649.00 },
+        { "seller": "Impoleon", "condition": "MT", "grader": "CGC", "grade": 9, "note": "CGC 9", "priceEur": 670.00 },
+        { "seller": "wexir", "condition": "MT", "grader": "CGC", "grade": 9.5, "note": "1st edition, CGC 9.5", "priceEur": 690.00 }
+      ]
+    },
+    "base5-1st-83": {
+      "name": "Dark Raichu",
+      "psa10Count": 0,
+      "listings": [
+        { "seller": "Bartolle", "condition": "EX", "grader": "PSA", "grade": 5, "note": "psa5", "priceEur": 179.95 },
+        { "seller": "Slapquaza", "condition": "EX", "grader": null, "grade": null, "note": "raw", "priceEur": 180.00 },
+        { "seller": "Pokemondenbosch", "condition": "EX", "grader": null, "grade": null, "note": "raw", "priceEur": 200.00 },
+        { "seller": "lostlegendgames", "condition": "NM", "grader": null, "grade": null, "note": "raw", "priceEur": 226.75 },
+        { "seller": "SpecialCollector22", "condition": "NM", "grader": null, "grade": null, "note": "NM+ raw", "priceEur": 260.00 },
+        { "seller": "Prometheus55", "condition": "NM", "grader": "AOG", "grade": 7.5, "note": "AOG 7.5 Near Mint - cert 0000043637", "priceEur": 359.00 },
+        { "seller": "childhoodhero", "condition": "NM", "grader": null, "grade": null, "note": "raw", "priceEur": 359.95 },
+        { "seller": "childhoodhero", "condition": "MT", "grader": null, "grade": null, "note": "raw", "priceEur": 449.95 },
+        { "seller": "RoskamTradingCards", "condition": "MT", "grader": "PSA", "grade": 9, "note": "PSA 9 / 1st edition / Swirl", "priceEur": 850.00 },
+        { "seller": "dharlow01", "condition": "NM", "grader": "PSA", "grade": 8.5, "note": "PSA 8.5 ask for pics", "priceEur": 850.00 },
+        { "seller": "CardsFaster", "condition": "MT", "grader": "BGS", "grade": 9, "note": "BECKETT 9 / NEW CERT", "priceEur": 2999.99 },
+        { "seller": "Flamenko", "condition": "MT", "grader": "PSA", "grade": 9, "note": "PSA 9", "priceEur": 3460.00 },
+        { "seller": "depokeplugcm", "condition": "MT", "grader": "BGS", "grade": 9.5, "note": "BGS 9.5 - Big Swirl", "priceEur": 5999.95 },
+        { "seller": "ROTOPOKE", "condition": "MT", "grader": "BGS", "grade": 9.5, "note": "BGS 9.5 - Ask for pictures", "priceEur": 9999.00 }
+      ]
+    },
+    "jp-vs-091": {
+      "name": "Karen's Umbreon",
+      "psa10Count": 2,
+      "listings": [
+        { "seller": "REDO-SHOP", "condition": "GD", "grader": "CDZ", "grade": null, "note": "CDZ (other grader)", "priceEur": 1499.98 },
+        { "seller": "ILDRAGOMARCO", "condition": "NM", "grader": "PSA", "grade": 5, "note": "PSA 5", "priceEur": 2200.00 },
+        { "seller": "Dre23", "condition": "EX", "grader": "PSA", "grade": 5, "note": "PSA 5", "priceEur": 2300.00 },
+        { "seller": "ILFORZIEREDELMANA", "condition": "NM", "grader": "GRAAD", "grade": 7, "note": "GRAAD 7 NEAR MINT", "priceEur": 2800.00 },
+        { "seller": "Lukezard97", "condition": "NM", "grader": "BGS", "grade": null, "note": "custom extended frame for BGS", "priceEur": 5000.00 },
+        { "seller": "VintageModernGoat", "condition": "MT", "grader": "PSA", "grade": 9, "note": "PSA 9", "priceEur": 12000.00 },
+        { "seller": "Realfabio-95", "condition": "NM", "grader": "PSA", "grade": 10, "note": "PSA 10", "priceEur": 15500.00 },
+        { "seller": "flo9710", "condition": "NM", "grader": "PSA", "grade": 10, "note": "PSA 10 cert 71876478", "priceEur": 19500.00 }
+      ]
+    }
+  }
+}

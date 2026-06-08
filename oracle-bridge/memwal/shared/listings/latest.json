@@ -1,0 +1,246 @@
+{
+  "snapshotAt": "2026-06-08T22:24:02.465Z",
+  "source": "slabclaw-scanner (ebay/cardmarket/…) + tinyfish(cardmarket fallback)",
+  "cards": {
+    "neo1-1st-18": {
+      "name": "Typhlosion",
+      "counts": {
+        "ebay": 4
+      },
+      "listings": [
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/287232988396?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item42e06b94ec:g:oogAAeSwdylpxG~E",
+          "url": "https://www.ebay.com/itm/287232988396?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item42e06b94ec:g:oogAAeSwdylpxG~E",
+          "price": 6000,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "buy",
+          "endTime": null,
+          "sellerCountry": "US",
+          "title": "Pokemon Typhlosion Neo Genesis 1st Edition Holo Rare #18 PSA 10 Gem Mint"
+        },
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/147267648727?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item2249d5fcd7:g:PuEAAeSwBb1p5V8l",
+          "url": "https://www.ebay.com/itm/147267648727?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item2249d5fcd7:g:PuEAAeSwBb1p5V8l",
+          "price": 6671,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "offer",
+          "endTime": null,
+          "sellerCountry": "GB",
+          "title": "Pokemon Cards: Neo Genesis 1st Edition Rare Holo: Typhlosion 18/111 PSA 10"
+        },
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/306934866447?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item4776be620f:g:~TQAAeSwaERqA3vb",
+          "url": "https://www.ebay.com/itm/306934866447?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item4776be620f:g:~TQAAeSwaERqA3vb",
+          "price": 6800,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "offer",
+          "endTime": null,
+          "sellerCountry": "US",
+          "title": "2000 POKEMON NEO GENESIS 1ST EDITION #18 TYPHLOSION-HOLO PSA 10"
+        },
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/318122855037?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item4a11998a7d:g:4G4AAeSwPZBp1pgY",
+          "url": "https://www.ebay.com/itm/318122855037?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item4a11998a7d:g:4G4AAeSwPZBp1pgY",
+          "price": 6999.99,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "buy",
+          "endTime": null,
+          "sellerCountry": "US",
+          "title": "PSA 10 GEM MINT Typhlosion 18/111 HOLO RARE Neo Genesis 1ST EDITION Pokemon Card"
+        }
+      ]
+    },
+    "jp-vs-091": {
+      "name": "Karen's Umbreon",
+      "counts": {
+        "ebay": 5
+      },
+      "listings": [
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/157907348885?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item24c402ed95:g:O2YAAeSwMdJplShd",
+          "url": "https://www.ebay.com/itm/157907348885?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item24c402ed95:g:O2YAAeSwMdJplShd",
+          "price": 24500,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "offer",
+          "endTime": null,
+          "sellerCountry": "US",
+          "title": "2001 POKEMON JAPANESE VS 1ST EDITION #091 KAREN'S UMBREON-HOLO PSA 10"
+        },
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/298192880047?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item456dae41af:g:mKgAAeSwC~Rp0QeI",
+          "url": "https://www.ebay.com/itm/298192880047?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item456dae41af:g:mKgAAeSwC~Rp0QeI",
+          "price": 24000,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "offer",
+          "endTime": null,
+          "sellerCountry": "US",
+          "title": "PSA 10 Karen's Umbreon #091 1st Edition VS 2001 Pokemon Japanese SWIRL NEW CERT"
+        },
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/206212089106?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item300332c512:g:xaIAAeSwB9Zp35Re",
+          "url": "https://www.ebay.com/itm/206212089106?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item300332c512:g:xaIAAeSwB9Zp35Re",
+          "price": 19586.25,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "offer",
+          "endTime": null,
+          "sellerCountry": "IT",
+          "title": "2001 Pokemon Karen's Umbreon 1st Edition Japanese VS Holo #91 PSA 10 GEM MINT"
+        },
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/178193959567?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item297d300a8f:g:PMUAAeSwpl1qIi4a",
+          "url": "https://www.ebay.com/itm/178193959567?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item297d300a8f:g:PMUAAeSwpl1qIi4a",
+          "price": 19000,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "buy",
+          "endTime": null,
+          "sellerCountry": "US",
+          "title": "2001 POKEMON JAPANESE VS 1ST EDITION #091 KAREN'S UMBREON-HOLO PSA 10 - SWIRL"
+        },
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/397027380270?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item5c70ad0c2e:g:xWQAAeSwM01ogcEB",
+          "url": "https://www.ebay.com/itm/397027380270?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item5c70ad0c2e:g:xWQAAeSwM01ogcEB",
+          "price": 18500,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "buy",
+          "endTime": null,
+          "sellerCountry": "JP",
+          "title": "PSA10 Karen's Umbreon Holo Card #091 1st Edition VS 2001 Pokemon Japanese GEMMT"
+        }
+      ]
+    },
+    "base5-1st-83": {
+      "name": "Dark Raichu",
+      "counts": {
+        "ebay": 1
+      },
+      "listings": [
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/188060533997?_skw=%22Dark+Raichu%22+team+rocket+pokemon&hash=item2bc94804ed:g:oO8AAeSwaaVpkMUZ",
+          "url": "https://www.ebay.com/itm/188060533997?_skw=%22Dark+Raichu%22+team+rocket+pokemon&hash=item2bc94804ed:g:oO8AAeSwaaVpkMUZ",
+          "price": 14999.95,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "buy",
+          "endTime": null,
+          "sellerCountry": "US",
+          "title": "PSA 10 1st Edition Dark Raichu 83/82 Team Rocket Pokemon 2000 FIRST SECRET RARE!"
+        }
+      ]
+    },
+    "base2-1st-3": {
+      "name": "Flareon",
+      "counts": {
+        "ebay": 6
+      },
+      "listings": [
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/168307349198?_skw=%22Flareon%22+jungle+pokemon&hash=item272fe656ce:g:cwoAAeSw6z9p3a-b",
+          "url": "https://www.ebay.com/itm/168307349198?_skw=%22Flareon%22+jungle+pokemon&hash=item272fe656ce:g:cwoAAeSw6z9p3a-b",
+          "price": 7950,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "buy",
+          "endTime": null,
+          "sellerCountry": "US",
+          "title": "1999 POKEMON JUNGLE 1ST ED #3 FLAREON HOLO PSA 10 First Edition"
+        },
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/306951538433?_skw=%22Flareon%22+jungle+pokemon&hash=item4777bcc701:g:rwgAAeSwYudqDjyk",
+          "url": "https://www.ebay.com/itm/306951538433?_skw=%22Flareon%22+jungle+pokemon&hash=item4777bcc701:g:rwgAAeSwYudqDjyk",
+          "price": 8000,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "offer",
+          "endTime": null,
+          "sellerCountry": "US",
+          "title": "PSA 10 GEM MINT Flareon 3/64 HOLO RARE Jungle 1ST EDITION Pokemon Card"
+        },
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/127798214353?_skw=%22Flareon%22+jungle+pokemon&hash=item1dc15dfed1:g:I9sAAeSwOYVp1deJ",
+          "url": "https://www.ebay.com/itm/127798214353?_skw=%22Flareon%22+jungle+pokemon&hash=item1dc15dfed1:g:I9sAAeSwOYVp1deJ",
+          "price": 8800,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "offer",
+          "endTime": null,
+          "sellerCountry": "US",
+          "title": "1999 POKEMON JUNGLE 1ST ED #3 FLAREON-HOLO PSA 10"
+        },
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/277854447336?_skw=%22Flareon%22+jungle+pokemon&hash=item40b16a66e8:g:~dgAAeSwaeRpzP7P",
+          "url": "https://www.ebay.com/itm/277854447336?_skw=%22Flareon%22+jungle+pokemon&hash=item40b16a66e8:g:~dgAAeSwaeRpzP7P",
+          "price": 8999.99,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "buy",
+          "endTime": null,
+          "sellerCountry": "US",
+          "title": "PSA 10 GEM MINT Flareon 3/64 HOLO RARE Jungle 1ST EDITION Pokemon Card"
+        },
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/406936113168?_skw=%22Flareon%22+jungle+pokemon&hash=item5ebf485010:g:pn4AAeSwQAFqC~HB",
+          "url": "https://www.ebay.com/itm/406936113168?_skw=%22Flareon%22+jungle+pokemon&hash=item5ebf485010:g:pn4AAeSwQAFqC~HB",
+          "price": 10499,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "offer",
+          "endTime": null,
+          "sellerCountry": "US",
+          "title": "Pokemon Flareon Holo Rare Jungle 1st Edition #3 PSA 10"
+        },
+        {
+          "platform": "ebay",
+          "listingId": "https://www.ebay.com/itm/287168706835?_skw=%22Flareon%22+jungle+pokemon&hash=item42dc96b913:g:XGoAAeSw~~1pod~W",
+          "url": "https://www.ebay.com/itm/287168706835?_skw=%22Flareon%22+jungle+pokemon&hash=item42dc96b913:g:XGoAAeSw~~1pod~W",
+          "price": 45000,
+          "grade": 10,
+          "grader": "PSA",
+          "gradeBand": 10,
+          "listingType": "buy",
+          "endTime": null,
+          "sellerCountry": "NL",
+          "title": "PSA 10 GEM MINT  Flareon 1st Edition Jungle WOTC 1999 Pokemon Holo"
+        }
+      ]
+    }
+  }
+}
