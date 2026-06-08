@@ -1,0 +1,13 @@
+{
+  "cardId": "base2-1st-3",
+  "observations": [
+    {
+      "date": "2026-06-08T22:00:33.725Z",
+      "priceCents": 400000,
+      "confidence": 0.7,
+      "comps": 3,
+      "source": "fanatics-pwcc"
+    }
+  ],
+  "anomalies": []
+}

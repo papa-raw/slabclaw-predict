@@ -1,0 +1,13 @@
+{
+  "cardId": "base5-1st-83",
+  "observations": [
+    {
+      "date": "2026-06-08T22:00:34.747Z",
+      "priceCents": 397000,
+      "confidence": 0.85,
+      "comps": 3,
+      "source": "psa-apr"
+    }
+  ],
+  "anomalies": []
+}

@@ -21,7 +21,23 @@
       "confidence": 0.95,
       "comps": 11,
       "source": "goldin_seeded"
+    },
+    {
+      "date": "2026-06-08T22:00:35.956Z",
+      "priceCents": 42500,
+      "confidence": 0.3,
+      "comps": 1,
+      "source": "goldin-auctions"
     }
   ],
-  "anomalies": []
+  "anomalies": [
+    {
+      "date": "2026-06-08T22:00:35.956Z",
+      "flags": [
+        "price_jump"
+      ],
+      "priceCents": 42500,
+      "detail": "price_jump"
+    }
+  ]
 }

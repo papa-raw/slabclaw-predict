@@ -21,6 +21,7 @@ import { BeezieAgent } from './agents/beezie-agent.mjs';
 import { CollectorCryptAgent } from './agents/collector-crypt-agent.mjs';
 import { GoldinAgent } from './agents/goldin-agent.mjs';
 import { PricechartingAgent } from './agents/pricecharting-agent.mjs';
+import { createTinyfishAgents } from './tinyfish-agents.mjs';
 import { runCoordinator } from './agents/coordinator.mjs';
 import { getClient, proposeResolution } from './sui-client.mjs';
 import { uploadEvidence } from './walrus-evidence.mjs';
@@ -50,15 +51,17 @@ const pct = (n) => (n * 100).toFixed(1) + '%';
 function createAgents() {
   const cfg = { slabclawApi: CONFIG.slabclawApi, cardIds: CARD_IDS, grader: GRADER, grade: GRADE };
   return [
+    // Backend-fed agents (eBay/PriceCharting are the eBay-sold origin)
     new EbayAgent(cfg),
     new CourtyardAgent(cfg),
     new TcgplayerAgent(cfg),
-    new AltAgent(cfg),
     new CardmarketAgent(cfg),
     new BeezieAgent(cfg),
     new CollectorCryptAgent(cfg),
-    new GoldinAgent(cfg),
     new PricechartingAgent(cfg),
+    // Genuinely-independent venues scraped directly via TinyFish (psa-apr, goldin,
+    // fanatics, alt) — these are what get a card to 3+ independent sources.
+    ...createTinyfishAgents(cfg),
   ];
 }
 
