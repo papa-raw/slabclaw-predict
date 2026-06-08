@@ -15,7 +15,6 @@ import GradeBadge from './GradeBadge';
 import { EditionMarks } from './EditionBadges';
 import OracleStrikeChart from './OracleStrikeChart';
 import RegistryCardLadder from './RegistryCardLadder';
-import OracleSwarmPanel from './OracleSwarmPanel';
 import OracleConsensusPanel from './OracleConsensusPanel';
 import WalletButton from './WalletButton';
 import consensusData from '../data/oracle-consensus.json';
@@ -492,7 +491,6 @@ function GraphPanel({ isLoading, oracle, chart, productId }) {
     <div className="bg-sc-card border border-sc-border rounded-xl overflow-hidden">
       <div className="flex items-center gap-1 border-b border-sc-border px-2">
         <Tab id="chart">Chart</Tab>
-        <Tab id="swarm">Oracle Swarm</Tab>
         <Tab id="resolve">Resolution Guide</Tab>
       </div>
       <div className="p-3">
@@ -500,9 +498,7 @@ function GraphPanel({ isLoading, oracle, chart, productId }) {
           ? (isLoading
               ? <div className="h-[300px] grid place-items-center text-sm text-sc-muted">Loading oracle history…</div>
               : chart)
-          : tab === 'swarm'
-            ? <OracleSwarmPanel productId={productId} />
-            : <Resolution oracle={oracle} bare />}
+          : <Resolution oracle={oracle} bare />}
       </div>
     </div>
   );
