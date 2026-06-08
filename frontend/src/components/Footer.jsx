@@ -10,7 +10,7 @@ import { useTusdBalance } from '../hooks/useTusd';
 export default function Footer({ onFunded }) {
   const account = useCurrentAccount();
   const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
-  const { balance, refetch, hasWallet } = useTusdBalance();
+  const { balance, refetch, hasWallet, isLoading: balLoading } = useTusdBalance();
   const [status, setStatus] = useState(null); // null | 'minting' | 'ok' | 'err'
 
   async function faucet() {
@@ -44,7 +44,7 @@ export default function Footer({ onFunded }) {
         <div className="flex items-center gap-2.5 ml-auto">
           {hasWallet && (
             <span className="tnum text-sc-dim">
-              Balance <span className="text-sc-text font-semibold">{balance.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span> tUSD
+              Balance <span className="text-sc-text font-semibold">{balLoading ? '—' : balance.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span> tUSD
             </span>
           )}
           <button
