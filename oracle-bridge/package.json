@@ -19,7 +19,10 @@
     "swarm:bridge": "node bridge-swarm.mjs",
     "swarm:bridge:watch": "node bridge-swarm.mjs --watch",
     "walrus:upload": "node walrus-evidence.mjs upload",
-    "walrus:log": "node walrus-evidence.mjs log"
+    "walrus:log": "node walrus-evidence.mjs log",
+    "memwal:snapshot": "node memwal-sync.mjs snapshot",
+    "memwal:restore": "node memwal-sync.mjs restore",
+    "memwal:log": "node memwal-sync.mjs log"
   },
   "dependencies": {
     "@mysten/sui": "^1.20.0"

@@ -48,11 +48,11 @@ export default function App() {
         <div className="mb-6">
           <h2 className="text-xl lg:text-2xl font-bold text-white">Prediction markets for graded collectibles</h2>
           <p className="text-sc-dim mt-1.5 text-sm max-w-2xl">
-            Bet YES/NO on whether a graded card exceeds a strike price by expiry — priced against a
+            Trade YES/NO on whether a graded card exceeds a strike price by expiry — priced against a
             real 10-platform oracle and a live history of sold comps. Settled on{' '}
             <a href="https://sui.io" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">Sui</a> via{' '}
             <a href="https://www.deepbook.tech" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">DeepBook</a> Predict.
-            Each market shows the oracle value over time, the strike line, and every recent sold comp — so you bet with data, not vibes.
+            Each market shows the oracle value over time, the strike line, and every recent sold comp — so you trade with data, not vibes.
             Mint test USD from the faucet below, buy YES or NO, and at expiry the oracle proposes the price.
             After a 24h dispute window, winners claim.
           </p>

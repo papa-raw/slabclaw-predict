@@ -228,7 +228,9 @@
         <div class="card-icon" style="background:rgba(0,209,140,0.15); color:var(--yes)">🧠</div>
         <h3>Persistent Memory (MemWal)</h3>
         <p>Each agent maintains per-card observation history, anomaly logs, and reliability self-assessment.
-          Memory persists across sessions — kill the process, restart, and agents pick up where they left off.</p>
+          After every swarm run, the full memory state (78 files) is snapshotted to a Walrus blob. Kill the process,
+          restart on a new machine, restore from a blob ID — the swarm picks up exactly where it left off.
+          <a href="https://aggregator.walrus-testnet.walrus.space/v1/blobs/puArzfwFivKREcWXy-ndLen8lhufJyoIDr_2nNGfXJc" target="_blank">View live MemWal snapshot →</a></p>
       </div>
       <div class="card">
         <div class="card-icon" style="background:rgba(108,140,255,0.15); color:var(--accent)">🤝</div>

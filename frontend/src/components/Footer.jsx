@@ -1,5 +1,5 @@
 /// Footer — pinned on every page. Carries the tUSD faucet so judges can fund
-/// a wallet and bet without spending real SUI.
+/// a wallet and trade without spending real SUI.
 
 import { useState } from 'react';
 import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';

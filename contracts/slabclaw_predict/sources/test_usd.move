@@ -1,6 +1,6 @@
 /// test_usd.move — Faucet-minted test settlement currency for SlabClaw Predict.
 ///
-/// TESTNET ONLY. Markets settle in tUSD instead of SUI so judges can bet without
+/// TESTNET ONLY. Markets settle in tUSD instead of SUI so judges can trade without
 /// spending real SUI. 9 decimals (mirrors MIST) so market share-math is unchanged.
 ///
 /// The TreasuryCap is wrapped in a shared `Faucet` object and `mint` is public —

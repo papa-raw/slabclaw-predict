@@ -24,6 +24,7 @@ import { PricechartingAgent } from './agents/pricecharting-agent.mjs';
 import { runCoordinator } from './agents/coordinator.mjs';
 import { getClient, proposeResolution } from './sui-client.mjs';
 import { uploadEvidence } from './walrus-evidence.mjs';
+import { snapshotToWalrus, restoreFromWalrus, memwalIsEmpty } from './memwal-sync.mjs';
 import { writeFrontendConsensus } from './export-consensus.mjs';
 import { CONFIG } from './config.mjs';
 import { DEMO_MARKETS } from '../frontend/src/constants.js';
@@ -223,15 +224,45 @@ async function pass() {
   };
   writeFileSync(join(snapshotPath, 'swarm-consensus.json'), JSON.stringify(snapshot, null, 2));
 
+  // ── MemWal snapshot → Walrus (memory persistence) ───────────────
+  let memwalBlobId = null;
+  try {
+    const snap = await snapshotToWalrus();
+    if (snap?.blobId) {
+      memwalBlobId = snap.blobId;
+      console.log(`\n--- MemWal Snapshot ---`);
+      console.log(`  Blob:  ${snap.blobId}`);
+      console.log(`  Files: ${snap.fileCount} (${(snap.sizeBytes / 1024).toFixed(1)}KB)`);
+      console.log(`  View:  ${snap.aggregatorUrl}`);
+    }
+  } catch (e) {
+    console.log(`\n  MemWal snapshot failed: ${e.message.slice(0, 100)}`);
+  }
+
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
   console.log(`\n  Completed in ${elapsed}s\n`);
 
-  return { consensus, evidence, reputation, agentSummary };
+  return { consensus, evidence, reputation, agentSummary, memwalBlobId };
 }
 
 // ── Entry point ──────────────────────────────────────────────────────
 
 async function main() {
+  // Cold-start restore: if memwal/ is empty, try to restore from latest Walrus snapshot
+  if (memwalIsEmpty()) {
+    console.log('[swarm] No local memory — attempting MemWal restore from Walrus...');
+    try {
+      const res = await restoreFromWalrus();
+      if (res) {
+        console.log(`[swarm] Restored ${res.restored} files from ${res.timestamp}`);
+      } else {
+        console.log('[swarm] No snapshot found — cold start.');
+      }
+    } catch (e) {
+      console.log(`[swarm] Restore failed (${e.message.slice(0, 80)}) — cold start.`);
+    }
+  }
+
   await pass();
   if (WATCH) {
     console.log(`[swarm] watching every ${INTERVAL / 1000}s — Ctrl-C to stop\n`);

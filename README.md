@@ -92,7 +92,14 @@ TIER 3: Bridge Keeper (conditional)
 | `oracle-bridge/bridge-swarm.mjs` | Swarm-powered bridge: agents → consensus → onchain proposal |
 | `oracle-bridge/walrus-evidence.mjs` | Upload/read evidence bundles on Walrus testnet |
 | `oracle-bridge/seed-history.mjs` | Generate 10 rounds of realistic MemWal history for demo |
+| `oracle-bridge/memwal-sync.mjs` | Walrus-backed MemWal persistence: snapshot/restore agent memory |
 | `oracle-bridge/memwal/` | MemWal persistence: per-agent memory, shared context, consensus history |
+
+### MemWal Persistence on Walrus
+
+Agent memory doesn't just survive process restarts — it lives on Walrus. After every swarm run, the full memory state (78 files: per-card observations, reputation weights, anomaly history, consensus) is snapshotted to a Walrus blob. On cold start, the swarm restores from the latest snapshot automatically.
+
+[View latest MemWal snapshot →](https://aggregator.walrus-testnet.walrus.space/v1/blobs/puArzfwFivKREcWXy-ndLen8lhufJyoIDr_2nNGfXJc)
 
 ### Evidence on Walrus
 
@@ -148,6 +155,11 @@ node bridge-swarm.mjs --watch    # keeper daemon
 node walrus-evidence.mjs upload  # upload latest evidence bundle
 node walrus-evidence.mjs log     # list all uploaded blobs
 
+# MemWal persistence (Walrus-backed agent memory)
+node memwal-sync.mjs snapshot    # snapshot memory to Walrus
+node memwal-sync.mjs restore     # restore from latest Walrus snapshot
+node memwal-sync.mjs log         # list all memory snapshots
+
 # Legacy single-source bridge
 node bridge.mjs --dry            # status only
 node bridge.mjs --watch          # keeper daemon
@@ -175,6 +187,7 @@ oracle-bridge/
     coordinator.mjs              Aggregation: MAD → weighted median → evidence
   swarm.mjs                      Orchestrator (all agents → coordinator → Walrus)
   bridge-swarm.mjs               Swarm-powered onchain bridge
+  memwal-sync.mjs                Walrus-backed memory persistence (snapshot/restore)
   walrus-evidence.mjs            Walrus upload/read/log
   seed-history.mjs               Demo history generator
   memwal/                        MemWal persistence root
