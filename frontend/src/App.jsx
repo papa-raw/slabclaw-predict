@@ -103,7 +103,7 @@ function MarketSections({ markets, onSelect }) {
         </>
       )}
       {past.length > 0 && (
-        <div className={active.length > 0 ? 'mt-8' : ''}>
+        <div className={`opacity-70 hover:opacity-100 transition-opacity ${active.length > 0 ? 'mt-8' : ''}`}>
           <SectionHeader label="Past" count={past.length} muted />
           <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
             {past.map((m) => (
