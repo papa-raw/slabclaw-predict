@@ -62,11 +62,19 @@ export default function App() {
         {isLoading ? (
           <SkeletonGrid />
         ) : error ? (
-          <div className="text-center py-16 text-sc-no text-sm">
-            Failed to load markets from Sui testnet: {error.message}
+          <div className="bg-sc-card border border-sc-no/30 rounded-xl py-12 px-6 text-center">
+            <div className="text-sc-no text-sm font-semibold mb-1">Couldn’t load markets from Sui testnet</div>
+            <div className="text-sc-muted text-xs mb-4 font-mono break-all">{error.message}</div>
+            <button onClick={refetch}
+              className="px-4 py-2 rounded-lg bg-sc-surface border border-sc-border text-sc-text text-sm font-semibold hover:border-sc-accent/50 active:scale-[.98] transition">
+              Retry
+            </button>
           </div>
         ) : enriched.length === 0 ? (
-          <div className="text-center py-16 text-sc-muted text-sm">No markets found</div>
+          <div className="bg-sc-card border border-sc-border rounded-xl py-14 px-6 text-center">
+            <div className="text-sc-dim text-sm font-semibold mb-1">No markets yet</div>
+            <div className="text-sc-muted text-xs">Markets will appear here once they’re created onchain.</div>
+          </div>
         ) : (
           <MarketSections markets={enriched} onSelect={(mk) => openMarket(mk.id)} />
         )}

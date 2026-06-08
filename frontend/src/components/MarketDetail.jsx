@@ -604,7 +604,7 @@ function TradeBox({ market, meta, oracle, strikeDollars, onTxSuccess }) {
           <div className="flex gap-2 mb-3">
             {['25', '100', '250', '500'].map((v) => (
               <button key={v} onClick={() => setAmount(v)}
-                className="flex-1 py-1 text-xs font-mono bg-sc-surface border border-sc-border rounded hover:border-sc-accent/50 transition">{v}</button>
+                className="flex-1 py-2 text-xs font-mono bg-sc-surface border border-sc-border rounded hover:border-sc-accent/50 active:scale-[.97] transition">{v}</button>
             ))}
           </div>
           {broke ? (
