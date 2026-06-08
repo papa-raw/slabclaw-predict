@@ -1,15 +1,15 @@
 [
   {
-    "productId": "base1-1st-4",
-    "name": "Charizard",
-    "set": "Base Set — 1st Edition",
-    "number": "4",
+    "productId": "neo1-1st-18",
+    "name": "Typhlosion",
+    "set": "Neo Genesis — 1st Edition",
+    "number": "18",
     "grader": "PSA",
     "grade": 10,
-    "strikeUsdCents": 700000,
-    "expiryMs": 1783414818889,
-    "assetId": "BASE1_1ST_4_PSA_1000",
-    "marketId": "0x09f9b745630256da872981c21431d8c1d8caa731ecfe746a848c3d1e353d3a52"
+    "strikeUsdCents": 400000,
+    "expiryMs": 1783531904871,
+    "assetId": "NEO1_1ST_18_PSA_1000",
+    "marketId": "0x372e2f8f29980077ebb199236c7e976adb527aa29e4d716c73d91266139e2181"
   },
   {
     "productId": "jp-vs-091",
@@ -19,20 +19,32 @@
     "grader": "PSA",
     "grade": 10,
     "strikeUsdCents": 1500000,
-    "expiryMs": 1783414818889,
+    "expiryMs": 1783531904871,
     "assetId": "JP_VS_091_PSA_1000",
-    "marketId": "0x525bf6e947b3561e9a859b16e01c3d784ba2e769fd1ce5b2d8fc5f4bd19c49c8"
+    "marketId": "0xbeef11f535c89d972ac0c0efdfbdfcf8e280e8707907f17fedee9f552434019d"
   },
   {
-    "productId": "base3-1st-5",
-    "name": "Gengar 1st Edition",
-    "set": "Fossil — 1st Edition",
-    "number": "5",
+    "productId": "base5-1st-83",
+    "name": "Dark Raichu",
+    "set": "Team Rocket — 1st Edition",
+    "number": "83",
     "grader": "PSA",
     "grade": 10,
-    "strikeUsdCents": 15000,
-    "expiryMs": 1783414818889,
-    "assetId": "BASE3_1ST_5_PSA_1000",
-    "marketId": "0x9ff720825c07801568a46dede7e6f8f54b16b90077e5dc0bf287483661fdc44e"
+    "strikeUsdCents": 600000,
+    "expiryMs": 1780939949871,
+    "assetId": "BASE5_1ST_83_PSA_1000",
+    "marketId": "0xa6aebeead1c6741a8740b3d3f3e333432404dd468b093de3559f448eac85a38a"
+  },
+  {
+    "productId": "base2-1st-3",
+    "name": "Flareon",
+    "set": "Jungle — 1st Edition",
+    "number": "3",
+    "grader": "PSA",
+    "grade": 10,
+    "strikeUsdCents": 250000,
+    "expiryMs": 1783531904871,
+    "assetId": "BASE2_1ST_3_PSA_1000",
+    "marketId": "0xaf7c5ab1d7c41dc20be9b488445e8f748a5203373da9c6c633bfa2fa7c9b732f"
   }
 ]

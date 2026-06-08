@@ -32,3 +32,13 @@
 **Root cause:** A previous session ran `git init` inside the `slabclaw-sui-hackathon/` directory (which was cloned from `anima-swarm`), wiping the 22-commit Anima Swarm history and creating a new root commit. The force-push replaced the remote history.
 **Fix:** Found the original 22-commit history in `/Users/pat/Desktop/1_projects/anima/anima-swarm/` (same remote). Fetched it as branch `anima-history`, ran `git rebase --onto anima-history --root main` to graft the 3 SlabClaw commits onto the original history. Resolved all 13 conflicts by accepting "theirs" (the SlabClaw code being replayed). Force-pushed with `--force-with-lease`.
 **Mechanism:** `git rebase --onto <newbase> --root` replays every commit starting from root onto the new base. The first replayed commit (7846884 "SlabClaw Predict") was a full codebase replacement, so all conflicts were resolved by accepting the incoming version (`git checkout --theirs .`). The remaining 2 commits replayed cleanly.
+
+### 2026-06-08 — AdminCap version race across rapid back-to-back txns
+**Symptom:** `reseed-and-prove.mjs` created 3 markets fine then aborted: "object <AdminCap> version 0x35658814 is unavailable for consumption, current version: 0x35658815".
+**Root cause:** Each `register_asset`/`create_market` consumes (mutates) the owned `AdminCap`, bumping its version. The next tx's build phase resolved the AdminCap from a fullnode replica that hadn't yet indexed the new version → stale object reference.
+**Fix:** `await client.waitForTransaction({ digest })` after every AdminCap-consuming tx, so the node syncs the new version before the next build. **Mechanism:** `signAndExecuteTransaction` returns once executed, but a *different* fullnode read can lag; `waitForTransaction` blocks until that checkpoint is indexed on the node you'll query next.
+
+### 2026-06-08 — Frontend consensus exporter wrote wrong shape (silent blank panels)
+**Symptom:** Caught by the workflow's integration Critic before shipping: the first live `swarm`/`bridge-swarm` run would overwrite the seed `oracle-consensus.json` and blank every consensus panel (EmptyState) for all 4 markets.
+**Root cause:** `export-consensus.mjs writeFrontendConsensus()` wrote a FLAT top-level `{ productId: {...} }` map, but the panel reads a nested envelope `consensusData.consensus[productId]` + `consensusData._seed`.
+**Fix:** `writeFrontendConsensus` now writes `{ _seed:false, roundId, timestamp, consensus:{...} }`; wiring test strengthened to assert the envelope. **Lesson:** a separate Critic node that validates against the *consumer's* contract catches integration drift that each builder's own unit tests miss.

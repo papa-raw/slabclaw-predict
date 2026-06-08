@@ -22,6 +22,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { aggregate } from './agents/coordinator.mjs';
+import { redactPII, hasPlaintextSeller } from './redact.mjs';
 
 const PUBLISHER = 'https://publisher.walrus-testnet.walrus.space';
 const AGGREGATOR = 'https://aggregator.walrus-testnet.walrus.space';
@@ -96,7 +97,16 @@ function diffConsensus(sent, fetched) {
 }
 
 export async function uploadEvidence(bundle, epochs = 5) {
-  const payload = JSON.stringify(bundle);
+  // Redact seller / personal data BEFORE anything leaves the process. Walrus is
+  // public + effectively permanent; plaintext marketplace usernames must never
+  // be published. Redaction is consensus-neutral (prices untouched), so all
+  // downstream verification still holds. Local MemWal keeps the richer copy.
+  const redacted = redactPII(bundle);
+  if (hasPlaintextSeller(redacted)) {
+    throw new Error('Walrus upload blocked: evidence still contains plaintext seller data after redaction');
+  }
+
+  const payload = JSON.stringify(redacted);
   const byteLength = Buffer.byteLength(payload, 'utf8');
 
   // Payload size guard — refuse to upload anything that blows past the ceiling.
@@ -173,7 +183,7 @@ export async function uploadEvidence(bundle, epochs = 5) {
   if (blobId) {
     try {
       const fetched = await readEvidenceWithRetry(blobId);
-      const sentMap = consensusPriceMap(bundle);
+      const sentMap = consensusPriceMap(redacted);
       const fetchedMap = consensusPriceMap(fetched);
       const mismatches = diffConsensus(sentMap, fetchedMap);
       verified = mismatches.length === 0;
@@ -192,8 +202,8 @@ export async function uploadEvidence(bundle, epochs = 5) {
     objectId,
     verified,
     timestamp: new Date().toISOString(),
-    cardIds: bundle.cardIds || [],
-    roundId: bundle.consensus ? Object.values(bundle.consensus)[0]?.roundId : null,
+    cardIds: redacted.cardIds || [],
+    roundId: redacted.consensus ? Object.values(redacted.consensus)[0]?.roundId : null,
     size: byteLength,
     epochs,
     aggregatorUrl: blobId ? `${AGGREGATOR}/v1/blobs/${blobId}` : null,

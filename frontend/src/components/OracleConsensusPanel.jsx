@@ -11,9 +11,11 @@
 /// Seed data (consensusData._seed === true) renders before the live swarm runs.
 
 import consensusData from '../data/oracle-consensus.json';
+import { DEMO_MARKETS, EXPLORER_URL } from '../constants';
 import { usdFull } from '../lib/format';
 
 const AGGREGATOR = 'https://aggregator.walrus-testnet.walrus.space';
+const WALRUSCAN = 'https://walruscan.com/testnet/blob'; // human-readable Walrus blob explorer
 
 // price helpers — consensus prices are integer cents
 const cents = (c) => (c == null ? '—' : usdFull(c / 100));
@@ -39,6 +41,9 @@ export default function OracleConsensusPanel({ productId }) {
 
   const blobId = card.evidence?.blobId || null;
   const aggregatorUrl = card.evidence?.aggregatorUrl || (blobId ? `${AGGREGATOR}/v1/blobs/${blobId}` : null);
+  const walruscanUrl = blobId ? `${WALRUSCAN}/${blobId}` : null;
+  const marketId = DEMO_MARKETS.find((m) => m.productId === productId)?.id || null;
+  const marketOnchainUrl = marketId ? `${EXPLORER_URL}/object/${marketId}` : null;
 
   return (
     <div className="bg-sc-card border border-sc-border rounded-xl overflow-hidden">
@@ -136,10 +141,10 @@ export default function OracleConsensusPanel({ productId }) {
           </div>
         )}
 
-        {/* evidence — Verify on Walrus */}
-        <div className="pt-2 border-t border-sc-border/40">
-          {aggregatorUrl ? (
-            <a href={aggregatorUrl} target="_blank" rel="noopener noreferrer"
+        {/* evidence — verify on Walrus (human) + raw JSON + market onchain */}
+        <div className="pt-2 border-t border-sc-border/40 space-y-1.5">
+          {walruscanUrl ? (
+            <a href={walruscanUrl} target="_blank" rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-sc-accent text-black font-semibold text-[13px] hover:opacity-90 transition">
               <WalrusIcon /> Verify evidence on Walrus
               <span className="text-[11px]">↗</span>
@@ -150,7 +155,21 @@ export default function OracleConsensusPanel({ productId }) {
             </div>
           )}
           {blobId && (
-            <div className="mt-1.5 text-center text-[9px] text-sc-muted font-mono truncate">blob {blobId}</div>
+            <div className="grid grid-cols-2 gap-1.5">
+              <a href={aggregatorUrl} target="_blank" rel="noopener noreferrer"
+                className="text-center py-1.5 rounded-md bg-sc-surface border border-sc-border text-[10px] text-sc-dim hover:text-sc-text hover:border-sc-dim transition">
+                raw JSON ↗
+              </a>
+              {marketOnchainUrl && (
+                <a href={marketOnchainUrl} target="_blank" rel="noopener noreferrer"
+                  className="text-center py-1.5 rounded-md bg-sc-surface border border-sc-border text-[10px] text-sc-dim hover:text-sc-text hover:border-sc-dim transition">
+                  market onchain ↗
+                </a>
+              )}
+            </div>
+          )}
+          {blobId && (
+            <div className="text-center text-[9px] text-sc-muted font-mono truncate">blob {blobId}</div>
           )}
         </div>
       </div>

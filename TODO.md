@@ -32,10 +32,10 @@ One **source-specialist agent** per venue. Each: scrape → extract a per-card P
 - [ ] Scope to the **4 products only**: `jp-vs-091`, `neo1-1st-18`, `base5-1st-83`, `base2-1st-3` (all PSA 10).
 
 ## Phase 2 — MemWal memory + Walrus evidence (2 days)  ← what the track judges
-- [ ] **Persistent agent memory on MemWal**: per-card price history, per-source reliability weights, seen manipulation patterns. Agents read memory on start (warm), write after each run → "smarter every run" (the track's "remember and build over time").
-- [ ] **Cross-agent shared context** on Walrus/MemWal: the coordinator reads each agent's latest memory; agents can read each other's (source-disagreement detection).
-- [ ] **Walrus evidence artifacts**: on each consensus, upload an evidence bundle (consensus price, contributing comps + sources + weights, timestamps, dispute basis) → blob ID.
-- [ ] **Onchain reference**: extend `market.move` `propose_resolution` (or an event) to store the Walrus blob ID so every resolution is independently auditable.
+- [x] **Persistent agent memory on MemWal**: per-card price history, per-source reliability weights, seen manipulation patterns. Agents read memory on start (warm), write after each run → "smarter every run" (the track's "remember and build over time").
+- [x] **Cross-agent shared context** on Walrus/MemWal: the coordinator reads each agent's latest memory; agents can read each other's (source-disagreement detection).
+- [x] **Walrus evidence artifacts**: on each consensus, upload an evidence bundle (consensus price, contributing comps + sources + weights, timestamps, dispute basis) → blob ID. *(redacted of seller PII before publish — `redact.mjs`)*
+- [x] **Onchain reference**: `propose_resolution` now takes `evidence_blob_id: vector<u8>` stored on `Market` + emitted in events; settlement aborts without it. **Proven onchain via `reseed-and-prove.mjs`.**
 - [ ] Keeper memory: bridge remembers which markets it has proposed/finalized (idempotent, MemWal-backed).
 
 ## Phase 3 — Bridge + onchain wiring (½ day)
@@ -45,15 +45,15 @@ One **source-specialist agent** per venue. Each: scrape → extract a per-card P
 
 ## Phase 4 — Frontend: make it legible (1–2 days)
 - [ ] **Strip remaining DeepBook framing** from the app (hero/footer linter added a "DeepBook Predict" mention).
-- [ ] **Oracle-consensus panel** on the market page: per-source values, agreement, the agents' weights, "X of N sources agree."
-- [ ] **"View evidence on Walrus"** link in the resolution panel (the blob) — replaces the current placeholder copy.
+- [x] **Oracle-consensus panel** on the market page: per-source values, agreement, the agents' weights, "X of N sources agree." *(`OracleConsensusPanel.jsx`)*
+- [x] **"View evidence on Walrus"** link in the resolution panel — Walruscan (human) + raw aggregator + Suiscan market object.
 - [ ] **Agent-memory view**: show how the oracle's confidence/sources evolved over time (the "builds over time" story).
 - [ ] /attack-driven UI: surface manipulation-resistance (e.g., "rejected N outliers", thin-market warning).
 - [ ] Reframe hero copy around the agentic oracle (not just "10-platform oracle").
 
 ## Phase 5 — Adversarial hardening (`/attack`) (½ day)
-- [ ] Run `/attack` on the oracle: enumerate attacks (single-source spoof, wash trade, thin-market push, stale-feed, cross-grade contamination, outlier injection, Sybil sources).
-- [ ] Verify the aggregator defends each; add tests / a kill-switch on source disagreement.
+- [x] Run `/attack` on the oracle: enumerate attacks (single-source spoof, wash trade, thin-market push, stale-feed, seller-concentration, outlier injection, Sybil sources). *(`oracle-bridge/test/attack.test.mjs`, 9 scenarios)*
+- [x] Verify the aggregator defends each; add tests / a kill-switch on source disagreement. *(MAD rejection, ≥3-source gate, wide-disagreement block)*
 - [ ] Document the threat model + defenses (great for judges + the Walrus "trust" angle).
 
 ## Phase 6 — Submission essentials (1–2 days)

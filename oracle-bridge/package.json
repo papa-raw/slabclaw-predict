@@ -4,6 +4,7 @@
   "type": "module",
   "description": "Off-chain bridge: SlabClaw 10-platform oracle → Sui on-chain prediction markets",
   "scripts": {
+    "test": "node --test \"test/**/*.test.mjs\"",
     "bridge": "node bridge.mjs",
     "bridge:watch": "node bridge.mjs --watch",
     "propose": "node propose-resolution.mjs",

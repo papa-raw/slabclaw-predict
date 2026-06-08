@@ -7,6 +7,27 @@
       "confidence": 0.95,
       "comps": 12,
       "source": "pc_sold_all"
+    },
+    {
+      "date": "2026-06-08T17:28:15.708Z",
+      "priceCents": 561600,
+      "confidence": 0.95,
+      "comps": 12,
+      "source": "pc_sold_all"
+    },
+    {
+      "date": "2026-06-08T17:30:03.529Z",
+      "priceCents": 561600,
+      "confidence": 0.95,
+      "comps": 12,
+      "source": "pc_sold_all"
+    },
+    {
+      "date": "2026-06-08T17:31:45.106Z",
+      "priceCents": 561600,
+      "confidence": 0.95,
+      "comps": 12,
+      "source": "pc_sold_all"
     }
   ],
   "anomalies": []

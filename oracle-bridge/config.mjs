@@ -5,17 +5,22 @@ export const CONFIG = {
   // Sui network
   rpcUrl: 'https://fullnode.testnet.sui.io:443',
 
-  // Package + objects from TEST_USD deployment (2026-06-07, settles in tUSD)
-  packageId: '0xdc18fc79030aea4a39198d95c73271c41d955b3b548dc5090627bf224af7b141',
-  adminCapId: '0xb7034e084e679df692432a398fbe48d9b6545802ec0740bfedb7addaf4ec4668',
-  registryId: '0x4ce60524409d492d25c46c4d03eb0fa884f51bbdecb4412093723b54b215da3d',
+  // Package + objects from EVIDENCE deployment (2026-06-08): evidence_blob_id is
+  // now a first-class onchain field — markets cannot settle without a Walrus blob.
+  // (Prev TEST_USD pkg 0xdc18fc79… retired; it lacked onchain evidence.)
+  packageId: '0x66debb86ea160e10334a3fba2d5afd07660d15e307037f7b1665535e4d9a802a',
+  adminCapId: '0x3601cdc3e240f8c7d9f368e5315677b0bd2f01bb4cb0a3d6e981c5967e98ef90',
+  registryId: '0x8dedbb371903b9fec334aaab1f10fc8275962209e2aa386914b9664fbb8d8f48',
 
   // Shared faucet holding the TEST_USD treasury (public mint)
-  faucetId: '0x53100cc63e89f2a600b65af0efa894f22b20de78f455cafc4f0713c51c26c671',
-  testUsdType: '0xdc18fc79030aea4a39198d95c73271c41d955b3b548dc5090627bf224af7b141::test_usd::TEST_USD',
+  faucetId: '0xaebce6a9a79cef13c660f2a17fbcf3f4723a1939757a32f59ac023ad8aebdf79',
+  testUsdType: '0x66debb86ea160e10334a3fba2d5afd07660d15e307037f7b1665535e4d9a802a::test_usd::TEST_USD',
 
-  // OracleCap — authorized oracle operator on the TEST_USD package (2026-06-07)
-  oracleCapId: '0x183ae11027654706f8061221e62f5eccd56d0e0d56357293cf9e9f715fa424ac',
+  // OracleCap — authorized oracle operator on the evidence package (2026-06-08)
+  oracleCapId: '0xe7d28be03e6360be34d84a3c42d58e821d8dd4ca96ede9c776f514ec1006ebd8',
+
+  // UpgradeCap for the evidence package (kept for future compatible upgrades)
+  upgradeCapId: '0xf34cf3fe5271dd3ff3e544d48a8fc7cb236f69dfbae203f04742f32efaa4d063',
 
   // SlabClaw backend API
   slabclawApi: 'http://localhost:3456',

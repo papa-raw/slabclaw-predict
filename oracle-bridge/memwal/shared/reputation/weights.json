@@ -1,11 +1,11 @@
 {
   "ebay": {
-    "reliability": 0.9285085576228933,
-    "rounds": 42,
-    "hits": 39,
-    "misses": 3,
+    "reliability": 0.8885139901104464,
+    "rounds": 54,
+    "hits": 48,
+    "misses": 6,
     "lastDeviation": 0,
-    "lastUpdated": "2026-06-08T17:09:27.864Z"
+    "lastUpdated": "2026-06-08T17:31:45.122Z"
   },
   "courtyard": {
     "reliability": 1,
@@ -24,12 +24,12 @@
     "lastUpdated": "2026-06-07T23:09:27.473Z"
   },
   "alt": {
-    "reliability": 0.7517229225571341,
-    "rounds": 27,
+    "reliability": 0.6144109363708772,
+    "rounds": 33,
     "hits": 20,
-    "misses": 7,
+    "misses": 13,
     "lastDeviation": 0.8278298485940879,
-    "lastUpdated": "2026-06-08T17:09:27.864Z"
+    "lastUpdated": "2026-06-08T17:31:45.122Z"
   },
   "cardmarket": {
     "reliability": 0.8068545241845774,
@@ -65,10 +65,10 @@
   },
   "pricecharting": {
     "reliability": 1,
-    "rounds": 4,
-    "hits": 4,
+    "rounds": 16,
+    "hits": 16,
     "misses": 0,
     "lastDeviation": 0,
-    "lastUpdated": "2026-06-08T17:09:27.864Z"
+    "lastUpdated": "2026-06-08T17:31:45.122Z"
   }
 }
