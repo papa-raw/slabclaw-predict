@@ -17,7 +17,6 @@ import OracleStrikeChart from './OracleStrikeChart';
 import RegistryCardLadder from './RegistryCardLadder';
 import OracleConsensusPanel from './OracleConsensusPanel';
 import WalletButton from './WalletButton';
-import consensusData from '../data/oracle-consensus.json';
 
 export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
   const { data: card, isLoading } = useCard(meta?.productId);
@@ -33,10 +32,6 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
   const totalShares = market.totalYes + market.totalNo;
   const yesPct = totalShares > 0 ? Math.round((market.totalYes / totalShares) * 100) : 50;
   const expiryDate = new Date(market.expiryMs).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-  // Agent oracle swarm consensus for this exact product (seed data renders before
-  // the live swarm runs). Guarded so markets without a consensus entry stay clean.
-  const hasConsensus = !!consensusData?.consensus?.[meta?.productId];
 
   // Accessible dialog: ESC to close, focus trap, body scroll-lock, restore focus
   // to the triggering card on close. (The market is a modal over the list.)
@@ -192,15 +187,6 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
             </div>
           </div>
         </div>
-
-        {/* agent oracle swarm consensus + Walrus evidence — sits beside the strike
-            chart's resolution story. Only shown when consensus data exists for the
-            product, so existing markets without it render unchanged. */}
-        {hasConsensus && (
-          <div className="mb-5">
-            <OracleConsensusPanel productId={meta.productId} />
-          </div>
-        )}
 
         {/* listings for the exact product — full width */}
         <RegistryCardLadder card={card} grader={meta.grader} grade={meta.grade} oracle={oracle} />
@@ -492,13 +478,16 @@ function GraphPanel({ isLoading, oracle, chart, productId }) {
       <div className="flex items-center gap-1 border-b border-sc-border px-2">
         <Tab id="chart">Chart</Tab>
         <Tab id="resolve">Resolution Guide</Tab>
+        <Tab id="swarm">Oracle Swarm</Tab>
       </div>
       <div className="p-3">
         {tab === 'chart'
           ? (isLoading
               ? <div className="h-[300px] grid place-items-center text-sm text-sc-muted">Loading oracle history…</div>
               : chart)
-          : <Resolution oracle={oracle} bare />}
+          : tab === 'resolve'
+            ? <Resolution oracle={oracle} bare />
+            : <OracleConsensusPanel productId={productId} />}
       </div>
     </div>
   );
