@@ -14,16 +14,23 @@ body {
 /* Tabular figures everywhere numbers matter (terminal feel) */
 .tnum { font-variant-numeric: tabular-nums; }
 
+/* Keyboard focus ring — :focus-visible only, so mouse users see nothing but
+   keyboard users (signing real transactions) always see where they are.
+   Uses the brand gold; offset keeps it clear of the element edge. */
+:focus-visible { outline: 2px solid #f5c542; outline-offset: 2px; border-radius: 3px; }
+/* dapp-kit / 3rd-party buttons that ship their own reset still get the ring */
+button[data-dapp-kit]:focus-visible { outline: 2px solid #f5c542 !important; outline-offset: 2px; }
+
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #000; }
 ::-webkit-scrollbar-thumb { background: #23232f; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #34343f; }
 
-/* dapp-kit connect button → compact SlabClaw amber pill (registry cta-pill) */
+/* dapp-kit connect button → compact SlabClaw brand-gold pill (single accent) */
 button[data-dapp-kit].sc-connect,
 button[data-dapp-kit] {
-  background: #f59e0b !important;
+  background: #f5c542 !important;
   color: #000 !important;
   font-weight: 700 !important;
   font-size: 12px !important;
@@ -33,7 +40,7 @@ button[data-dapp-kit] {
   letter-spacing: 0.2px;
   transition: background 0.15s !important;
 }
-button[data-dapp-kit]:hover { background: #d97706 !important; }
+button[data-dapp-kit]:hover { background: #e0b020 !important; }
 
 /* hide number input spinners */
 input[type=number]::-webkit-inner-spin-button,

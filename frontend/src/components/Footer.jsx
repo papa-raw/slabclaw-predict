@@ -33,7 +33,7 @@ export default function Footer({ onFunded }) {
         <a href={`${EXPLORER_URL}/object/${PACKAGE_ID}`} target="_blank" rel="noopener noreferrer"
           className="hover:text-sc-accent transition font-mono">Contract {PACKAGE_ID.slice(0, 10)}…</a>
         <span className="hidden sm:inline">·</span>
-        <span className="hidden sm:inline">Sui Overflow 2026 — DeepBook track</span>
+        <span className="hidden sm:inline">Sui Overflow 2026 — Walrus track</span>
         <span className="hidden md:inline">·</span>
         <span className="hidden md:inline">Built by{' '}
           <a href="https://x.com/papa_raw" target="_blank" rel="noopener noreferrer"
@@ -51,7 +51,7 @@ export default function Footer({ onFunded }) {
             onClick={faucet}
             disabled={!account || status === 'minting'}
             title={!account ? 'Connect a wallet first' : `Mint ${FAUCET_DRIP.toLocaleString()} test USD`}
-            className="inline-flex items-center gap-1.5 rounded-md bg-sc-amber text-black font-semibold text-[11px] uppercase tracking-wide px-3 py-1.5 hover:bg-[#d97706] disabled:opacity-40 disabled:hover:bg-sc-amber transition"
+            className="inline-flex items-center gap-1.5 rounded-md bg-sc-accent text-black font-semibold text-[11px] uppercase tracking-wide px-3 py-1.5 hover:bg-sc-accentHover active:scale-[.97] disabled:opacity-40 disabled:hover:bg-sc-accent transition"
           >
             {status === 'minting' ? 'Minting…' : status === 'ok' ? '✓ Funded' : status === 'err' ? 'Failed' : `Faucet · +${(FAUCET_DRIP / 1000)}k tUSD`}
           </button>

@@ -37,11 +37,11 @@ export default function MarketCard({ market, meta, onSelect }) {
   return (
     <button
       onClick={() => onSelect(market)}
-      className={`group w-full text-left bg-sc-card border rounded-xl p-3.5 hover:bg-sc-card/80 transition-all ${isDisputed ? 'border-sc-no/40 hover:border-sc-no/60' : 'border-sc-border hover:border-sc-accent/50'}`}
+      className={`group w-full text-left bg-sc-card border rounded-xl p-3.5 hover:bg-sc-card/80 active:scale-[.99] transition-all ${isDisputed ? 'border-sc-no/40 hover:border-sc-no/60' : 'border-sc-border hover:border-sc-accent/50'}`}
     >
       {/* Top: image + identity + headline strike */}
       <div className="flex gap-3.5">
-        <div className="w-[72px] h-[100px] rounded-lg overflow-hidden bg-sc-surface shrink-0 ring-1 ring-sc-border shadow-md shadow-black/20">
+        <div className="w-[72px] h-[100px] rounded-lg overflow-hidden bg-sc-surface shrink-0 ring-1 ring-sc-border">
           {meta?.image ? (
             <img src={meta.image} alt={meta.name} className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform" loading="lazy" />
           ) : (
