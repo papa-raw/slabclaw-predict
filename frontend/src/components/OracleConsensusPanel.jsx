@@ -64,19 +64,27 @@ export default function OracleConsensusPanel({ productId }) {
       </div>
 
       <div className="p-3 space-y-3">
-        {/* consensus price + 25–75% band */}
+        {/* priming — what this is, in one human sentence */}
+        <p className="text-[11px] leading-relaxed text-sc-dim">
+          We poll real card marketplaces, throw out prices that look manipulated, and settle
+          this market against the price they agree on — so no single seller can move it.
+        </p>
+
+        {/* the number that matters, in plain words */}
         <div className="flex items-end justify-between gap-4">
           <div>
-            <div className="text-[9px] text-sc-muted uppercase tracking-wide font-medium">Consensus price</div>
+            <div className="text-[9px] text-sc-muted uppercase tracking-wide font-medium">Settles at</div>
             <div className="text-[24px] font-bold tnum text-white leading-tight">{cents(card.consensusPriceCents)}</div>
+            <div className="text-[10px] text-sc-muted">the price your YES/NO is judged against</div>
           </div>
           <div className="text-right">
-            <div className="text-[9px] text-sc-muted uppercase tracking-wide">25–75% band</div>
+            <div className="text-[9px] text-sc-muted uppercase tracking-wide">Typical range</div>
             <div className="text-[13px] tnum text-sc-dim">
               {card.confidenceLower != null && card.confidenceUpper != null
                 ? `${cents(card.confidenceLower)} – ${cents(card.confidenceUpper)}`
                 : '—'}
             </div>
+            <div className="text-[10px] text-sc-muted">where most sales land</div>
           </div>
         </div>
 
@@ -85,35 +93,32 @@ export default function OracleConsensusPanel({ productId }) {
           <ConfidenceBand lower={card.confidenceLower} upper={card.confidenceUpper} mid={card.consensusPriceCents} />
         )}
 
-        {/* flags */}
+        {/* plain-language status notes (was jargon flag chips) */}
         {flags.length > 0 && (
-          <div className="flex gap-2 flex-wrap">
-            {flags.map((f) => (
-              <span key={f} className={`text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${
-                f === 'wide_disagreement' ? 'bg-sc-no/20 text-sc-no border border-sc-no/30'
-                  : f === 'insufficient_sources' ? 'bg-sc-amber/20 text-sc-amber border border-sc-amber/30'
-                  : 'bg-sc-surface text-sc-muted border border-sc-border'
-              }`}>{f.replace(/_/g, ' ')}</span>
-            ))}
+          <div className="space-y-1.5">
+            {flags.map((f) => <FlagNote key={f} flag={f} agree={agree} />)}
           </div>
         )}
 
-        {/* per-source breakdown */}
+        {/* who priced it — plain columns; "vs agreed" is trust at a glance */}
         <div className="bg-sc-surface/40 rounded-lg overflow-hidden border border-sc-border/60">
+          <div className="px-3 py-1.5 border-b border-sc-border/60 flex items-center justify-between">
+            <span className="text-[10px] font-semibold text-sc-dim uppercase tracking-wide">Who priced it</span>
+            <span className="text-[9px] text-sc-muted">{agree} marketplace{agree === 1 ? '' : 's'} · weighted median</span>
+          </div>
           <table className="w-full text-[12px] tnum">
             <thead>
               <tr className="text-[9px] text-sc-muted uppercase tracking-wide border-b border-sc-border/60">
-                <th className="text-left font-medium px-3 py-1.5">Source</th>
-                <th className="text-right font-medium px-2 py-1.5">Price</th>
-                <th className="text-right font-medium px-2 py-1.5">Conf</th>
-                <th className="text-right font-medium px-2 py-1.5">Rel</th>
-                <th className="text-left font-medium px-3 py-1.5 w-[34%]">Weight</th>
+                <th className="text-left font-medium px-3 py-1.5">Marketplace</th>
+                <th className="text-right font-medium px-2 py-1.5">Their price</th>
+                <th className="text-right font-medium px-2 py-1.5" title="How far this source sits from the agreed price">vs&nbsp;agreed</th>
+                <th className="text-left font-medium px-3 py-1.5 w-[26%]" title="How much this source counts toward the final price">Influence</th>
               </tr>
             </thead>
             <tbody>
               {sources.length === 0 ? (
-                <tr><td colSpan={5} className="px-3 py-3 text-center text-sc-muted">No contributing sources</td></tr>
-              ) : sources.map((s) => <SourceRow key={s.platform} s={s} maxWeight={maxWeight} />)}
+                <tr><td colSpan={4} className="px-3 py-3 text-center text-sc-muted">No contributing sources</td></tr>
+              ) : sources.map((s) => <SourceRow key={s.platform} s={s} maxWeight={maxWeight} consensus={card.consensusPriceCents} />)}
             </tbody>
           </table>
         </div>
@@ -141,8 +146,12 @@ export default function OracleConsensusPanel({ productId }) {
           </div>
         )}
 
-        {/* evidence — verify on Walrus (human) + raw JSON + market onchain */}
+        {/* proof — primed: you don't have to trust us */}
         <div className="pt-2 border-t border-sc-border/40 space-y-1.5">
+          <div className="text-[10px] text-sc-muted leading-relaxed">
+            <span className="font-semibold text-sc-dim">Don’t trust us — check it.</span> Every settlement
+            publishes its full evidence onchain, so anyone can re-run the math themselves.
+          </div>
           {walruscanUrl ? (
             <a href={walruscanUrl} target="_blank" rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-sc-accent text-black font-semibold text-[13px] hover:opacity-90 transition">
@@ -169,7 +178,7 @@ export default function OracleConsensusPanel({ productId }) {
             </div>
           )}
           {blobId && (
-            <div className="text-center text-[9px] text-sc-muted font-mono truncate">blob {blobId}</div>
+            <div className="text-center text-[9px] text-sc-muted font-mono truncate">evidence ID {blobId}</div>
           )}
         </div>
       </div>
@@ -189,28 +198,50 @@ function ConfidenceBand({ lower, upper, mid }) {
   );
 }
 
-function SourceRow({ s, maxWeight }) {
+function SourceRow({ s, maxWeight, consensus }) {
   const barPct = Math.min(100, ((s.weight || 0) / maxWeight) * 100);
-  const conf = s.confidence != null ? `${Math.round(s.confidence * 100)}%` : '—';
-  const rel = s.reliability != null ? `${Math.round(s.reliability * 100)}%` : '—';
+  const rel = s.reliability != null ? `${Math.round(s.reliability * 100)}% reliable` : null;
+  const dev = consensus > 0 && s.priceCents != null ? ((s.priceCents - consensus) / consensus) * 100 : null;
+  const devColor = dev == null ? 'text-sc-muted'
+    : Math.abs(dev) < 5 ? 'text-sc-yes' : Math.abs(dev) < 15 ? 'text-sc-amber' : 'text-sc-no';
+  const meta = [rel, s.compCount > 0 ? `${s.compCount} sale${s.compCount === 1 ? '' : 's'}` : null].filter(Boolean).join(' · ');
   return (
     <tr className="border-t border-sc-border/40 first:border-t-0 hover:bg-white/[0.02]">
-      <td className="px-3 py-1.5">
+      <td className="px-3 py-1.5 align-top">
         <PlatformTag platform={s.platform} />
-        {s.compCount > 0 && <span className="ml-1.5 text-[9px] text-sc-muted">{s.compCount} comp{s.compCount === 1 ? '' : 's'}</span>}
+        <div className="text-[9px] text-sc-muted mt-0.5">{meta || '—'}</div>
       </td>
-      <td className="text-right px-2 py-1.5 font-semibold text-white">{cents(s.priceCents)}</td>
-      <td className="text-right px-2 py-1.5 text-sc-dim">{conf}</td>
-      <td className="text-right px-2 py-1.5 text-sc-dim">{rel}</td>
-      <td className="px-3 py-1.5">
+      <td className="text-right px-2 py-1.5 font-semibold text-white align-top">{cents(s.priceCents)}</td>
+      <td className={`text-right px-2 py-1.5 align-top font-medium ${devColor}`} title="difference from the agreed price">
+        {dev == null ? '—' : `${dev >= 0 ? '+' : ''}${dev.toFixed(0)}%`}
+      </td>
+      <td className="px-3 py-1.5 align-top">
         <div className="flex items-center gap-2">
           <div className="flex-1 h-1 rounded-full bg-sc-surface overflow-hidden">
             <div className="h-full rounded-full bg-sc-accent/70" style={{ width: `${barPct}%` }} />
           </div>
-          <span className="text-[9px] text-sc-muted shrink-0 w-9 text-right">w={(s.weight ?? 0).toFixed(2)}</span>
+          <span className="text-[9px] text-sc-muted shrink-0 w-7 text-right">{Math.round(barPct)}%</span>
         </div>
       </td>
     </tr>
+  );
+}
+
+// Translate a coordinator flag into a plain-language note for bettors.
+function FlagNote({ flag, agree }) {
+  const map = {
+    insufficient_sources: { tone: 'amber', text: `Only ${agree} marketplace${agree === 1 ? '' : 's'} had recent sales. A market needs at least 3 independent sources before it can settle — more comps needed first.` },
+    wide_disagreement: { tone: 'no', text: 'The marketplaces disagree by a lot right now. The oracle won’t settle on a shaky number — treat this price with caution.' },
+    all_outliers: { tone: 'no', text: 'Every source looked manipulated and was rejected — no trustworthy price yet.' },
+  };
+  const m = map[flag] || { tone: 'muted', text: flag.replace(/_/g, ' ') };
+  const cls = m.tone === 'no' ? 'border-sc-no/30 bg-sc-no/5 text-sc-no'
+    : m.tone === 'amber' ? 'border-sc-amber/30 bg-sc-amber/5 text-sc-amber'
+    : 'border-sc-border bg-sc-surface text-sc-muted';
+  return (
+    <div className={`flex items-start gap-2 text-[11px] leading-relaxed rounded-lg border px-2.5 py-1.5 ${cls}`}>
+      <span className="mt-px shrink-0">⚠</span><span>{m.text}</span>
+    </div>
   );
 }
 

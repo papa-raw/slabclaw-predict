@@ -497,11 +497,28 @@ function Resolution({ oracle, bare }) {
   const inner = (
     <>
       {!bare && <div className="text-[11px] font-semibold text-sc-dim uppercase tracking-wide mb-2">How this resolves</div>}
-      <ol className="space-y-1.5 text-sc-dim list-decimal list-inside">
-        <li>At expiry, SlabClaw's multi-platform oracle proposes the settlement price{oracle ? <> (currently sourced from <span className="text-sc-text font-mono">{sourceLabel(oracle.source)}</span>, {oracle.saleCount} comp{oracle.saleCount === 1 ? '' : 's'})</> : ''}.</li>
-        <li>YES wins if the oracle price exceeds the strike; otherwise NO wins.</li>
-        <li>24h dispute window — anyone can challenge with a SUI bond (<a href="https://docs.uma.xyz/protocol-overview/how-does-umas-oracle-work" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">UMA-style</a>).</li>
-        <li>Undisputed → auto-settles. Evidence snapshots stored on Walrus.</li>
+      <p className="text-[12px] leading-relaxed text-sc-dim mb-3">
+        Every market settles itself from real data — here’s the path from “market closes” to “winners get paid.”
+      </p>
+      <ol className="space-y-2.5">
+        <ResolveStep n="1" title="The market closes">
+          At expiry the oracle posts the card’s real price — the same swarm consensus you see under the{' '}
+          <span className="text-sc-text font-medium">Oracle Swarm</span> tab
+          {oracle ? <> (currently from <span className="text-sc-text font-mono">{sourceLabel(oracle.source)}</span>, {oracle.saleCount} sale{oracle.saleCount === 1 ? '' : 's'})</> : ''}.
+        </ResolveStep>
+        <ResolveStep n="2" title="Who wins">
+          <span className="text-sc-yes font-semibold">YES</span> wins if that price is above the strike;{' '}
+          <span className="text-sc-no font-semibold">NO</span> wins if it’s at or below.
+        </ResolveStep>
+        <ResolveStep n="3" title="24-hour challenge window">
+          Think the price is wrong? Anyone can dispute it by staking a deposit — honest challenges get
+          rewarded, wrong ones lose the stake. (The same “optimistic” design{' '}
+          <a href="https://docs.uma.xyz/protocol-overview/how-does-umas-oracle-work" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">UMA</a> uses.)
+        </ResolveStep>
+        <ResolveStep n="4" title="Payout">
+          No challenge → the market auto-settles and winners claim. The full evidence is stored on{' '}
+          <span className="text-sc-text">Walrus</span> and referenced onchain, so anyone can audit it.
+        </ResolveStep>
       </ol>
       {oracle && (
         <div className="mt-2.5 pt-2.5 border-t border-sc-border/60 flex flex-wrap gap-x-4 gap-y-1 text-[11px] tnum">
@@ -515,6 +532,17 @@ function Resolution({ oracle, bare }) {
   );
   if (bare) return <div className="text-[12px]">{inner}</div>;
   return <div className="bg-sc-card border border-sc-border rounded-xl p-3 text-[12px]">{inner}</div>;
+}
+
+function ResolveStep({ n, title, children }) {
+  return (
+    <li className="flex gap-2.5">
+      <span className="shrink-0 w-5 h-5 rounded-full bg-sc-accent/15 text-sc-accent text-[10px] font-bold grid place-items-center mt-px">{n}</span>
+      <div className="text-sc-dim leading-relaxed">
+        <span className="text-sc-text font-semibold">{title}.</span> {children}
+      </div>
+    </li>
+  );
 }
 
 function TradeBox({ market, meta, oracle, strikeDollars, onTxSuccess }) {
