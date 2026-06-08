@@ -1,93 +1,164 @@
 {
-  "_seed": true,
-  "_note": "Seed consensus for the 4 demo markets so OracleConsensusPanel renders before the live swarm runs. Replace with output from agents/coordinator.mjs runCoordinator. Keyed by productId (DEMO_MARKETS).",
-  "roundId": "seed-round-0",
-  "timestamp": 1749300000000,
+  "_seed": false,
+  "roundId": "live-1780939705840",
+  "timestamp": 1780939705840,
   "consensus": {
     "neo1-1st-18": {
-      "cardId": "neo1-1st-18",
-      "consensusPriceCents": 412500,
-      "confidenceLower": 398000,
-      "confidenceUpper": 431000,
-      "contributingSources": [
-        { "platform": "ebay", "priceCents": 410000, "confidence": 0.92, "reliability": 0.94, "weight": 1.31, "source": "sold-comps", "compCount": 7 },
-        { "platform": "courtyard", "priceCents": 418000, "confidence": 0.81, "reliability": 0.88, "weight": 0.97, "source": "tokenized", "compCount": 3 },
-        { "platform": "tcgplayer", "priceCents": 405000, "confidence": 0.74, "reliability": 0.79, "weight": 0.71, "source": "market", "compCount": 4 },
-        { "platform": "alt", "priceCents": 421000, "confidence": 0.68, "reliability": 0.72, "weight": 0.55, "source": "auction", "compCount": 2 }
-      ],
-      "rejectedSources": [
-        { "platform": "fanatics", "priceCents": 689000, "reason": "MAD outlier z=4.10", "zScore": 4.1 }
-      ],
+      "productId": "neo1-1st-18",
+      "consensusPriceCents": 259999,
+      "confidenceLower": 259999,
+      "confidenceUpper": 259999,
+      "sourceCount": 3,
       "flags": [],
-      "sourceCount": 4,
-      "roundId": "seed-round-0",
-      "timestamp": 1749300000000,
+      "contributingSources": [
+        {
+          "platform": "ebay",
+          "priceCents": 259999,
+          "confidence": 1,
+          "reliability": 0.9285085576228933,
+          "weight": 0.9285083380846856,
+          "source": "ebay_sold",
+          "compCount": 30
+        },
+        {
+          "platform": "alt",
+          "priceCents": 531360,
+          "confidence": 0.3333333333333333,
+          "reliability": 0.7517229225571341,
+          "weight": 0.2505742528302137,
+          "source": "alt_sold",
+          "compCount": 1
+        },
+        {
+          "platform": "pricecharting",
+          "priceCents": 259999,
+          "confidence": 0.95,
+          "reliability": 1,
+          "weight": 0.949999828786391,
+          "source": "pc_sold_all",
+          "compCount": 30
+        }
+      ],
+      "rejectedSources": [],
+      "updatedAt": "2026-06-08T17:28:25.839Z",
       "evidence": {
-        "blobId": "dHWTDxbxXzGV_qwh9qeb52RH31SWssvST40GWj1mtS4",
-        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/dHWTDxbxXzGV_qwh9qeb52RH31SWssvST40GWj1mtS4"
+        "blobId": "PLq5HqqODJCeTtlLhrVriAna_yW9lL8ZnT_h69ZX3OU",
+        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/PLq5HqqODJCeTtlLhrVriAna_yW9lL8ZnT_h69ZX3OU"
       }
     },
     "jp-vs-091": {
-      "cardId": "jp-vs-091",
-      "consensusPriceCents": 1485000,
-      "confidenceLower": 1410000,
-      "confidenceUpper": 1572000,
+      "productId": "jp-vs-091",
+      "consensusPriceCents": 1600000,
+      "confidenceLower": 1290000,
+      "confidenceUpper": 1600000,
+      "sourceCount": 2,
+      "flags": [
+        "insufficient_sources"
+      ],
       "contributingSources": [
-        { "platform": "ebay", "priceCents": 1490000, "confidence": 0.88, "reliability": 0.94, "weight": 1.24, "source": "sold-comps", "compCount": 5 },
-        { "platform": "heritage", "priceCents": 1520000, "confidence": 0.79, "reliability": 0.85, "weight": 0.86, "source": "auction", "compCount": 2 },
-        { "platform": "cardmarket", "priceCents": 1452000, "confidence": 0.70, "reliability": 0.76, "weight": 0.62, "source": "market", "compCount": 3 }
+        {
+          "platform": "ebay",
+          "priceCents": 1290000,
+          "confidence": 1,
+          "reliability": 0.9297153579845423,
+          "weight": 0.9297152857348396,
+          "source": "ebay_sold",
+          "compCount": 31
+        },
+        {
+          "platform": "pricecharting",
+          "priceCents": 1600000,
+          "confidence": 0.95,
+          "reliability": 1,
+          "weight": 0.9499999136078081,
+          "source": "pc_sold_recent",
+          "compCount": 31
+        }
       ],
-      "rejectedSources": [
-        { "platform": "alt", "priceCents": 2240000, "reason": "MAD outlier z=3.82", "zScore": 3.82 }
-      ],
-      "flags": ["wide_disagreement"],
-      "sourceCount": 3,
-      "roundId": "seed-round-0",
-      "timestamp": 1749300000000,
+      "rejectedSources": [],
+      "updatedAt": "2026-06-08T17:28:25.839Z",
       "evidence": {
-        "blobId": "kP2nZqL9vX7bR4mY6wC8tH1jD3sF5gA0eU_iO9pQ2rW",
-        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/kP2nZqL9vX7bR4mY6wC8tH1jD3sF5gA0eU_iO9pQ2rW"
+        "blobId": "PLq5HqqODJCeTtlLhrVriAna_yW9lL8ZnT_h69ZX3OU",
+        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/PLq5HqqODJCeTtlLhrVriAna_yW9lL8ZnT_h69ZX3OU"
       }
     },
     "base5-1st-83": {
-      "cardId": "base5-1st-83",
-      "consensusPriceCents": 612000,
-      "confidenceLower": 588000,
-      "confidenceUpper": 640000,
-      "contributingSources": [
-        { "platform": "ebay", "priceCents": 610000, "confidence": 0.90, "reliability": 0.94, "weight": 1.28, "source": "sold-comps", "compCount": 6 },
-        { "platform": "courtyard", "priceCents": 619000, "confidence": 0.78, "reliability": 0.88, "weight": 0.92, "source": "tokenized", "compCount": 3 },
-        { "platform": "tcgplayer", "priceCents": 605000, "confidence": 0.71, "reliability": 0.79, "weight": 0.66, "source": "market", "compCount": 4 }
-      ],
-      "rejectedSources": [
-        { "platform": "goldin", "priceCents": 1050000, "reason": "MAD outlier z=4.55", "zScore": 4.55 }
-      ],
-      "flags": [],
+      "productId": "base5-1st-83",
+      "consensusPriceCents": 416100,
+      "confidenceLower": 416100,
+      "confidenceUpper": 416100,
       "sourceCount": 3,
-      "roundId": "seed-round-0",
-      "timestamp": 1749300000000,
+      "flags": [],
+      "contributingSources": [
+        {
+          "platform": "ebay",
+          "priceCents": 416100,
+          "confidence": 1,
+          "reliability": 0.915278243758999,
+          "weight": 0.9152782331655008,
+          "source": "ebay_sold",
+          "compCount": 30
+        },
+        {
+          "platform": "alt",
+          "priceCents": 760560,
+          "confidence": 0.6666666666666666,
+          "reliability": 0.7255168767671403,
+          "weight": 0.48367785626539955,
+          "source": "alt_sold",
+          "compCount": 2
+        },
+        {
+          "platform": "pricecharting",
+          "priceCents": 416100,
+          "confidence": 0.95,
+          "reliability": 1,
+          "weight": 0.9499999544477524,
+          "source": "pc_sold_all",
+          "compCount": 30
+        }
+      ],
+      "rejectedSources": [],
+      "updatedAt": "2026-06-08T17:28:25.839Z",
       "evidence": {
-        "blobId": "aQ8wE3rT5yU7iO1pS9dF2gH4jK6lZ0xC_vB8nM3qR5t",
-        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/aQ8wE3rT5yU7iO1pS9dF2gH4jK6lZ0xC_vB8nM3qR5t"
+        "blobId": "PLq5HqqODJCeTtlLhrVriAna_yW9lL8ZnT_h69ZX3OU",
+        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/PLq5HqqODJCeTtlLhrVriAna_yW9lL8ZnT_h69ZX3OU"
       }
     },
     "base2-1st-3": {
-      "cardId": "base2-1st-3",
-      "consensusPriceCents": 251000,
-      "confidenceLower": 238000,
-      "confidenceUpper": 269000,
+      "productId": "base2-1st-3",
+      "consensusPriceCents": 561600,
+      "confidenceLower": 561600,
+      "confidenceUpper": 561600,
+      "sourceCount": 2,
+      "flags": [
+        "insufficient_sources"
+      ],
       "contributingSources": [
-        { "platform": "ebay", "priceCents": 250000, "confidence": 0.86, "reliability": 0.94, "weight": 1.19, "source": "sold-comps", "compCount": 4 },
-        { "platform": "tcgplayer", "priceCents": 248000, "confidence": 0.69, "reliability": 0.79, "weight": 0.60, "source": "market", "compCount": 3 }
+        {
+          "platform": "ebay",
+          "priceCents": 561600,
+          "confidence": 1,
+          "reliability": 0.9123612509054775,
+          "weight": 0.9123612478884099,
+          "source": "ebay_sold",
+          "compCount": 12
+        },
+        {
+          "platform": "pricecharting",
+          "priceCents": 561600,
+          "confidence": 0.95,
+          "reliability": 1,
+          "weight": 0.9499999780092595,
+          "source": "pc_sold_all",
+          "compCount": 12
+        }
       ],
       "rejectedSources": [],
-      "flags": ["insufficient_sources"],
-      "sourceCount": 2,
-      "roundId": "seed-round-0",
-      "timestamp": 1749300000000,
+      "updatedAt": "2026-06-08T17:28:25.839Z",
       "evidence": {
-        "blobId": null,
-        "aggregatorUrl": null
+        "blobId": "PLq5HqqODJCeTtlLhrVriAna_yW9lL8ZnT_h69ZX3OU",
+        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/PLq5HqqODJCeTtlLhrVriAna_yW9lL8ZnT_h69ZX3OU"
       }
     }
   }

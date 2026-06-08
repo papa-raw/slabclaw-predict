@@ -21,3 +21,6 @@ CLAUDE.md
 # IDE
 .idea/
 .vscode/
+
+# retired publish-record backup (old package)
+contracts/slabclaw_predict/Published.toml.pre-evidence-backup

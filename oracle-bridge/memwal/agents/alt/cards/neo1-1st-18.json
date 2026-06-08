@@ -63,6 +63,27 @@
       "confidence": 0.3333333333333333,
       "comps": 1,
       "source": "alt_sold"
+    },
+    {
+      "date": "2026-06-08T17:28:15.590Z",
+      "priceCents": 531360,
+      "confidence": 0.3333333333333333,
+      "comps": 1,
+      "source": "alt_sold"
+    },
+    {
+      "date": "2026-06-08T17:30:03.414Z",
+      "priceCents": 531360,
+      "confidence": 0.3333333333333333,
+      "comps": 1,
+      "source": "alt_sold"
+    },
+    {
+      "date": "2026-06-08T17:31:44.946Z",
+      "priceCents": 531360,
+      "confidence": 0.3333333333333333,
+      "comps": 1,
+      "source": "alt_sold"
     }
   ],
   "anomalies": []

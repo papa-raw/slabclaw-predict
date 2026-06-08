@@ -1,6 +1,6 @@
 {
   "ebay": {
-    "timestamp": "2026-06-08T17:09:27.863Z",
+    "timestamp": "2026-06-08T17:31:45.121Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
@@ -102,7 +102,7 @@
             "price": 1349.06
           }
         ],
-        "observedAt": "2026-06-08T17:09:27.731Z",
+        "observedAt": "2026-06-08T17:31:44.931Z",
         "flags": []
       },
       {
@@ -208,7 +208,7 @@
             "price": 6000
           }
         ],
-        "observedAt": "2026-06-08T17:09:27.819Z",
+        "observedAt": "2026-06-08T17:31:45.065Z",
         "flags": []
       },
       {
@@ -311,7 +311,7 @@
             "price": 1579.13
           }
         ],
-        "observedAt": "2026-06-08T17:09:27.859Z",
+        "observedAt": "2026-06-08T17:31:45.114Z",
         "flags": []
       },
       {
@@ -360,21 +360,21 @@
             "price": 6350.4
           }
         ],
-        "observedAt": "2026-06-08T17:09:27.863Z",
+        "observedAt": "2026-06-08T17:31:45.120Z",
         "flags": []
       }
     ]
   },
   "courtyard": {
-    "timestamp": "2026-06-08T17:09:27.855Z",
+    "timestamp": "2026-06-08T17:31:45.110Z",
     "signals": []
   },
   "tcgplayer": {
-    "timestamp": "2026-06-08T17:09:27.840Z",
+    "timestamp": "2026-06-08T17:31:45.093Z",
     "signals": []
   },
   "alt": {
-    "timestamp": "2026-06-08T17:09:27.848Z",
+    "timestamp": "2026-06-08T17:31:45.102Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
@@ -390,7 +390,7 @@
             "date": "2026-06-04"
           }
         ],
-        "observedAt": "2026-06-08T17:09:27.740Z",
+        "observedAt": "2026-06-08T17:31:44.945Z",
         "flags": []
       },
       {
@@ -411,29 +411,29 @@
             "date": "2026-06-04"
           }
         ],
-        "observedAt": "2026-06-08T17:09:27.792Z",
+        "observedAt": "2026-06-08T17:31:45.028Z",
         "flags": []
       }
     ]
   },
   "cardmarket": {
-    "timestamp": "2026-06-08T17:09:27.822Z",
+    "timestamp": "2026-06-08T17:31:45.069Z",
     "signals": []
   },
   "beezie": {
-    "timestamp": "2026-06-08T17:09:27.826Z",
+    "timestamp": "2026-06-08T17:31:45.076Z",
     "signals": []
   },
   "collector-crypt": {
-    "timestamp": "2026-06-08T17:09:27.830Z",
+    "timestamp": "2026-06-08T17:31:45.079Z",
     "signals": []
   },
   "goldin": {
-    "timestamp": "2026-06-08T17:09:27.833Z",
+    "timestamp": "2026-06-08T17:31:45.084Z",
     "signals": []
   },
   "pricecharting": {
-    "timestamp": "2026-06-08T17:09:27.851Z",
+    "timestamp": "2026-06-08T17:31:45.106Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
@@ -471,7 +471,7 @@
             "url": "https://www.pricecharting.com/game/pokemon-neo-genesis/typhlosion-1st-edition-18"
           }
         ],
-        "observedAt": "2026-06-08T17:09:27.760Z",
+        "observedAt": "2026-06-08T17:31:44.971Z",
         "flags": []
       },
       {
@@ -510,7 +510,7 @@
             "url": "https://www.pricecharting.com/game/pokemon-japanese-vs/karen's-umbreon-91"
           }
         ],
-        "observedAt": "2026-06-08T17:09:27.811Z",
+        "observedAt": "2026-06-08T17:31:45.054Z",
         "flags": []
       },
       {
@@ -549,7 +549,7 @@
             "url": "https://www.pricecharting.com/game/pokemon-team-rocket/dark-raichu-1st-edition-83"
           }
         ],
-        "observedAt": "2026-06-08T17:09:27.837Z",
+        "observedAt": "2026-06-08T17:31:45.089Z",
         "flags": []
       },
       {
@@ -588,7 +588,7 @@
             "url": "https://www.pricecharting.com/game/pokemon-jungle/flareon-1st-edition-3"
           }
         ],
-        "observedAt": "2026-06-08T17:09:27.851Z",
+        "observedAt": "2026-06-08T17:31:45.106Z",
         "flags": []
       }
     ]

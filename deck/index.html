@@ -179,6 +179,8 @@
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(70,227,190,.5)}70%{box-shadow:0 0 0 9px rgba(70,227,190,0)}100%{box-shadow:0 0 0 0 rgba(70,227,190,0)}}
 
   .footnote{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:18px;letter-spacing:.02em}
+  .footnote a{color:var(--mint);text-decoration:none;border-bottom:1px dotted rgba(70,227,190,.5)}
+  .footnote a:hover{border-bottom-style:solid}
 
   @media (max-width:880px){
     .two,.three,.four{grid-template-columns:1fr}
@@ -425,11 +427,12 @@
         <tr><td><b>4 PSA-10 markets</b> seeded with live positions (Umbreon · Typhlosion · Dark Raichu · Flareon-dispute)</td><td><span class="dot g"></span><span class="ok">live</span></td></tr>
         <tr><td><b>React dapp</b> — browse · faucet tUSD · bet YES/NO · oracle-vs-strike chart w/ 95% cone · dispute &amp; finalize flow</td><td><span class="dot g"></span><span class="ok">working</span></td></tr>
         <tr><td><b>Oracle bridge</b> — reads exact-product PSA-10 oracle, auto-proposes resolution at expiry</td><td><span class="dot g"></span><span class="ok">working</span></td></tr>
-        <tr><td><b>Multi-agent swarm + MemWal-structured memory</b> — 8 agents + coordinator, reputation, evidence bundles</td><td><span class="dot g"></span><span class="ok">running</span></td></tr>
-        <tr><td><b>Walrus network upload + onchain blob reference</b> — bundle built; network publish + on-chain ref being wired</td><td><span class="dot y"></span><span class="wip">in progress</span></td></tr>
+        <tr><td><b>Multi-agent swarm + MemWal memory</b> — 9 agents + coordinator, reputation EMA, evidence bundles, seller-PII redaction</td><td><span class="dot g"></span><span class="ok">running</span></td></tr>
+        <tr><td><b>Walrus evidence + onchain blob reference</b> — every resolution stores a verifiable <span class="mono">evidence_blob_id</span> onchain; a market <em>cannot settle</em> without it</td><td><span class="dot g"></span><span class="ok">live</span></td></tr>
+        <tr><td><b>End-to-end evidence loop — proven</b> — settle → read <span class="mono">evidence_blob_id</span> back onchain → re-verify consensus from the blob</td><td><span class="dot g"></span><span class="ok">verified</span></td></tr>
       </tbody>
     </table>
-    <p class="footnote">Package <span class="mono">0xdc18fc79…af7b141</span> · OracleCap <span class="mono">0x183ae110…</span> · Sui testnet</p>
+    <p class="footnote">Package <a href="https://suiscan.xyz/testnet/object/0x66debb86ea160e10334a3fba2d5afd07660d15e307037f7b1665535e4d9a802a" target="_blank">0x66debb86…</a> · live proof: <a href="https://suiscan.xyz/testnet/object/0xa6aebeead1c6741a8740b3d3f3e333432404dd468b093de3559f448eac85a38a" target="_blank">market object</a> carries <a href="https://walruscan.com/testnet/blob/Ox7jh0IZgheigqJBql81AduPIEhSzzuVoqd5XL8lZco" target="_blank">evidence blob ↗</a> · Sui testnet</p>
   </section>
 
   <!-- 12 · Demo flow -->

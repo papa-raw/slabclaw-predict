@@ -77,6 +77,27 @@
       "confidence": 1,
       "comps": 30,
       "source": "ebay_sold"
+    },
+    {
+      "date": "2026-06-08T17:28:15.715Z",
+      "priceCents": 416100,
+      "confidence": 1,
+      "comps": 30,
+      "source": "ebay_sold"
+    },
+    {
+      "date": "2026-06-08T17:30:03.537Z",
+      "priceCents": 416100,
+      "confidence": 1,
+      "comps": 30,
+      "source": "ebay_sold"
+    },
+    {
+      "date": "2026-06-08T17:31:45.115Z",
+      "priceCents": 416100,
+      "confidence": 1,
+      "comps": 30,
+      "source": "ebay_sold"
     }
   ],
   "anomalies": []
