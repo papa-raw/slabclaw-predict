@@ -1,7 +1,7 @@
 /// MarketDetail — full evidence-rich market page (echoes registry card-detail layout).
 /// Chart (centerpiece) + evidence ladder + recent comps + resolution + onchain trade.
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import { buildBuyYes, buildBuyNo, buildClaim, buildDispute, buildFinalize } from '../lib/transactions';
 import { MARKET_STATE, EXPLORER_URL } from '../constants';
@@ -39,8 +39,35 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
   // the live swarm runs). Guarded so markets without a consensus entry stay clean.
   const hasConsensus = !!consensusData?.consensus?.[meta?.productId];
 
+  // Accessible dialog: ESC to close, focus trap, body scroll-lock, restore focus
+  // to the triggering card on close. (The market is a modal over the list.)
+  const dialogRef = useRef(null);
+  useEffect(() => {
+    const prevFocus = document.activeElement;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const root = dialogRef.current;
+    root?.focus();
+    const onKey = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); onClose(); return; }
+      if (e.key !== 'Tab' || !root) return;
+      const f = root.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])');
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+      if (prevFocus && typeof prevFocus.focus === 'function') prevFocus.focus();
+    };
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 bg-sc-bg overflow-y-auto">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="market-dialog-title" tabIndex={-1}
+      className="fixed inset-0 z-50 bg-sc-bg overflow-y-auto focus:outline-none">
       {/* top bar */}
       <div className="sticky top-0 z-10 bg-sc-bg/95 backdrop-blur border-b border-sc-border/60 px-4 lg:px-6 h-[52px] flex items-center gap-4">
         {/* Left: logo */}
@@ -80,7 +107,7 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
 
           <div className="flex-1 min-w-0">
             {/* question */}
-            <h1 className="text-lg lg:text-xl font-semibold text-white leading-snug mb-2">
+            <h1 id="market-dialog-title" className="text-lg lg:text-xl font-semibold text-white leading-snug mb-2">
               Will {meta.grader} {meta.grade} <span className="text-white">{meta.name}</span> exceed{' '}
               <span className="text-sc-accent">{usdFull(strikeDollars)}</span> by {expiryDate},{' '}
               <span className="text-sc-dim font-normal">according to SlabClaw's oracle?</span>
