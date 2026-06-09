@@ -210,10 +210,24 @@ export function aggregate(cardId, allSignals, reputationWeights) {
     });
   }
 
-  // Drop absurd asks (mis-scrapes / spoof listings) so the ask sanity band stays meaningful.
-  // Asks legitimately sit above realized, so the upper bound is loose (5x); a sub-0.3x ask
-  // is almost certainly a wrong-variant or bait listing.
-  if (anchor > 0) asks = asks.filter((a) => a.priceCents >= 0.3 * anchor && a.priceCents <= 5 * anchor);
+  // Asks must be plausibly the SAME asset. Asks legitimately sit ABOVE the realized clearing
+  // price (you list higher than you'd sell), so an ask well BELOW it is almost always a
+  // wrong-grade/variant match — e.g. a tokenized agent averaging raw / lower-grade listings
+  // for the card instead of the graded slab. Keep asks within [0.6x, 5x] of the realized
+  // anchor; surface the rest as rejected so the wrong-card catch is visible.
+  if (anchor > 0) {
+    asks = asks.filter((a) => {
+      if (a.priceCents < 0.6 * anchor || a.priceCents > 5 * anchor) {
+        result.rejectedSources.push({
+          platform: a.platform,
+          priceCents: a.priceCents,
+          reason: `listing off-anchor (${(a.priceCents / anchor).toFixed(2)}x of $${Math.round(anchor / 100)} — likely wrong grade/variant)`,
+        });
+        return false;
+      }
+      return true;
+    });
+  }
 
   // ── Independence gate (REALIZED families only — asks don't establish a market) ──
   const familyCounts = {};

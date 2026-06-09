@@ -90,8 +90,7 @@ export default function RegistryCardLadder({ card, grader = 'PSA', grade = 10, o
             <tr className="text-[9px] text-sc-muted uppercase tracking-wide border-b border-sc-border/60">
               <th className="text-left font-medium px-3 py-1.5">Platform</th>
               <th className="text-right font-medium px-2 py-1.5">Price</th>
-              <th className="text-right font-medium px-2 py-1.5">Oracle</th>
-              <th className="text-right font-medium px-2 py-1.5">Spread</th>
+              <th className="text-right font-medium px-2 py-1.5">vs&nbsp;oracle</th>
               <th className="text-right font-medium px-3 py-1.5">Action</th>
             </tr>
           </thead>
@@ -99,7 +98,7 @@ export default function RegistryCardLadder({ card, grader = 'PSA', grade = 10, o
             {rows.map((l, i) => <ListingRow key={i} l={l} />)}
             {hidden > 0 && (
               <tr className="border-t border-sc-border/60 cursor-pointer hover:bg-white/[0.02]" onClick={() => setShowAll(true)}>
-                <td colSpan={5} className="px-3 py-1.5 text-[10px] uppercase tracking-wide text-sc-dim">
+                <td colSpan={4} className="px-3 py-1.5 text-[10px] uppercase tracking-wide text-sc-dim">
                   +{hidden} more · <span className="text-sc-accent">show all</span>
                 </td>
               </tr>
@@ -112,9 +111,6 @@ export default function RegistryCardLadder({ card, grader = 'PSA', grade = 10, o
 }
 
 function ListingRow({ l }) {
-  const oracle = l.oracle_price ?? l.oracle_anchor?.price ?? null;
-  let tier = l.oracle_tier ?? l.oracle_anchor?.tier ?? null;
-  if (l.grader_matched === 0 && tier != null && tier < 2) tier = 2;
   const spread = listingSpread(l);
   const isDeal = spread != null && spread < 0;
   const absPct = Math.abs(spread || 0);
@@ -133,14 +129,6 @@ function ListingRow({ l }) {
       </td>
       <td className="text-right px-2 py-1.5 font-semibold text-white">
         {usd(l.price)}{intl && <span className="ml-1 text-[8px] text-sc-muted border border-sc-border rounded px-0.5">INTL</span>}
-      </td>
-      <td className="text-right px-2 py-1.5">
-        {oracle != null ? (
-          <span className="inline-flex items-center gap-1 justify-end">
-            <span className="w-1.5 h-1.5 rounded-full" style={{ background: tierColor(tier) }} />
-            <span className="text-sc-dim">{usd(oracle)}</span>
-          </span>
-        ) : <span className="text-sc-muted">—</span>}
       </td>
       <td className={`text-right px-2 py-1.5 ${spreadCls}`}>
         {spread != null ? `${isDeal ? '-' : '+'}${absPct.toFixed(1)}%` : '—'}

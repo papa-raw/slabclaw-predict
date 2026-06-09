@@ -1,90 +1,90 @@
 {
   "ebay": {
-    "reliability": 0.8640976635045883,
-    "rounds": 74,
-    "hits": 64,
+    "reliability": 0.8710734003738595,
+    "rounds": 78,
+    "hits": 68,
     "misses": 10,
     "lastDeviation": 0,
-    "lastUpdated": "2026-06-09T09:25:52.605Z"
+    "lastUpdated": "2026-06-09T13:24:58.340Z"
   },
   "courtyard": {
-    "reliability": 0.8746255238383756,
-    "rounds": 45,
-    "hits": 39,
-    "misses": 6,
-    "lastDeviation": 0.6209259259259259,
-    "lastUpdated": "2026-06-09T09:25:52.605Z"
+    "reliability": 0.8231539724917363,
+    "rounds": 49,
+    "hits": 40,
+    "misses": 9,
+    "lastDeviation": 1,
+    "lastUpdated": "2026-06-09T13:24:58.340Z"
   },
   "tcgplayer": {
-    "reliability": 0.7829693084983742,
-    "rounds": 40,
-    "hits": 31,
-    "misses": 9,
-    "lastDeviation": 0.6280982905982906,
-    "lastUpdated": "2026-06-09T09:25:52.605Z"
+    "reliability": 0.7340022741596267,
+    "rounds": 44,
+    "hits": 32,
+    "misses": 12,
+    "lastDeviation": 1,
+    "lastUpdated": "2026-06-09T13:24:58.340Z"
   },
   "alt": {
-    "reliability": 0.435134490360112,
-    "rounds": 51,
+    "reliability": 0.4032272421698527,
+    "rounds": 55,
     "hits": 22,
-    "misses": 29,
+    "misses": 33,
     "lastDeviation": 0.5580484330484331,
-    "lastUpdated": "2026-06-09T09:25:52.605Z"
+    "lastUpdated": "2026-06-09T13:24:58.340Z"
   },
   "cardmarket": {
-    "reliability": 0.7653897012124584,
-    "rounds": 20,
+    "reliability": 0.7296169103637375,
+    "rounds": 21,
     "hits": 15,
-    "misses": 5,
+    "misses": 6,
     "lastDeviation": 0.29767441860465116,
-    "lastUpdated": "2026-06-09T09:25:52.604Z"
+    "lastUpdated": "2026-06-09T13:24:58.339Z"
   },
   "beezie": {
-    "reliability": 0.48658713440711543,
-    "rounds": 23,
-    "hits": 11,
-    "misses": 12,
-    "lastDeviation": 0.5762695868945868,
-    "lastUpdated": "2026-06-09T09:25:52.605Z"
+    "reliability": 0.4508780438228856,
+    "rounds": 27,
+    "hits": 12,
+    "misses": 15,
+    "lastDeviation": 1,
+    "lastUpdated": "2026-06-09T13:24:58.340Z"
   },
   "collector-crypt": {
-    "reliability": 0.5705170236776848,
-    "rounds": 16,
-    "hits": 9,
-    "misses": 7,
-    "lastDeviation": 0.586235754985755,
-    "lastUpdated": "2026-06-09T09:25:52.605Z"
+    "reliability": 0.5860592743967794,
+    "rounds": 19,
+    "hits": 11,
+    "misses": 8,
+    "lastDeviation": 1,
+    "lastUpdated": "2026-06-09T13:24:58.340Z"
   },
   "goldin": {
-    "reliability": 0.525423022869003,
-    "rounds": 29,
+    "reliability": 0.4909977494775651,
+    "rounds": 31,
     "hits": 15,
-    "misses": 14,
+    "misses": 16,
     "lastDeviation": 1,
-    "lastUpdated": "2026-06-09T09:25:52.605Z"
+    "lastUpdated": "2026-06-09T13:24:58.340Z"
   },
   "pricecharting": {
-    "reliability": 0.8602831900249102,
-    "rounds": 36,
-    "hits": 31,
-    "misses": 5,
+    "reliability": 0.8490591790564027,
+    "rounds": 40,
+    "hits": 34,
+    "misses": 6,
     "lastDeviation": 0,
-    "lastUpdated": "2026-06-09T09:25:52.605Z"
+    "lastUpdated": "2026-06-09T13:24:58.340Z"
   },
   "psa-apr": {
-    "reliability": 0.5067324575614723,
-    "rounds": 18,
-    "hits": 9,
-    "misses": 9,
+    "reliability": 0.4818572149506509,
+    "rounds": 21,
+    "hits": 10,
+    "misses": 11,
     "lastDeviation": 0.4656339031339031,
-    "lastUpdated": "2026-06-09T09:25:52.605Z"
+    "lastUpdated": "2026-06-09T13:24:58.340Z"
   },
   "fanatics": {
-    "reliability": 0.4553175773421765,
-    "rounds": 20,
-    "hits": 9,
-    "misses": 11,
+    "reliability": 0.4205318141419525,
+    "rounds": 24,
+    "hits": 10,
+    "misses": 14,
     "lastDeviation": 0.39814814814814814,
-    "lastUpdated": "2026-06-09T09:25:52.605Z"
+    "lastUpdated": "2026-06-09T13:24:58.340Z"
   }
 }
