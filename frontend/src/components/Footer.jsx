@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import { buildFaucetMint } from '../lib/transactions';
-import { EXPLORER_URL, PACKAGE_ID, FAUCET_DRIP } from '../constants';
+import { FAUCET_DRIP } from '../constants';
 import { useTusdBalance } from '../hooks/useTusd';
 
 export default function Footer({ onFunded }) {
@@ -30,8 +30,7 @@ export default function Footer({ onFunded }) {
   return (
     <footer className="fixed bottom-0 inset-x-0 z-[60] border-t border-sc-border bg-sc-bg/95 backdrop-blur-sm">
       <div className="max-w-6xl mx-auto px-4 lg:px-6 py-2.5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-sc-muted">
-        <a href={`${EXPLORER_URL}/object/${PACKAGE_ID}`} target="_blank" rel="noopener noreferrer"
-          className="hover:text-sc-accent transition font-mono">Contract {PACKAGE_ID.slice(0, 10)}…</a>
+        <a href="#architecture" className="hover:text-sc-accent transition font-semibold text-sc-dim">Architecture &amp; docs ↗</a>
         <span className="hidden sm:inline">·</span>
         <span className="hidden sm:inline">Sui Overflow 2026 — Walrus track</span>
         <span className="hidden md:inline">·</span>

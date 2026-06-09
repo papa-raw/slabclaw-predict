@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SlabClaw Oracle Swarm — Memory-Backed Multi-Agent Price Oracle</title>
+<style>
+  :root {
+    --bg: #0A0A0C;
+    --surface: #141418;
+    --card: #1A1A20;
+    --border: #2A2A34;
+    --text: #E8E8F0;
+    --dim: #8888A0;
+    --muted: #555566;
+    --accent: #6C8CFF;
+    --yes: #00D18C;
+    --no: #FF4466;
+    --amber: #FFB830;
+    --purple: #A78BFA;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.85em; color: var(--accent); background: var(--surface); padding: 2px 6px; border-radius: 4px; }
+  .container { max-width: 920px; margin: 0 auto; padding: 0 24px; }
+
+  /* Hero */
+  .hero { padding: 80px 0 60px; text-align: center; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at center, rgba(108,140,255,0.06) 0%, transparent 60%); }
+  .hero h1 { font-size: 2.6em; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 16px; position: relative; }
+  .hero h1 span { background: linear-gradient(135deg, var(--accent), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero .sub { font-size: 1.1em; color: var(--dim); max-width: 640px; margin: 0 auto 32px; position: relative; }
+  .hero .badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; position: relative; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 0.75em; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; }
+  .badge-walrus { background: rgba(0,209,140,0.12); color: var(--yes); border: 1px solid rgba(0,209,140,0.25); }
+  .badge-sui { background: rgba(108,140,255,0.12); color: var(--accent); border: 1px solid rgba(108,140,255,0.25); }
+  .badge-agents { background: rgba(167,139,250,0.12); color: var(--purple); border: 1px solid rgba(167,139,250,0.25); }
+
+  /* Sections */
+  section { padding: 48px 0; }
+  .section-title { font-size: 1.6em; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 24px; }
+  .section-title span { color: var(--accent); }
+
+  /* Architecture diagram */
+  .arch { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin: 32px 0; }
+  .arch pre { font-family: 'SF Mono', monospace; font-size: 0.78em; color: var(--dim); line-height: 1.5; overflow-x: auto; }
+  .arch .highlight { color: var(--accent); }
+  .arch .green { color: var(--yes); }
+  .arch .red { color: var(--no); }
+  .arch .amber { color: var(--amber); }
+
+  /* Cards grid */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 24px 0; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: border-color 0.2s; }
+  .card:hover { border-color: var(--accent); }
+  .card-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2em; margin-bottom: 12px; }
+  .card h3 { font-size: 1em; font-weight: 700; margin-bottom: 8px; }
+  .card p { font-size: 0.85em; color: var(--dim); line-height: 1.5; }
+
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 32px 0; }
+  .stat { text-align: center; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+  .stat-num { font-size: 2em; font-weight: 800; font-feature-settings: 'tnum'; line-height: 1; }
+  .stat-label { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 8px; }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; margin: 24px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+  th { text-align: left; padding: 10px 16px; font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--border); }
+  td { padding: 10px 16px; border-bottom: 1px solid rgba(42,42,52,0.5); }
+  tr:hover td { background: rgba(108,140,255,0.03); }
+
+  /* Pipeline */
+  .pipeline { display: flex; align-items: center; gap: 0; margin: 32px 0; overflow-x: auto; padding: 8px 0; }
+  .pipe-step { flex-shrink: 0; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; text-align: center; }
+  .pipe-step.active { border-color: var(--accent); background: rgba(108,140,255,0.08); }
+  .pipe-step h4 { font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .pipe-step p { font-size: 0.7em; color: var(--dim); }
+  .pipe-arrow { flex-shrink: 0; color: var(--muted); font-size: 1.2em; padding: 0 8px; }
+
+  /* Evidence */
+  .evidence-box { background: linear-gradient(135deg, rgba(0,209,140,0.08), rgba(108,140,255,0.08)); border: 1px solid rgba(0,209,140,0.2); border-radius: 16px; padding: 24px 28px; margin: 24px 0; }
+  .evidence-box h3 { color: var(--yes); font-size: 1.1em; margin-bottom: 12px; }
+
+  /* Footer */
+  footer { padding: 48px 0 64px; text-align: center; color: var(--muted); font-size: 0.8em; }
+  footer .links { display: flex; justify-content: center; gap: 24px; margin-bottom: 16px; }
+
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 1.8em; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .pipeline { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="container">
+    <h1>Memory-Backed<br><span>Multi-Agent Oracle Swarm</span></h1>
+    <p class="sub">
+      9 specialized agents read from 13 real marketplace platforms, coordinate through shared memory,
+      and produce manipulation-resistant price consensus for collectibles prediction markets on Sui.
+    </p>
+    <div class="badges">
+      <span class="badge badge-walrus">Walrus Track</span>
+      <span class="badge badge-sui">Sui Overflow 2026</span>
+      <span class="badge badge-agents">9 Agents</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num" style="color:var(--accent)">9</div>
+      <div class="stat-label">Source Agents</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" style="color:var(--yes)">13</div>
+      <div class="stat-label">Marketplace Platforms</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" style="color:var(--amber)">5,167</div>
+      <div class="stat-label">Tracked Products</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" style="color:var(--purple)">3.5</div>
+      <div class="stat-label">MAD Z-Score Threshold</div>
+    </div>
+  </div>
+
+  <!-- Architecture -->
+  <section>
+    <h2 class="section-title">Three-Tier <span>Architecture</span></h2>
+    <p style="color:var(--dim); margin-bottom: 24px;">
+      The swarm operates in three tiers: source specialists that extract platform-specific price signals,
+      a coordinator that aggregates using statistical methods, and a bridge keeper that proposes settlements onchain.
+    </p>
+
+    <div class="arch">
+      <pre>
+<span class="highlight">TIER 1: Source Specialists</span> (9 agents, parallel)
+  eBay ──────────────┐
+  PriceCharting ─────┤
+  Courtyard ─────────┤
+  TCGPlayer ─────────┤  Each reads from SlabClaw's
+  ALT.xyz ───────────┼─ 10-platform registry API
+  Cardmarket ────────┤  → platform-specific filtering
+  Beezie (Base) ─────┤  → local circuit breakers
+  Collector Crypt ───┤  → writes signal to <span class="green">MemWal</span>
+  Goldin Auctions ───┘
+
+         │ all signals → <span class="green">shared/agent-signals/</span>
+         ▼
+<span class="highlight">TIER 2: Coordinator</span> (1 agent, sequential)
+  ┌──────────────────────────────────────────┐
+  │  1. Source-count gate (≥3 required)      │
+  │  2. <span class="amber">MAD outlier rejection</span> (z > 3.5)     │
+  │  3. <span class="green">Confidence-weighted median</span>          │
+  │  4. Aggregator circuit breakers          │
+  │  5. Evidence bundle → <span class="green">Walrus blob</span>       │
+  └──────────────────────────────────────────┘
+         │ consensus → <span class="green">shared/consensus/</span>
+         ▼
+<span class="highlight">TIER 3: Bridge Keeper</span> (conditional)
+  Read consensus → quality gates →
+  <span class="amber">propose_resolution</span> onchain with
+  Walrus evidence blob ID
+      </pre>
+    </div>
+  </section>
+
+  <!-- Aggregation Pipeline -->
+  <section>
+    <h2 class="section-title">Aggregation <span>Pipeline</span></h2>
+    <p style="color:var(--dim); margin-bottom: 24px;">
+      Inspired by Chainlink's decentralized oracle networks and Pyth's confidence-weighted aggregation.
+      Every step is designed to resist manipulation while maximizing signal quality.
+    </p>
+
+    <div class="pipeline">
+      <div class="pipe-step active">
+        <h4>Source Gate</h4>
+        <p>≥3 independent<br>sources required</p>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step active">
+        <h4>MAD Filter</h4>
+        <p>Modified Z-score<br>threshold 3.5</p>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step active">
+        <h4>Weighted Median</h4>
+        <p>confidence × reliability<br>× recency</p>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step active">
+        <h4>Circuit Breakers</h4>
+        <p>disagreement &gt;40%<br>blocks proposal</p>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step active">
+        <h4>Walrus Evidence</h4>
+        <p>full bundle uploaded<br>verifiable blob</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Walrus (the pitch) -->
+  <section>
+    <h2 class="section-title">Why This Isn't <span>"Just Blob Storage"</span></h2>
+    <p style="color:var(--dim); margin-bottom: 24px;">
+      Walrus provides the <strong style="color:var(--text)">persistence layer for agent intelligence</strong>.
+      This isn't about storing files — it's about agents that remember, learn, and coordinate over time.
+    </p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon" style="background:rgba(0,209,140,0.15); color:var(--yes)">🧠</div>
+        <h3>Persistent Memory (MemWal)</h3>
+        <p>Each agent maintains per-card observation history, anomaly logs, and reliability self-assessment.
+          After every swarm run, the full memory state (78 files) is snapshotted to a Walrus blob. Kill the process,
+          restart on a new machine, restore from a blob ID — the swarm picks up exactly where it left off.
+          <a href="https://aggregator.walrus-testnet.walrus.space/v1/blobs/puArzfwFivKREcWXy-ndLen8lhufJyoIDr_2nNGfXJc" target="_blank">View live MemWal snapshot →</a></p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(108,140,255,0.15); color:var(--accent)">🤝</div>
+        <h3>Shared Multi-Agent Context</h3>
+        <p>9 agents coordinate through shared MemWal namespaces. The coordinator reads all signals.
+          Each agent reads its own reputation score. No central database — just shared persistent memory.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(167,139,250,0.15); color:var(--purple)">🔍</div>
+        <h3>Verifiable Evidence</h3>
+        <p>Every consensus round produces an evidence blob on Walrus containing all inputs, weights,
+          rejections, and the aggregation math. Anyone can fetch the blob and re-run the computation.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(255,184,48,0.15); color:var(--amber)">📈</div>
+        <h3>Observable Learning</h3>
+        <p>Source reliability diverges over rounds — eBay earns 96% while thin markets drop to 49%.
+          Confidence intervals narrow from ±25% to ±4%. The swarm visibly gets smarter.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Manipulation Resistance -->
+  <section>
+    <h2 class="section-title">Manipulation <span>Resistance</span></h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Attack</th><th>Strategy</th><th>Cost</th><th>Defense</th><th>Outcome</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Single-source spoof</td>
+            <td>Wash trade on eBay</td>
+            <td style="color:var(--amber)">~$6K fees</td>
+            <td>MAD rejection (1/9 sources)</td>
+            <td style="color:var(--yes)">Caught</td>
+          </tr>
+          <tr>
+            <td>Multi-source coordination</td>
+            <td>Simultaneous wash on 4+ platforms</td>
+            <td style="color:var(--no)">~$23K+</td>
+            <td>CUSUM drift + new signals lack reputation</td>
+            <td style="color:var(--yes)">Expensive &amp; detectable</td>
+          </tr>
+          <tr>
+            <td>Agent compromise</td>
+            <td>Inject false signal via code</td>
+            <td>Variable</td>
+            <td>Transparent aggregation on Walrus exposes it</td>
+            <td style="color:var(--yes)">Provably detectable</td>
+          </tr>
+          <tr>
+            <td>Coordinator compromise</td>
+            <td>Produce false consensus</td>
+            <td>Key access</td>
+            <td>Evidence blob = anyone verifies the math</td>
+            <td style="color:var(--yes)">Provably fraudulent</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="color:var(--dim); margin-top: 16px; font-size: 0.9em;">
+      <strong style="color:var(--text)">Key insight:</strong> The parimutuel prediction market structure itself resists many vectors.
+      Wash trading is impossible (buying always increases the pool). Flash loans are neutralized (capital locked until resolution).
+      Oracle manipulation requires simultaneously manipulating multiple independent real-world marketplaces — far more expensive than the typical pool size.
+    </p>
+  </section>
+
+  <!-- Source Agents -->
+  <section>
+    <h2 class="section-title">Source <span>Agents</span></h2>
+    <p style="color:var(--dim); margin-bottom: 24px;">
+      Each agent specializes in one marketplace's data format, pricing patterns, and failure modes.
+      They share a common base class for MemWal I/O, circuit breakers, and signal normalization.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Agent</th><th>Platform</th><th>Signal Source</th><th>Base Confidence</th><th>Coverage</th></tr>
+        </thead>
+        <tbody>
+          <tr><td style="color:var(--accent)">eBay</td><td>eBay.com</td><td>Sold comps (median), active (25th pctile)</td><td>Up to 1.0</td><td style="color:var(--yes)">High</td></tr>
+          <tr><td style="color:var(--accent)">PriceCharting</td><td>PriceCharting.com</td><td>Scraped sold data (30-day recent median)</td><td>Up to 0.95</td><td style="color:var(--yes)">High</td></tr>
+          <tr><td style="color:var(--accent)">Courtyard</td><td>Courtyard.io</td><td>Tokenized FMV, Algolia-indexed</td><td>Up to 0.8</td><td>Medium</td></tr>
+          <tr><td style="color:var(--accent)">TCGPlayer</td><td>TCGPlayer.com</td><td>Active listings (median)</td><td>Up to 0.75</td><td>Medium</td></tr>
+          <tr><td style="color:var(--accent)">ALT</td><td>ALT.xyz</td><td>Sold transactions + listings</td><td>Up to 0.7</td><td>Medium</td></tr>
+          <tr><td style="color:var(--accent)">Cardmarket</td><td>Cardmarket.com</td><td>EU listings (EUR-denominated)</td><td>Up to 0.75</td><td>Variable</td></tr>
+          <tr><td style="color:var(--accent)">Beezie</td><td>Beezie (Base chain)</td><td>Tokenized listings via OpenSea</td><td>Up to 0.7</td><td style="color:var(--amber)">Thin</td></tr>
+          <tr><td style="color:var(--accent)">Collector Crypt</td><td>Solana pNFTs</td><td>MagicEden listings</td><td>Up to 0.7</td><td style="color:var(--amber)">Thin</td></tr>
+          <tr><td style="color:var(--accent)">Goldin</td><td>Goldin Auctions</td><td>Realized auction prices</td><td>Up to 0.85</td><td>Periodic</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Walrus Evidence -->
+  <section>
+    <h2 class="section-title">Walrus <span>Evidence Layer</span></h2>
+
+    <div class="evidence-box">
+      <h3>Every consensus round is a verifiable artifact</h3>
+      <p style="color:var(--dim); line-height: 1.7;">
+        After the coordinator aggregates, the full evidence bundle is uploaded to Walrus as a permanent blob.
+        The bundle contains: all source agent signals, per-agent confidence and comp counts, MAD z-scores for every
+        rejected outlier, the weighted median computation, source reliability weights, and the final consensus price.
+      </p>
+      <p style="color:var(--dim); margin-top: 12px; line-height: 1.7;">
+        Before disputing an oracle proposal, anyone can download the evidence blob and independently verify the math.
+        This makes frivolous disputes nearly impossible — the evidence is public, deterministic, and re-computable.
+      </p>
+      <p style="margin-top: 16px;">
+        <a href="https://aggregator.walrus-testnet.walrus.space/v1/blobs/DsshTPEVIBg0LsCZaue6JpJacQizjuTF_Yzola8oVcQ" target="_blank">
+          View latest evidence blob on Walrus →
+        </a>
+      </p>
+    </div>
+  </section>
+
+  <!-- Learning Over Time -->
+  <section>
+    <h2 class="section-title">Observable <span>Learning</span></h2>
+    <p style="color:var(--dim); margin-bottom: 24px;">
+      The swarm demonstrably improves over time. Three visible indicators:
+    </p>
+
+    <div class="cards" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="card">
+        <h3 style="color:var(--yes)">Reliability Divergence</h3>
+        <p>Round 1: all sources weight 1.0. Round 10: eBay earns 96%, thin markets drop to 49%.
+          The swarm learns which sources to trust.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent)">Confidence Narrowing</h3>
+        <p>Round 1: ±25% confidence interval. Round 10: ±4% interval.
+          More data = tighter consensus = higher-quality oracle.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--no)">Anomaly Memory</h3>
+        <p>Round 5: manipulation detected (fake 4x price). Round 6+: that pattern is pre-filtered.
+          The swarm remembers attacks.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech Stack -->
+  <section>
+    <h2 class="section-title">Technical <span>Stack</span></h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Onchain (Sui Move)</h3>
+        <p><code>market.move</code> — Parimutuel binary prediction markets<br>
+          <code>oracle.move</code> — OracleCap-authorized resolution proposals<br>
+          <code>registry.move</code> — Asset registry mapping products to markets<br>
+          <code>test_usd.move</code> — Testnet faucet token</p>
+      </div>
+      <div class="card">
+        <h3>Offchain (Node.js)</h3>
+        <p>9 source agents + coordinator + bridge keeper<br>
+          MemWal file-based persistence (Walrus-backed)<br>
+          MAD outlier rejection + confidence-weighted median<br>
+          Automatic Walrus evidence uploads</p>
+      </div>
+      <div class="card">
+        <h3>Frontend (React + Vite)</h3>
+        <p>dapp-kit wallet integration (Slush/Suiet)<br>
+          Oracle Swarm consensus panel with live data<br>
+          Source reliability visualization<br>
+          Walrus evidence links per round</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Vision -->
+  <section style="text-align: center; padding: 64px 0;">
+    <h2 class="section-title" style="font-size: 1.8em;">Beyond <span>Pokemon Cards</span></h2>
+    <p style="color:var(--dim); max-width: 600px; margin: 0 auto; font-size: 1em;">
+      The oracle swarm pattern generalizes to any asset class with multiple independent pricing sources.
+      Graded cards today. Watches, sneakers, wine, art, real estate tomorrow.
+      The same agents, the same consensus, the same Walrus evidence — different data.
+    </p>
+  </section>
+
+</div>
+
+<footer>
+  <div class="container">
+    <div class="links">
+      <a href="https://github.com/paparaw" target="_blank">GitHub</a>
+      <a href="https://slabclaw.com" target="_blank">SlabClaw</a>
+      <a href="https://x.com/slabclaw" target="_blank">@slabclaw</a>
+    </div>
+    <p>Built by Patrick Rawson for Sui Overflow 2026 — Walrus Track</p>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -22,11 +22,17 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-sc-bg/95 backdrop-blur-sm border-b border-sc-border/60">
       <div className="px-4 lg:px-6 h-[52px] flex items-center gap-4">
         {/* Logo — real SlabClaw crest */}
-        <div className="flex items-center gap-2 shrink-0">
+        <a href="#" className="flex items-center gap-2 shrink-0" aria-label="SlabClaw Predict — markets">
           <img src="/assets/app-icon.png" alt="SlabClaw" className="w-8 h-8 object-contain rounded-[2px]" />
           <span className="font-bold text-[15px] tracking-brand text-white">SLABCLAW</span>
           <span className="text-[10px] font-semibold text-sc-accent tracking-wide">PREDICT</span>
-        </div>
+        </a>
+
+        {/* Primary nav */}
+        <nav className="hidden sm:flex items-center gap-3 shrink-0 text-[12px] font-medium">
+          <a href="#architecture" className="text-sc-dim hover:text-sc-accent transition">Architecture</a>
+          <a href="/deck/" target="_blank" rel="noopener noreferrer" className="text-sc-dim hover:text-sc-accent transition">Deck&nbsp;↗</a>
+        </nav>
 
         {/* Era-trend KPI strip (centered) */}
         <div className="hidden md:flex items-stretch gap-1 flex-1 justify-center overflow-hidden">
