@@ -1,110 +1,62 @@
 {
-  "generatedAt": "2026-06-09T08:01:37.607Z",
+  "generatedAt": "2026-06-09T08:18:32.165Z",
+  "rounds": 4,
   "cards": {
     "neo1-1st-18": {
       "name": "Typhlosion",
       "settledPriceUsd": 2600,
+      "confidence": 0.8,
+      "wideDispute": true,
       "flags": [
         {
-          "code": "multiplier_divergence",
-          "severity": "med",
-          "ratio": 0.14,
-          "message": "PSA 9 is 0.14× PSA 10 — far below the typical 0.25–0.48× band. Either the 10 is propped up or the 9 is mispriced."
-        },
-        {
-          "code": "grader_multiplier_divergence",
-          "severity": "med",
-          "message": "CGC 10 is 0.22× the PSA 10 (expected ~0.75×) — cross-grader price out of line."
+          "code": "same_grade_disagreement",
+          "severity": "high",
+          "message": "The swarm settle ($2,600) and the grade-matched PSA 10 oracle ($4,975) disagree by 48% — the PSA-10 anchor itself is contested. Dispute window widened."
         }
-      ],
-      "confidence": 0.84,
-      "wideDispute": false,
-      "summary": "2 quality flags (0 high) — settlement confidence reduced."
+      ]
     },
     "jp-vs-091": {
       "name": "Karen's Umbreon",
       "settledPriceUsd": 12900,
-      "flags": [
-        {
-          "code": "listing_above_settle",
-          "severity": "high",
-          "message": "A PSA 9 listing ($12,960) is at/above the settled PSA 10 ($12,900) — a below-grade slab asking over the graded 10."
-        }
-      ],
-      "confidence": 0.8,
-      "wideDispute": true,
-      "summary": "1 quality flag (1 high) — settlement confidence reduced; dispute window widened."
+      "confidence": 1,
+      "wideDispute": false,
+      "flags": []
     },
     "base5-1st-83": {
       "name": "Dark Raichu",
       "settledPriceUsd": 4161,
+      "confidence": 0.52,
+      "wideDispute": true,
       "flags": [
         {
-          "code": "oracle_ladder_inversion",
+          "code": "same_grade_disagreement",
           "severity": "high",
-          "message": "PSA 8 oracle ($378) is at/above PSA 8.5 ($349) — a lower grade priced over a higher one."
+          "message": "The swarm settle ($4,161) and the grade-matched PSA 10 oracle ($7,987) disagree by 48% — the PSA-10 anchor itself is contested. Dispute window widened."
         },
         {
-          "code": "listing_above_settle",
+          "code": "grade_inversion",
           "severity": "high",
-          "message": "A BGS 9.5 listing ($6,480) is at/above the settled PSA 10 ($4,161) — a below-grade slab asking over the graded 10."
+          "message": "PSA 8 ($378) ≥ PSA 8.5 ($349) — both fresh and sale-backed; a lower grade priced over a higher one."
         },
         {
-          "code": "listing_above_settle",
-          "severity": "high",
-          "message": "A BGS 9.5 listing ($10,799) is at/above the settled PSA 10 ($4,161) — a below-grade slab asking over the graded 10."
-        },
-        {
-          "code": "multiplier_divergence",
-          "severity": "high",
-          "ratio": 0.09,
-          "message": "PSA 9 is 0.09× PSA 10 — far below the typical 0.25–0.48× band. Either the 10 is propped up or the 9 is mispriced."
-        },
-        {
-          "code": "multiplier_divergence",
-          "severity": "high",
-          "ratio": 0.05,
-          "message": "PSA 8 is 0.05× PSA 10 — far below the typical 0.1–0.25× band. Either the 10 is propped up or the 8 is mispriced."
-        },
-        {
-          "code": "grader_multiplier_divergence",
+          "code": "ask_above_anchor",
           "severity": "med",
-          "message": "CGC 10 is 0.22× the PSA 10 (expected ~0.75×) — cross-grader price out of line."
-        },
-        {
-          "code": "intra_grade_spread",
-          "severity": "med",
-          "message": "PSA 9 asks range $918–$3,737 (4.1×) — thin/fishy liquidity at the same grade."
+          "message": "A BGS 9.5 is ASKING $10,799 — at/above the PSA 10 anchor ($7,987). An ask, not a sale, but worth watching."
         }
-      ],
-      "confidence": 0.4,
-      "wideDispute": true,
-      "summary": "7 quality flags (5 high) — settlement confidence reduced; dispute window widened."
+      ]
     },
     "base2-1st-3": {
       "name": "Flareon",
       "settledPriceUsd": 5616,
+      "confidence": 0.8,
+      "wideDispute": true,
       "flags": [
         {
-          "code": "multiplier_divergence",
+          "code": "same_grade_disagreement",
           "severity": "high",
-          "ratio": 0.11,
-          "message": "PSA 9 is 0.11× PSA 10 — far below the typical 0.25–0.48× band. Either the 10 is propped up or the 9 is mispriced."
-        },
-        {
-          "code": "grader_multiplier_divergence",
-          "severity": "med",
-          "message": "CGC 10 is 0.09× the PSA 10 (expected ~0.75×) — cross-grader price out of line."
-        },
-        {
-          "code": "grader_multiplier_divergence",
-          "severity": "med",
-          "message": "CGC 9 is 0.37× the PSA 9 (expected ~0.75×) — cross-grader price out of line."
+          "message": "The swarm settle ($5,616) and the grade-matched PSA 10 oracle ($7,300) disagree by 23% — the PSA-10 anchor itself is contested. Dispute window widened."
         }
-      ],
-      "confidence": 0.64,
-      "wideDispute": true,
-      "summary": "3 quality flags (1 high) — settlement confidence reduced; dispute window widened."
+      ]
     }
   }
 }

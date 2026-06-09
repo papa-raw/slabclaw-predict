@@ -1,0 +1,28 @@
+{
+  "cardId": "base5-1st-83",
+  "rounds": 4,
+  "gradeRatios": {
+    "PSA9/PSA10": {
+      "ema": 0.086,
+      "n": 4
+    },
+    "PSA8/PSA10": {
+      "ema": 0.047,
+      "n": 4
+    },
+    "CGC9/PSA9": {
+      "ema": 0.756,
+      "n": 4
+    },
+    "CGC8.5/PSA8.5": {
+      "ema": 0.728,
+      "n": 4
+    }
+  },
+  "anchorGap": {
+    "ema": 0.47899971952880843,
+    "n": 4
+  },
+  "sourceStaleness": {},
+  "updatedAt": "2026-06-09T08:18:32.164Z"
+}
