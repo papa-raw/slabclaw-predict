@@ -91,6 +91,13 @@
       "confidence": 0.3333333333333333,
       "comps": 1,
       "source": "alt_sold"
+    },
+    {
+      "date": "2026-06-09T08:45:25.653Z",
+      "priceCents": 383700,
+      "confidence": 0.4,
+      "comps": 1,
+      "source": "alt-ask"
     }
   ],
   "anomalies": []

@@ -23,6 +23,7 @@ import { GoldinAgent } from './agents/goldin-agent.mjs';
 import { PricechartingAgent } from './agents/pricecharting-agent.mjs';
 import { createTinyfishAgents } from './tinyfish-agents.mjs';
 import { runCoordinator } from './agents/coordinator.mjs';
+import { runQualityTier } from './quality-tier.mjs';
 import { getClient, proposeResolution } from './sui-client.mjs';
 import { uploadEvidence } from './walrus-evidence.mjs';
 import { snapshotToWalrus, restoreFromWalrus, memwalIsEmpty } from './memwal-sync.mjs';
@@ -141,6 +142,20 @@ async function pass() {
   console.log('\n  Source Reliability:');
   for (const [platform, r] of Object.entries(reputation).sort((a, b) => b[1].reliability - a[1].reliability)) {
     console.log(`    ${platform.padEnd(16)} ${pct(r.reliability).padEnd(8)} (${r.hits}/${r.rounds} rounds)`);
+  }
+
+  // ── Tier 2.5: Self-audit quality pass (anchor reconciliation + learned calibration) ─
+  // Reconciles the settle vs the grade-matched oracle, runs inversion/divergence
+  // checks against each card's LEARNED baseline, persists what it learned to MemWal,
+  // and widens the dispute window when the PSA-10 anchor itself is contested.
+  console.log('\n--- TIER 2.5: Self-audit (learned calibration → MemWal) ---');
+  try {
+    const quality = await runQualityTier(CARD_IDS, consensus);
+    for (const [id, q] of Object.entries(quality.cards)) {
+      console.log(`  ${(q.name || id).padEnd(16)} ${q.flags.length} flag(s)  ${q.wideDispute ? '⚠ dispute widened' : `conf ${q.confidence}`}`);
+    }
+  } catch (e) {
+    console.log(`  quality tier failed: ${e.message.slice(0, 100)}`);
   }
 
   // ── Evidence bundle → Walrus (must precede proposals: it's the gate) ─

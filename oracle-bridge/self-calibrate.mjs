@@ -22,7 +22,8 @@ const CARDS = ['neo1-1st-18', 'jp-vs-091', 'base5-1st-83', 'base2-1st-3'];
 const NAMES = { 'neo1-1st-18': 'Typhlosion', 'jp-vs-091': "Karen's Umbreon", 'base5-1st-83': 'Dark Raichu', 'base2-1st-3': 'Flareon' };
 
 const loadJson = (p, fb) => (existsSync(join(ROOT, p)) ? JSON.parse(readFileSync(join(ROOT, p), 'utf8')) : fb);
-const cm = loadJson('memwal/shared/listings/cardmarket-2026-06-09.json', { cards: {} });
+const cm = loadJson('memwal/shared/listings/cardmarket-live.json',
+  loadJson('memwal/shared/listings/cardmarket-2026-06-09.json', { cards: {} }));
 const consensus = loadJson('memwal/shared/consensus/latest.json', {});
 
 async function pointsFor(cardId) {

@@ -1,0 +1,446 @@
+{
+  "snapshotAt": "2026-06-09T08:40:37.378Z",
+  "source": "cardmarket via tinyfish stealth agent",
+  "currency": "EUR",
+  "cards": {
+    "neo1-1st-18": {
+      "name": "Typhlosion",
+      "total": 11,
+      "graded": 6,
+      "psa10Count": 0,
+      "listings": [
+        {
+          "platform": "cardmarket",
+          "seller": "entchaka",
+          "country": "Switzerland",
+          "condition": "EX",
+          "grader": null,
+          "grade": null,
+          "note": null,
+          "priceEur": 199,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "YGO-Collections",
+          "country": "Germany",
+          "condition": "EX",
+          "grader": null,
+          "grade": null,
+          "note": null,
+          "priceEur": 229.95,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "Card-foundry",
+          "country": "Germany",
+          "condition": "EX",
+          "grader": null,
+          "grade": null,
+          "note": null,
+          "priceEur": 245,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "ZombieGamesCafe",
+          "country": "United Kingdom",
+          "condition": "EX",
+          "grader": null,
+          "grade": null,
+          "note": null,
+          "priceEur": 297.8,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "Cardrush",
+          "country": "Netherlands",
+          "condition": "NM",
+          "grader": "PSA",
+          "grade": 7,
+          "note": "PSA 7",
+          "priceEur": 375,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "LastWillTeam",
+          "country": "Italy",
+          "condition": "NM",
+          "grader": "BGS",
+          "grade": 8,
+          "note": "BGS 8",
+          "priceEur": 500,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "AnDeXCards",
+          "country": "Netherlands",
+          "condition": "NM",
+          "grader": "PSA",
+          "grade": 8,
+          "note": "PSA 8",
+          "priceEur": 529.99,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "MundoDistorsion18",
+          "country": "Spain",
+          "condition": "MT",
+          "grader": "BGS",
+          "grade": 9,
+          "note": "BGS 9",
+          "priceEur": 620,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "entchaka",
+          "country": "Switzerland",
+          "condition": "NM",
+          "grader": null,
+          "grade": null,
+          "note": "AI Grading 8",
+          "priceEur": 649,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "Impoleon",
+          "country": "Germany",
+          "condition": "MT",
+          "grader": "CGC",
+          "grade": 9,
+          "note": "CGC 9",
+          "priceEur": 670,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "wexir",
+          "country": "Poland",
+          "condition": "MT",
+          "grader": "CGC",
+          "grade": 9.5,
+          "note": "CGC 9,5",
+          "priceEur": 690,
+          "currency": "EUR"
+        }
+      ]
+    },
+    "jp-vs-091": {
+      "name": "Karen's Umbreon",
+      "total": 8,
+      "graded": 7,
+      "psa10Count": 2,
+      "listings": [
+        {
+          "platform": "cardmarket",
+          "seller": "REDO-SHOP",
+          "country": "France",
+          "condition": "GD",
+          "grader": null,
+          "grade": null,
+          "note": null,
+          "priceEur": 1499.98,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "ILDRAGOMARCO",
+          "country": "Italy",
+          "condition": "NM",
+          "grader": "PSA",
+          "grade": 5,
+          "note": "PSA 5",
+          "priceEur": 2200,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "Dre23",
+          "country": "Italy",
+          "condition": "EX",
+          "grader": "PSA",
+          "grade": 5,
+          "note": "PSA 5",
+          "priceEur": 2300,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "ILFORZIEREDELMANA",
+          "country": "Italy",
+          "condition": "NM",
+          "grader": "GRAAD",
+          "grade": 7,
+          "note": "GRAAD 7",
+          "priceEur": 2800,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "Lukezard97",
+          "country": "Italy",
+          "condition": "NM",
+          "grader": "BGS",
+          "grade": 8.5,
+          "note": "BGS 8.5",
+          "priceEur": 5000,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "VintageModernGoat",
+          "country": "Italy",
+          "condition": "MT",
+          "grader": "PSA",
+          "grade": 9,
+          "note": "PSA 9",
+          "priceEur": 12000,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "Realfabio-95",
+          "country": "Italy",
+          "condition": "NM",
+          "grader": "PSA",
+          "grade": 10,
+          "note": "PSA 10",
+          "priceEur": 15500,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "flo9710",
+          "country": "Germany",
+          "condition": "NM",
+          "grader": "PSA",
+          "grade": 10,
+          "note": "PSA 10",
+          "priceEur": 19500,
+          "currency": "EUR"
+        }
+      ]
+    },
+    "base5-1st-83": {
+      "name": "Dark Raichu",
+      "total": 14,
+      "graded": 8,
+      "psa10Count": 0,
+      "listings": [
+        {
+          "platform": "cardmarket",
+          "seller": "Bartolle",
+          "country": "Netherlands",
+          "condition": "EX",
+          "grader": "PSA",
+          "grade": 5,
+          "note": "PSA 5",
+          "priceEur": 179.95,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "Slapquaza",
+          "country": "Germany",
+          "condition": "EX",
+          "grader": null,
+          "grade": null,
+          "note": null,
+          "priceEur": 180,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "Pokemondenbosch",
+          "country": "Netherlands",
+          "condition": "EX",
+          "grader": null,
+          "grade": null,
+          "note": null,
+          "priceEur": 200,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "lostlegendgames",
+          "country": "United Kingdom",
+          "condition": "NM",
+          "grader": null,
+          "grade": null,
+          "note": null,
+          "priceEur": 226.56,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "SpecialCollector22",
+          "country": "Spain",
+          "condition": "NM",
+          "grader": null,
+          "grade": null,
+          "note": null,
+          "priceEur": 260,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "Prometheus55",
+          "country": "Germany",
+          "condition": "NM",
+          "grader": "AOG",
+          "grade": 7.5,
+          "note": "AOG 7.5",
+          "priceEur": 359,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "childhoodhero",
+          "country": "Germany",
+          "condition": "NM",
+          "grader": null,
+          "grade": null,
+          "note": null,
+          "priceEur": 359.95,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "childhoodhero",
+          "country": "Germany",
+          "condition": "MT",
+          "grader": null,
+          "grade": null,
+          "note": null,
+          "priceEur": 449.95,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "RoskamTradingCards",
+          "country": "Netherlands",
+          "condition": "MT",
+          "grader": "PSA",
+          "grade": 9,
+          "note": "PSA 9",
+          "priceEur": 850,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "dharlow01",
+          "country": "Spain",
+          "condition": "NM",
+          "grader": "PSA",
+          "grade": 8.5,
+          "note": "PSA 8.5",
+          "priceEur": 850,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "CardsFaster",
+          "country": "Germany",
+          "condition": "MT",
+          "grader": "BGS",
+          "grade": 9,
+          "note": "BECKETT 9",
+          "priceEur": 2999.99,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "Flamenko",
+          "country": "Slovenia",
+          "condition": "MT",
+          "grader": "PSA",
+          "grade": 9,
+          "note": "PSA 9",
+          "priceEur": 3460,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "depokeplugcm",
+          "country": "Netherlands",
+          "condition": "MT",
+          "grader": "BGS",
+          "grade": 9.5,
+          "note": "BGS 9.5",
+          "priceEur": 5999.95,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "ROTOPOKE",
+          "country": "France",
+          "condition": "MT",
+          "grader": "BGS",
+          "grade": 9.5,
+          "note": "BGS 9.5",
+          "priceEur": 9999,
+          "currency": "EUR"
+        }
+      ]
+    },
+    "base2-1st-3": {
+      "name": "Flareon",
+      "total": 4,
+      "graded": 2,
+      "psa10Count": 0,
+      "listings": [
+        {
+          "platform": "cardmarket",
+          "seller": "TroTaMunDos",
+          "country": "Spain",
+          "condition": "EX",
+          "grader": null,
+          "grade": null,
+          "note": null,
+          "priceEur": 285,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "Elsativa",
+          "country": "Slovenia",
+          "condition": "NM",
+          "grader": "PSA",
+          "grade": 8,
+          "note": "PSA 8",
+          "priceEur": 350,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "PeanutLuke",
+          "country": "United Kingdom",
+          "condition": "NM",
+          "grader": "PSA",
+          "grade": 8,
+          "note": "PSA 8",
+          "priceEur": 356.16,
+          "currency": "EUR"
+        },
+        {
+          "platform": "cardmarket",
+          "seller": "Papasaur66",
+          "country": "Italy",
+          "condition": "EX",
+          "grader": null,
+          "grade": null,
+          "note": null,
+          "priceEur": 400,
+          "currency": "EUR"
+        }
+      ]
+    }
+  }
+}

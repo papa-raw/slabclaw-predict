@@ -13,6 +13,13 @@
       "fileCount": 88,
       "sizeBytes": 225142,
       "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/O8Uo_CjtpPqReIO4vHRdfqg0QWM_C1U5IRnxUpvH1Dg"
+    },
+    {
+      "blobId": "Drqes8-ZJXJJz5TTJUnZujHihmolyLj1VHWqwUK82Fc",
+      "timestamp": "2026-06-09T08:45:55.928Z",
+      "fileCount": 100,
+      "sizeBytes": 287986,
+      "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/Drqes8-ZJXJJz5TTJUnZujHihmolyLj1VHWqwUK82Fc"
     }
   ]
 }

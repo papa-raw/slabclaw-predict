@@ -1,6 +1,6 @@
 {
   "ebay": {
-    "timestamp": "2026-06-08T22:00:28.173Z",
+    "timestamp": "2026-06-09T08:45:24.413Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
@@ -102,7 +102,7 @@
             "price": 1349.06
           }
         ],
-        "observedAt": "2026-06-08T22:00:28.036Z",
+        "observedAt": "2026-06-09T08:45:24.215Z",
         "flags": []
       },
       {
@@ -208,7 +208,7 @@
             "price": 6000
           }
         ],
-        "observedAt": "2026-06-08T22:00:28.119Z",
+        "observedAt": "2026-06-09T08:45:24.344Z",
         "flags": []
       },
       {
@@ -311,7 +311,7 @@
             "price": 1579.13
           }
         ],
-        "observedAt": "2026-06-08T22:00:28.166Z",
+        "observedAt": "2026-06-09T08:45:24.404Z",
         "flags": []
       },
       {
@@ -360,65 +360,65 @@
             "price": 6350.4
           }
         ],
-        "observedAt": "2026-06-08T22:00:28.172Z",
+        "observedAt": "2026-06-09T08:45:24.413Z",
         "flags": []
       }
     ]
   },
   "courtyard": {
-    "timestamp": "2026-06-08T22:00:28.159Z",
+    "timestamp": "2026-06-09T08:45:24.400Z",
     "signals": []
   },
   "tcgplayer": {
-    "timestamp": "2026-06-08T22:00:28.175Z",
+    "timestamp": "2026-06-09T08:45:24.417Z",
     "signals": []
   },
   "alt": {
-    "timestamp": "2026-06-08T22:00:31.692Z",
+    "timestamp": "2026-06-09T08:45:30.115Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
-        "priceCents": 531360,
-        "confidence": 0.3333333333333333,
-        "compCount": 1,
-        "source": "alt_sold",
-        "platform": "alt",
-        "observedAt": "2026-06-08T22:00:28.017Z"
-      },
-      {
-        "cardId": "jp-vs-091",
-        "priceCents": 419600,
+        "priceCents": 383700,
         "confidence": 0.4,
         "compCount": 1,
         "source": "alt-ask",
         "platform": "alt",
-        "observedAt": "2026-06-08T22:00:30.239Z"
+        "observedAt": "2026-06-09T08:45:25.652Z"
       },
       {
         "cardId": "base5-1st-83",
-        "priceCents": 760560,
-        "confidence": 0.6666666666666666,
-        "compCount": 2,
-        "source": "alt_sold",
+        "priceCents": 527250,
+        "confidence": 0.4,
+        "compCount": 1,
+        "source": "alt-ask",
         "platform": "alt",
-        "observedAt": "2026-06-08T22:00:30.240Z"
+        "observedAt": "2026-06-09T08:45:28.556Z"
+      },
+      {
+        "cardId": "base2-1st-3",
+        "priceCents": 875000,
+        "confidence": 0.4,
+        "compCount": 1,
+        "source": "alt-ask",
+        "platform": "alt",
+        "observedAt": "2026-06-09T08:45:30.114Z"
       }
     ]
   },
   "cardmarket": {
-    "timestamp": "2026-06-08T22:00:28.136Z",
+    "timestamp": "2026-06-09T08:45:24.362Z",
     "signals": []
   },
   "beezie": {
-    "timestamp": "2026-06-08T22:00:28.147Z",
+    "timestamp": "2026-06-09T08:45:24.374Z",
     "signals": []
   },
   "collector-crypt": {
-    "timestamp": "2026-06-08T22:00:28.126Z",
+    "timestamp": "2026-06-09T08:45:24.354Z",
     "signals": []
   },
   "goldin": {
-    "timestamp": "2026-06-08T22:00:35.957Z",
+    "timestamp": "2026-06-09T08:45:30.157Z",
     "signals": [
       {
         "cardId": "base5-1st-83",
@@ -427,24 +427,21 @@
         "compCount": 1,
         "source": "goldin-auctions",
         "platform": "goldin",
-        "observedAt": "2026-06-08T22:00:33.519Z"
+        "observedAt": "2026-06-09T08:45:28.631Z"
       },
       {
         "cardId": "base2-1st-3",
         "priceCents": 42500,
-        "confidence": 0.3,
+        "confidence": 0.8,
         "compCount": 1,
         "source": "goldin-auctions",
         "platform": "goldin",
-        "observedAt": "2026-06-08T22:00:35.956Z",
-        "flags": [
-          "jump_0.2x"
-        ]
+        "observedAt": "2026-06-09T08:45:30.157Z"
       }
     ]
   },
   "pricecharting": {
-    "timestamp": "2026-06-08T22:00:28.156Z",
+    "timestamp": "2026-06-09T08:45:24.393Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
@@ -482,7 +479,7 @@
             "url": "https://www.pricecharting.com/game/pokemon-neo-genesis/typhlosion-1st-edition-18"
           }
         ],
-        "observedAt": "2026-06-08T22:00:28.066Z",
+        "observedAt": "2026-06-09T08:45:24.271Z",
         "flags": []
       },
       {
@@ -493,7 +490,7 @@
         "confidence": 0.95,
         "source": "pc_sold_recent",
         "compCount": 31,
-        "recentCount": 4,
+        "recentCount": 3,
         "comps": [
           {
             "price": 5650,
@@ -521,7 +518,7 @@
             "url": "https://www.pricecharting.com/game/pokemon-japanese-vs/karen's-umbreon-91"
           }
         ],
-        "observedAt": "2026-06-08T22:00:28.108Z",
+        "observedAt": "2026-06-09T08:45:24.334Z",
         "flags": []
       },
       {
@@ -560,7 +557,7 @@
             "url": "https://www.pricecharting.com/game/pokemon-team-rocket/dark-raichu-1st-edition-83"
           }
         ],
-        "observedAt": "2026-06-08T22:00:28.132Z",
+        "observedAt": "2026-06-09T08:45:24.358Z",
         "flags": []
       },
       {
@@ -599,22 +596,22 @@
             "url": "https://www.pricecharting.com/game/pokemon-jungle/flareon-1st-edition-3"
           }
         ],
-        "observedAt": "2026-06-08T22:00:28.155Z",
+        "observedAt": "2026-06-09T08:45:24.392Z",
         "flags": []
       }
     ]
   },
   "fanatics": {
-    "timestamp": "2026-06-08T22:00:33.726Z",
+    "timestamp": "2026-06-09T08:45:31.090Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
-        "priceCents": 2500000,
+        "priceCents": 1332500,
         "confidence": 0.7,
-        "compCount": 1,
+        "compCount": 2,
         "source": "fanatics-pwcc",
         "platform": "fanatics",
-        "observedAt": "2026-06-08T22:00:29.695Z"
+        "observedAt": "2026-06-09T08:45:25.781Z"
       },
       {
         "cardId": "base5-1st-83",
@@ -623,30 +620,30 @@
         "compCount": 1,
         "source": "fanatics-pwcc",
         "platform": "fanatics",
-        "observedAt": "2026-06-08T22:00:31.959Z"
+        "observedAt": "2026-06-09T08:45:29.693Z"
       },
       {
         "cardId": "base2-1st-3",
-        "priceCents": 400000,
+        "priceCents": 338000,
         "confidence": 0.7,
-        "compCount": 3,
+        "compCount": 2,
         "source": "fanatics-pwcc",
         "platform": "fanatics",
-        "observedAt": "2026-06-08T22:00:33.725Z"
+        "observedAt": "2026-06-09T08:45:31.089Z"
       }
     ]
   },
   "psa-apr": {
-    "timestamp": "2026-06-08T22:00:37.354Z",
+    "timestamp": "2026-06-09T08:45:47.614Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
-        "priceCents": 173100,
+        "priceCents": 337500,
         "confidence": 0.85,
         "compCount": 3,
         "source": "psa-apr",
         "platform": "psa-apr",
-        "observedAt": "2026-06-08T22:00:30.805Z"
+        "observedAt": "2026-06-09T08:45:38.465Z"
       },
       {
         "cardId": "base5-1st-83",
@@ -655,7 +652,7 @@
         "compCount": 3,
         "source": "psa-apr",
         "platform": "psa-apr",
-        "observedAt": "2026-06-08T22:00:34.747Z"
+        "observedAt": "2026-06-09T08:45:44.621Z"
       },
       {
         "cardId": "base2-1st-3",
@@ -664,7 +661,7 @@
         "compCount": 3,
         "source": "psa-apr",
         "platform": "psa-apr",
-        "observedAt": "2026-06-08T22:00:37.353Z"
+        "observedAt": "2026-06-09T08:45:47.614Z"
       }
     ]
   }

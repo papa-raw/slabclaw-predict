@@ -1,6 +1,5 @@
 {
-  "generatedAt": "2026-06-09T08:18:32.165Z",
-  "rounds": 4,
+  "generatedAt": "2026-06-09T08:45:47.642Z",
   "cards": {
     "neo1-1st-18": {
       "name": "Typhlosion",
@@ -17,7 +16,7 @@
     },
     "jp-vs-091": {
       "name": "Karen's Umbreon",
-      "settledPriceUsd": 12900,
+      "settledPriceUsd": 16000,
       "confidence": 1,
       "wideDispute": false,
       "flags": []
