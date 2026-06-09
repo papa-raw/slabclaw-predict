@@ -498,34 +498,34 @@ function Resolution({ oracle, bare }) {
     <>
       {!bare && <div className="text-[11px] font-semibold text-sc-dim uppercase tracking-wide mb-2">How this resolves</div>}
       <p className="text-[12px] leading-relaxed text-sc-dim mb-3">
-        Every market settles itself from real data — here’s the path from “market closes” to “winners get paid.”
+        When this market closes it settles itself on real card sales, not opinions. Here’s exactly how a winner gets paid.
       </p>
       <ol className="space-y-2.5">
         <ResolveStep n="1" title="The market closes">
-          At expiry the oracle posts the card’s real price — the same swarm consensus you see under the{' '}
+          At expiry, the oracle posts the card’s real price: the swarm consensus from the{' '}
           <span className="text-sc-text font-medium">Oracle Swarm</span> tab
-          {oracle ? <> (currently from <span className="text-sc-text font-mono">{sourceLabel(oracle.source)}</span>, {oracle.saleCount} sale{oracle.saleCount === 1 ? '' : 's'})</> : ''}.
+          {oracle ? <> (right now, the median of <span className="text-sc-text font-semibold">{oracle.saleCount}</span> completed sale{oracle.saleCount === 1 ? '' : 's'})</> : ''}.
         </ResolveStep>
         <ResolveStep n="2" title="Who wins">
-          <span className="text-sc-yes font-semibold">YES</span> wins if that price is above the strike;{' '}
+          <span className="text-sc-yes font-semibold">YES</span> wins if that price is above the strike.{' '}
           <span className="text-sc-no font-semibold">NO</span> wins if it’s at or below.
         </ResolveStep>
-        <ResolveStep n="3" title="24-hour challenge window">
-          Think the price is wrong? Anyone can dispute it by staking a deposit — honest challenges get
-          rewarded, wrong ones lose the stake. (The same “optimistic” design{' '}
-          <a href="https://docs.uma.xyz/protocol-overview/how-does-umas-oracle-work" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">UMA</a> uses.)
+        <ResolveStep n="3" title="A 24-hour window to challenge it">
+          Think the price is wrong? Anyone can challenge it by staking a deposit. Get it right and you earn a
+          reward; get it wrong and you lose the stake. (This is the “optimistic oracle” design{' '}
+          <a href="https://docs.uma.xyz/protocol-overview/how-does-umas-oracle-work" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">UMA</a> pioneered.)
         </ResolveStep>
-        <ResolveStep n="4" title="Payout">
-          No challenge → the market auto-settles and winners claim. The full evidence is stored on{' '}
-          <span className="text-sc-text">Walrus</span> and referenced onchain, so anyone can audit it.
+        <ResolveStep n="4" title="Winners get paid">
+          If nobody challenges, the market settles automatically and winners claim. Every sale and the math
+          behind the price is stored on <span className="text-sc-text">Walrus</span> and referenced onchain,
+          so anyone can re-check it.
         </ResolveStep>
       </ol>
       {oracle && (
         <div className="mt-2.5 pt-2.5 border-t border-sc-border/60 flex flex-wrap gap-x-4 gap-y-1 text-[11px] tnum">
-          <span className="text-sc-muted">current source <span className="text-sc-text font-mono">{sourceLabel(oracle.source)}</span></span>
-          <span className="text-sc-muted">tier <span className="text-sc-text">T{oracle.tier}</span></span>
-          <span className="text-sc-muted">comps <span className="text-sc-text">{oracle.saleCount}</span></span>
-          {oracle.graderMatched ? <span className="text-sc-yes">grader-matched</span> : <span className="text-sc-amber">estimated</span>}
+          <span className="text-sc-muted">priced from <span className="text-sc-text font-mono">{sourceLabel(oracle.source)}</span></span>
+          <span className="text-sc-muted"><span className="text-sc-text">{oracle.saleCount}</span> sale{oracle.saleCount === 1 ? '' : 's'}</span>
+          {oracle.graderMatched ? <span className="text-sc-yes">same grade</span> : <span className="text-sc-amber">estimated</span>}
         </div>
       )}
     </>
