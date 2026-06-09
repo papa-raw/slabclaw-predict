@@ -5,10 +5,15 @@ import Header from './components/Header';
 import MarketCard from './components/MarketCard';
 import MarketDetail from './components/MarketDetail';
 import ArchitecturePage from './components/ArchitecturePage';
+import LegalPage from './components/LegalPage';
 import Footer from './components/Footer';
 
-const hashView = () =>
-  typeof window !== 'undefined' && window.location.hash === '#architecture' ? 'architecture' : 'markets';
+const hashView = () => {
+  const h = typeof window !== 'undefined' ? window.location.hash : '';
+  if (h === '#architecture') return 'architecture';
+  if (h === '#legal') return 'legal';
+  return 'markets';
+};
 
 export default function App() {
   const [selectedId, setSelectedId] = useState(() =>
@@ -57,8 +62,10 @@ export default function App() {
 
       {view === 'architecture' ? (
         <ArchitecturePage />
+      ) : view === 'legal' ? (
+        <LegalPage />
       ) : (
-      <main className="max-w-6xl mx-auto px-4 lg:px-6 py-7 pb-24">
+      <main className="max-w-6xl mx-auto px-4 lg:px-6 py-7 pb-32">
         {/* Hero */}
         <div className="mb-6">
           <h2 className="text-xl lg:text-2xl font-bold text-white">Prediction markets for graded collectibles</h2>

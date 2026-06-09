@@ -29,32 +29,44 @@ export default function Footer({ onFunded }) {
 
   return (
     <footer className="fixed bottom-0 inset-x-0 z-[60] border-t border-sc-border bg-sc-bg/95 backdrop-blur-sm">
-      <div className="max-w-6xl mx-auto px-4 lg:px-6 py-2.5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-sc-muted">
-        <a href="#architecture" className="hover:text-sc-accent transition font-semibold text-sc-dim">Architecture &amp; docs ↗</a>
-        <span className="hidden sm:inline">·</span>
-        <span className="hidden sm:inline">Sui Overflow 2026 — Walrus track</span>
-        <span className="hidden md:inline">·</span>
-        <span className="hidden md:inline">Built by{' '}
-          <a href="https://x.com/papa_raw" target="_blank" rel="noopener noreferrer"
-            className="text-sc-dim hover:text-sc-accent transition">paparaw.eth</a>
-        </span>
+      <div className="max-w-6xl mx-auto px-4 lg:px-6 py-2">
+        {/* links + faucet */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-sc-muted">
+          <a href="#architecture" className="hover:text-sc-accent transition font-semibold text-sc-dim">Architecture &amp; docs ↗</a>
+          <span className="hidden sm:inline">·</span>
+          <span className="hidden sm:inline">Walrus track</span>
+          <span className="hidden sm:inline">·</span>
+          <a href="#legal" className="hover:text-sc-accent transition">Legal</a>
+          <span className="hidden md:inline">·</span>
+          <span className="hidden md:inline">Built by{' '}
+            <a href="https://x.com/papa_raw" target="_blank" rel="noopener noreferrer"
+              className="text-sc-dim hover:text-sc-accent transition">paparaw.eth</a>
+          </span>
 
-        {/* faucet — pushed right */}
-        <div className="flex items-center gap-2.5 ml-auto">
-          {hasWallet && (
-            <span className="tnum text-sc-dim">
-              Balance <span className="text-sc-text font-semibold">{balLoading ? '—' : balance.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span> tUSD
-            </span>
-          )}
-          <button
-            onClick={faucet}
-            disabled={!account || status === 'minting'}
-            title={!account ? 'Connect a wallet first' : `Mint ${FAUCET_DRIP.toLocaleString()} test USD`}
-            className="inline-flex items-center gap-1.5 rounded-md bg-sc-accent text-black font-semibold text-[11px] uppercase tracking-wide px-3 py-1.5 hover:bg-sc-accentHover active:scale-[.97] disabled:opacity-40 disabled:hover:bg-sc-accent transition"
-          >
-            {status === 'minting' ? 'Minting…' : status === 'ok' ? '✓ Funded' : status === 'err' ? 'Failed' : `Faucet · +${(FAUCET_DRIP / 1000)}k tUSD`}
-          </button>
+          {/* faucet — pushed right */}
+          <div className="flex items-center gap-2.5 ml-auto">
+            {hasWallet && (
+              <span className="tnum text-sc-dim">
+                Balance <span className="text-sc-text font-semibold">{balLoading ? '—' : balance.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span> tUSD
+              </span>
+            )}
+            <button
+              onClick={faucet}
+              disabled={!account || status === 'minting'}
+              title={!account ? 'Connect a wallet first' : `Mint ${FAUCET_DRIP.toLocaleString()} test USD`}
+              className="inline-flex items-center gap-1.5 rounded-md bg-sc-accent text-black font-semibold text-[11px] uppercase tracking-wide px-3 py-1.5 hover:bg-sc-accentHover active:scale-[.97] disabled:opacity-40 disabled:hover:bg-sc-accent transition"
+            >
+              {status === 'minting' ? 'Minting…' : status === 'ok' ? '✓ Funded' : status === 'err' ? 'Failed' : `Faucet · +${(FAUCET_DRIP / 1000)}k tUSD`}
+            </button>
+          </div>
         </div>
+
+        {/* disclaimer — protective notice; full text at #legal */}
+        <p className="text-[11.5px] leading-snug text-sc-muted/70 mt-1.5">
+          Testnet demonstration · not financial advice · tUSD has no monetary value · prices from publicly-available
+          marketplace data · not affiliated with any marketplace or grader · all names &amp; marks © their owners ·
+          © 2026 Ecofrontiers SARL. <a href="#legal" className="underline hover:text-sc-accent">Full disclaimer</a>
+        </p>
       </div>
     </footer>
   );

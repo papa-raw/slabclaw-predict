@@ -110,7 +110,7 @@ const DOCS = [
 
 export default function ArchitecturePage() {
   return (
-    <main className="max-w-5xl mx-auto px-4 lg:px-6 py-7 pb-24">
+    <main className="max-w-5xl mx-auto px-4 lg:px-6 py-7 pb-32">
       {/* Hero */}
       <div className="mb-8">
         <div className="text-[10px] font-semibold text-sc-accent uppercase tracking-wide mb-1.5">Architecture &amp; docs</div>
@@ -137,13 +137,13 @@ export default function ArchitecturePage() {
       <div className="bg-sc-card border border-sc-border rounded-xl p-4 mb-10">
         <div className="text-[10px] font-semibold text-sc-accent uppercase tracking-wide mb-1.5">Why TinyFish</div>
         <p className="text-[12px] leading-relaxed text-sc-dim">
-          The source agents scrape through{' '}
+          The source agents read prices through{' '}
           <a href="https://www.tinyfish.ai" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">TinyFish</a>{' '}
-          stealth browser agents. The venues that matter most for price truth — Cardmarket, Goldin, live
-          Yahoo auction pages — sit behind Cloudflare and CAPTCHA walls that ordinary HTTP scrapers can’t
-          pass. TinyFish renders the real page in a stealth browser and returns structured data from a
-          plain-language goal, so we get grade-matched comps from sources a normal scraper is simply
-          blocked from. That independence is what lets the swarm reach genuinely uncorrelated sources.
+          browser agents. Many venues — Cardmarket, Goldin, live Yahoo auction pages — are JavaScript-heavy
+          single-page apps whose publicly-listed prices a plain HTTP fetch can’t read. TinyFish renders the
+          real page in a browser and returns structured data from a plain-language goal, so the swarm reaches
+          a wider set of genuinely independent, uncorrelated sources for its consensus.{' '}
+          <a href="#legal" className="text-sc-accent hover:underline">Data &amp; sources →</a>
         </p>
       </div>
 
