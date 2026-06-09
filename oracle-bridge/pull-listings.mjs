@@ -76,12 +76,23 @@ async function cardmarketViaTinyfish(cm) {
 
 async function main() {
   const snapshotAt = new Date().toISOString();
-  const out = { snapshotAt, source: 'slabclaw-scanner (ebay/cardmarket/…) + tinyfish(cardmarket fallback)', cards: {} };
+  const out = { snapshotAt, source: 'slabclaw-scanner (eBay PSA 10) + cardmarket-live (TinyFish stealth agent)', cards: {} };
+
+  const cmLivePath = join(MEMWAL, 'shared', 'listings', 'cardmarket-live.json');
+  const cmLive = existsSync(cmLivePath) ? JSON.parse(readFileSync(cmLivePath, 'utf8')) : { cards: {} };
 
   for (const card of CARDS) {
-    // PSA 10 listings from the scanner. (Cardmarket's TinyFish snippet is a market
-    // aggregate, not PSA-10-specific, so it's excluded — we only want PSA 10.)
-    const listings = await backendListings(card.id);
+    const listings = await backendListings(card.id); // eBay PSA 10 from the scanner
+    // Live Cardmarket PSA-10 offers (grade parsed from seller notes by the TinyFish agent).
+    for (const l of cmLive.cards?.[card.id]?.listings || []) {
+      if (l.grader === 'PSA' && Number(l.grade) === 10 && l.priceEur > 0) {
+        listings.push({
+          platform: 'cardmarket', listingId: `cm:${l.seller}:${l.priceEur}`, url: null,
+          price: l.priceEur, currency: 'EUR', grade: 10, grader: 'PSA', listingType: 'listing',
+          seller: l.seller, sellerCountry: l.country, title: l.note,
+        });
+      }
+    }
     const counts = {};
     for (const l of listings) counts[l.platform] = (counts[l.platform] || 0) + 1;
     out.cards[card.id] = { name: card.name, counts, listings };

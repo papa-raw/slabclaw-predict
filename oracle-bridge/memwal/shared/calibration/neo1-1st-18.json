@@ -1,24 +1,24 @@
 {
   "cardId": "neo1-1st-18",
-  "rounds": 4,
+  "rounds": 7,
   "gradeRatios": {
     "PSA9/PSA10": {
       "ema": 0.142,
-      "n": 4
+      "n": 7
     },
     "PSA8/PSA10": {
       "ema": 0.10500000000000001,
-      "n": 4
+      "n": 7
     },
     "CGC8/PSA8": {
       "ema": 0.553,
-      "n": 4
+      "n": 7
     }
   },
   "anchorGap": {
     "ema": 0.47740155011336416,
-    "n": 4
+    "n": 7
   },
   "sourceStaleness": {},
-  "updatedAt": "2026-06-09T08:18:32.164Z"
+  "updatedAt": "2026-06-09T08:45:47.650Z"
 }
