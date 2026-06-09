@@ -57,7 +57,7 @@ export default function OracleConsensusPanel({ productId }) {
       <div className="px-3 py-2 border-b border-sc-border flex items-center justify-between">
         <span className="flex items-center gap-2 text-[11px] font-semibold text-sc-dim uppercase tracking-wide">
           <span className="w-1.5 h-1.5 rounded-full bg-sc-yes animate-pulse" />
-          Oracle swarm consensus
+          How this price is set
         </span>
         <div className="flex items-center gap-2">
           {isSeed && (
@@ -228,7 +228,7 @@ function QualityFlags({ signals }) {
     <div className={`rounded-lg border px-3 py-2 ${signals.wideDispute ? 'border-sc-no/30 bg-sc-no/5' : 'border-sc-amber/30 bg-sc-amber/5'}`}>
       <div className="flex items-center justify-between mb-1.5">
         <span className={`text-[10px] font-bold uppercase tracking-wide ${signals.wideDispute ? 'text-sc-no' : 'text-sc-amber'}`}>
-          ⚠ Price-relationship checks
+          ⚠ Sanity checks
         </span>
         <span className="text-[9px] text-sc-muted">
           confidence {Math.round((signals.confidence ?? 1) * 100)}%{signals.wideDispute ? ' · dispute window widened' : ''}
@@ -348,7 +348,7 @@ function EmptyState({ isSeed }) {
     <div className="bg-sc-card border border-sc-border rounded-xl p-6 text-center">
       <div className="flex items-center justify-center gap-2 text-[11px] font-semibold text-sc-dim uppercase tracking-wide mb-2">
         <span className="w-1.5 h-1.5 rounded-full bg-sc-muted" />
-        Oracle swarm consensus
+        How this price is set
       </div>
       <div className="text-[12px] text-sc-muted">No swarm consensus for this market yet.</div>
       <div className="text-[10px] text-sc-dim mt-1">

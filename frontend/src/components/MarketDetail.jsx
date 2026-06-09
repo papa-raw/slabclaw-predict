@@ -477,8 +477,8 @@ function GraphPanel({ isLoading, oracle, chart, productId }) {
     <div className="bg-sc-card border border-sc-border rounded-xl overflow-hidden">
       <div className="flex items-center gap-1 border-b border-sc-border px-2">
         <Tab id="chart">Chart</Tab>
-        <Tab id="resolve">Resolution Guide</Tab>
-        <Tab id="swarm">Oracle Swarm</Tab>
+        <Tab id="swarm">How it’s priced</Tab>
+        <Tab id="resolve">How it settles</Tab>
       </div>
       <div className="p-3">
         {tab === 'chart'
