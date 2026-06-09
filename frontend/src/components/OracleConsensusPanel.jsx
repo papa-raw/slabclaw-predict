@@ -40,10 +40,14 @@ export default function OracleConsensusPanel({ productId }) {
   const realizedSources = allSources.filter((s) => s.kind !== 'ask').sort((a, b) => (b.weight || 0) - (a.weight || 0));
   const askSources = allSources.filter((s) => s.kind === 'ask').sort((a, b) => (a.priceCents || 0) - (b.priceCents || 0));
   const maxWeight = realizedSources.reduce((m, s) => Math.max(m, s.weight || 0), 0) || 1;
-  const rejected = card.rejectedSources || [];
+  // Two very different kinds of rejection: a MAD outlier is a genuine MANIPULATION catch
+  // (worth showing off); an off-anchor / off-grade exclusion is just a wrong-grade scrape we
+  // quietly dropped. Lumping them under one red "manipulation-resistant" box reads as broken.
+  const allRejected = card.rejectedSources || [];
+  const manipRejected = allRejected.filter((r) => /MAD/i.test(r.reason || ''));
+  const dataExcluded = allRejected.filter((r) => !/MAD/i.test(r.reason || ''));
   const flags = card.flags || [];
   const agree = card.sourceCount ?? realizedSources.length;
-  const total = agree + rejected.length;
 
   const blobId = card.evidence?.blobId || null;
   const aggregatorUrl = card.evidence?.aggregatorUrl || (blobId ? `${AGGREGATOR}/v1/blobs/${blobId}` : null);
@@ -64,7 +68,8 @@ export default function OracleConsensusPanel({ productId }) {
             <span className="text-[8px] font-bold uppercase tracking-wide text-sc-amber border border-sc-amber/40 rounded px-1 py-px">seed</span>
           )}
           <span className="text-[10px] tnum text-sc-muted">
-            <span className="text-sc-text font-semibold">{agree}</span> of {total} sources agree
+            <span className="text-sc-text font-semibold">{agree}</span> independent {agree === 1 ? 'source' : 'sources'}
+            {manipRejected.length > 0 && <span className="text-sc-no/70"> · {manipRejected.length} manipulated cut</span>}
           </span>
         </div>
       </div>
@@ -157,19 +162,17 @@ export default function OracleConsensusPanel({ productId }) {
           </div>
         )}
 
-        {/* rejected outliers — manipulation resistance, visible */}
-        {rejected.length > 0 && (
+        {/* manipulation rejections — the genuine "we caught a wash trade" catch, shown off */}
+        {manipRejected.length > 0 && (
           <div className="bg-sc-no/5 rounded-lg overflow-hidden border border-sc-no/20">
             <div className="px-3 py-1.5 border-b border-sc-no/20 flex items-center justify-between">
-              <span className="text-[10px] font-semibold text-sc-no uppercase tracking-wide">Rejected outliers ({rejected.length})</span>
-              <span className="text-[9px] text-sc-no/60">MAD filter · manipulation-resistant</span>
+              <span className="text-[10px] font-semibold text-sc-no uppercase tracking-wide">Manipulation rejected ({manipRejected.length})</span>
+              <span className="text-[9px] text-sc-no/60">MAD filter</span>
             </div>
             <div className="divide-y divide-sc-no/10">
-              {rejected.map((r, i) => (
+              {manipRejected.map((r, i) => (
                 <div key={i} className="px-3 py-1.5 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <PlatformTag platform={r.platform} muted />
-                  </div>
+                  <PlatformTag platform={r.platform} muted />
                   <div className="flex items-center gap-3">
                     <span className="text-[12px] tnum text-sc-no/70 line-through">{cents(r.priceCents)}</span>
                     <span className="text-[10px] text-sc-no/80 font-medium">{r.reason}</span>
@@ -178,6 +181,15 @@ export default function OracleConsensusPanel({ productId }) {
               ))}
             </div>
           </div>
+        )}
+
+        {/* off-grade data quietly excluded — a calm note, not a scary red box */}
+        {dataExcluded.length > 0 && (
+          <p className="text-[10px] text-sc-muted leading-relaxed">
+            {dataExcluded.length} {dataExcluded.length === 1 ? 'source was' : 'sources were'} excluded as off-grade —
+            their price sat too far from the grade-matched sales to be the same PSA&nbsp;10 card (a wrong-grade or
+            wrong-variant listing). Only clean, grade-matched sales set the price.
+          </p>
         )}
 
         {/* proof — primed: you don't have to trust us */}
