@@ -90,3 +90,9 @@
 **Root cause:** `TinyfishAgent.run()` checks MemWal warm cache FIRST and short-circuits `fetchSignal()` when a cached observation is within `CACHE_TTL`. The previous (buggy) run had cached $1,187, so the new filter never executed.
 **Fix:** `rm memwal/agents/point130/cards/*.json` to clear the stale cache, then re-run — $3,625 (correct). 
 **Mechanism:** Warm-cache short-circuits exist so repeat swarm runs are fast / memory "warms" — but they also mask logic changes during development. When iterating on an agent's `fetchSignal`, clear that agent's card cache or the old value persists.
+
+### 2026-06-09 — Move enum broke market.state reads over JSON-RPC (build green, runtime NaN)
+**Symptom:** After migrating `MarketState` from a `u8` to a Move 2024 `enum`, the frontend/bridge built fine, but markets would render in the wrong state (all treated as non-Active) and the auto-propose watchers would never fire.
+**Root cause:** A `u8` field comes back over JSON-RPC as a number; a Move enum comes back as an OBJECT — `{ type, variant: 'Proposed', fields: {} }`. The readers did `Number(fields.state)`, which is `NaN` for an object, so every `state === 0/1/2/3` check silently failed.
+**Fix:** Parse the variant → numeric code, robust to both shapes. Frontend: `parseState` in `hooks/useMarket.js`. Bridge: shared `marketStateCode()` in `config.mjs`, used by `bridge.mjs`/`swarm.mjs`/`bridge-swarm.mjs`'s `readMarket`. Verified against all 4 live markets (`getObject` showContent) — correct states.
+**Mechanism:** The on-chain ABI change (u8→enum) silently changes the JSON-RPC serialization shape. `Number({...})` is `NaN`, and `NaN === 0` is `false` everywhere — a type error the compiler can't see because it's at the RPC boundary. Build-green ≠ runtime-correct: always re-read a real object after an ABI change.
