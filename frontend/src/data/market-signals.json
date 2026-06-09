@@ -1,12 +1,18 @@
 {
-  "generatedAt": "2026-06-09T14:46:09.453Z",
+  "generatedAt": "2026-06-09T16:31:50.722Z",
   "cards": {
     "neo1-1st-18": {
       "name": "Typhlosion",
-      "settledPriceUsd": 4975,
-      "confidence": 1,
-      "wideDispute": false,
-      "flags": []
+      "settledPriceUsd": 5350,
+      "confidence": 0.8,
+      "wideDispute": true,
+      "flags": [
+        {
+          "code": "grade_inversion",
+          "severity": "high",
+          "message": "PSA 7 ($597) ≥ PSA 8 ($425) — both fresh and sale-backed; a lower grade priced over a higher one."
+        }
+      ]
     },
     "jp-vs-091": {
       "name": "Karen's Umbreon",
@@ -24,7 +30,7 @@
         {
           "code": "grade_inversion",
           "severity": "high",
-          "message": "PSA 8 ($378) ≥ PSA 8.5 ($349) — both fresh and sale-backed; a lower grade priced over a higher one."
+          "message": "PSA 8 ($349) ≥ PSA 8.5 ($349) — both fresh and sale-backed; a lower grade priced over a higher one."
         },
         {
           "code": "ask_above_anchor",

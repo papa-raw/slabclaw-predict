@@ -119,6 +119,13 @@
       "confidence": 0.8,
       "comps": 1,
       "source": "goldin-auctions"
+    },
+    {
+      "date": "2026-06-09T16:31:50.707Z",
+      "priceCents": 793000,
+      "confidence": 0.8,
+      "comps": 1,
+      "source": "goldin-auctions"
     }
   ],
   "anomalies": []
