@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMultipleMarkets } from './hooks/useMarket';
 import { DEMO_MARKETS } from './constants';
 import Header from './components/Header';
@@ -12,6 +12,7 @@ const hashView = () => {
   const h = typeof window !== 'undefined' ? window.location.hash : '';
   if (h === '#architecture') return 'architecture';
   if (h === '#legal') return 'legal';
+  if (h === '#deck') return 'deck';
   return 'markets';
 };
 
@@ -20,15 +21,32 @@ export default function App() {
     typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('market') : null,
   );
   const [view, setView] = useState(hashView);
+  const deckFrameRef = useRef(null);
   const marketIds = DEMO_MARKETS.map((m) => m.id);
   const { markets, isLoading, error, refetch } = useMultipleMarkets(marketIds);
 
-  // #architecture toggles the docs/architecture page; the navbar links drive the hash.
+  // #architecture/#legal/#deck toggle in-app views; the navbar links drive the hash.
   useEffect(() => {
     const onHash = () => { setView(hashView()); window.scrollTo({ top: 0 }); };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+
+  // Deck nav: the deck's keydown listener lives in the iframe, but focus stays on the
+  // navbar link after clicking "Deck" — so forward the nav keys to the embedded deck.
+  useEffect(() => {
+    if (view !== 'deck') return;
+    const NAV = new Set(['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', ' ', 'PageDown', 'PageUp', 'Home', 'End']);
+    const onKey = (e) => {
+      if (!NAV.has(e.key)) return;
+      const win = deckFrameRef.current?.contentWindow;
+      if (!win) return;
+      e.preventDefault();
+      win.dispatchEvent(new KeyboardEvent('keydown', { key: e.key, bubbles: true }));
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [view]);
 
   // Deep-link the open market to ?market=<id> so the browser Back button closes
   // it and a specific market (e.g. the disputed Flareon) is shareable.
@@ -64,6 +82,15 @@ export default function App() {
         <ArchitecturePage />
       ) : view === 'legal' ? (
         <LegalPage />
+      ) : view === 'deck' ? (
+        <iframe
+          ref={deckFrameRef}
+          title="SlabClaw Predict — deck"
+          src="/deck/index.html"
+          className="w-full border-0 bg-sc-bg block"
+          style={{ height: 'calc(100vh - 52px)' }}
+          onLoad={(e) => e.currentTarget.focus()}
+        />
       ) : (
       <main className="max-w-6xl mx-auto px-4 lg:px-6 py-7 pb-32">
         {/* Hero */}
@@ -105,7 +132,7 @@ export default function App() {
       </main>
       )}
 
-      <Footer onFunded={refetch} />
+      {view !== 'deck' && <Footer onFunded={refetch} />}
 
       {view === 'markets' && selected && (
         <MarketDetail

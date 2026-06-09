@@ -1,8 +1,8 @@
-/// cardmarket-tinyfish.mjs — LIVE Cardmarket graded-listing scraper via the TinyFish
-/// stealth browser agent. This is the path that finally beats Cardmarket's Cloudflare
-/// (the fleet + local Playwright scrapers were CF-blocked on the product page; the
-/// TinyFish stealth agent renders it and extracts the offers — including the grade,
-/// which Cardmarket hides in the seller's comment, not the condition badge).
+/// cardmarket-tinyfish.mjs — LIVE Cardmarket graded-listing reader via a TinyFish
+/// browser agent. Cardmarket's product page renders its offers client-side, so a plain
+/// HTTP fetch returns none; the TinyFish browser agent renders the public page and reads
+/// the listed offers — including the grade, which Cardmarket shows in the seller's
+/// comment rather than the condition badge.
 
 import { execFile } from 'node:child_process';
 
