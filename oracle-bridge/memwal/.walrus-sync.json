@@ -27,6 +27,20 @@
       "fileCount": 102,
       "sizeBytes": 316924,
       "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/TS2mzHJBGZ2JZEcEYIC0dxaSR8Q_TqfYSYXbmcNBqO0"
+    },
+    {
+      "blobId": "qHOIyUcUQR5dI4L-kFNP3UfVyySN5URh2ZdhntzsRnQ",
+      "timestamp": "2026-06-09T09:13:04.559Z",
+      "fileCount": 104,
+      "sizeBytes": 320862,
+      "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/qHOIyUcUQR5dI4L-kFNP3UfVyySN5URh2ZdhntzsRnQ"
+    },
+    {
+      "blobId": "e398HFzGDvhvREsisDOwD7ScslUSpYHAPlUPdm5pob4",
+      "timestamp": "2026-06-09T09:17:14.313Z",
+      "fileCount": 107,
+      "sizeBytes": 367675,
+      "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/e398HFzGDvhvREsisDOwD7ScslUSpYHAPlUPdm5pob4"
     }
   ]
 }

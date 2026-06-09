@@ -34,11 +34,15 @@ export default function OracleConsensusPanel({ productId }) {
 
   if (!card) return <EmptyState isSeed={isSeed} />;
 
-  const sources = [...(card.contributingSources || [])].sort((a, b) => (b.weight || 0) - (a.weight || 0));
-  const maxWeight = sources.reduce((m, s) => Math.max(m, s.weight || 0), 0) || 1;
+  // Realized sales SETTLE the market; asks (live listings) only bound the range. Split
+  // them so the table can't imply a $16k ask "counts" when it carries zero weight.
+  const allSources = [...(card.contributingSources || [])];
+  const realizedSources = allSources.filter((s) => s.kind !== 'ask').sort((a, b) => (b.weight || 0) - (a.weight || 0));
+  const askSources = allSources.filter((s) => s.kind === 'ask').sort((a, b) => (a.priceCents || 0) - (b.priceCents || 0));
+  const maxWeight = realizedSources.reduce((m, s) => Math.max(m, s.weight || 0), 0) || 1;
   const rejected = card.rejectedSources || [];
   const flags = card.flags || [];
-  const agree = card.sourceCount ?? sources.length;
+  const agree = card.sourceCount ?? realizedSources.length;
   const total = agree + rejected.length;
 
   const blobId = card.evidence?.blobId || null;
@@ -105,28 +109,53 @@ export default function OracleConsensusPanel({ productId }) {
         {/* quality flags — grade inversions + multiplier divergence (manipulation signals) */}
         {signals?.flags?.length > 0 && <QualityFlags signals={signals} />}
 
-        {/* who priced it — plain columns; "vs agreed" is trust at a glance */}
+        {/* sold prices — these SETTLE the market; "vs agreed" is trust at a glance */}
         <div className="bg-sc-surface/40 rounded-lg overflow-hidden border border-sc-border/60">
           <div className="px-3 py-1.5 border-b border-sc-border/60 flex items-center justify-between">
-            <span className="text-[10px] font-semibold text-sc-dim uppercase tracking-wide">Who priced it</span>
-            <span className="text-[9px] text-sc-muted">{agree} marketplace{agree === 1 ? '' : 's'} · weighted median</span>
+            <span className="text-[10px] font-semibold text-sc-dim uppercase tracking-wide">Sold prices · these settle the market</span>
+            <span className="text-[9px] text-sc-muted">{agree} independent source{agree === 1 ? '' : 's'} · weighted median</span>
           </div>
           <table className="w-full text-[12px] tnum">
             <thead>
               <tr className="text-[9px] text-sc-muted uppercase tracking-wide border-b border-sc-border/60">
                 <th className="text-left font-medium px-3 py-1.5">Marketplace</th>
-                <th className="text-right font-medium px-2 py-1.5">Their price</th>
+                <th className="text-right font-medium px-2 py-1.5">Sold for</th>
                 <th className="text-right font-medium px-2 py-1.5" title="How far this source sits from the agreed price">vs&nbsp;agreed</th>
                 <th className="text-left font-medium px-3 py-1.5 w-[26%]" title="How much this source counts toward the final price">Influence</th>
               </tr>
             </thead>
             <tbody>
-              {sources.length === 0 ? (
-                <tr><td colSpan={4} className="px-3 py-3 text-center text-sc-muted">No contributing sources</td></tr>
-              ) : sources.map((s) => <SourceRow key={s.platform} s={s} maxWeight={maxWeight} consensus={card.consensusPriceCents} />)}
+              {realizedSources.length === 0 ? (
+                <tr><td colSpan={4} className="px-3 py-3 text-center text-sc-muted">No realized sales yet — only asking prices below.</td></tr>
+              ) : realizedSources.map((s) => <SourceRow key={s.platform} s={s} maxWeight={maxWeight} consensus={card.consensusPriceCents} />)}
             </tbody>
           </table>
         </div>
+
+        {/* asking prices — listings that BOUND the range but never settle */}
+        {askSources.length > 0 && (
+          <div className="bg-sc-surface/20 rounded-lg overflow-hidden border border-sc-border/40">
+            <div className="px-3 py-1.5 border-b border-sc-border/40 flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-sc-dim uppercase tracking-wide">Current listings · asking only</span>
+              <span className="text-[9px] text-sc-muted">{askSources.length} live · don’t settle the market</span>
+            </div>
+            <table className="w-full text-[12px] tnum">
+              <thead>
+                <tr className="text-[9px] text-sc-muted uppercase tracking-wide border-b border-sc-border/40">
+                  <th className="text-left font-medium px-3 py-1.5">Marketplace</th>
+                  <th className="text-right font-medium px-2 py-1.5">Asking</th>
+                  <th className="text-right font-medium px-3 py-1.5" title="How far this listing sits from the agreed price">vs&nbsp;agreed</th>
+                </tr>
+              </thead>
+              <tbody>
+                {askSources.map((s) => <AskRow key={s.platform} s={s} consensus={card.consensusPriceCents} />)}
+              </tbody>
+            </table>
+            <div className="px-3 py-1.5 text-[9px] text-sc-muted leading-relaxed border-t border-sc-border/40">
+              Asking prices sit above what cards actually sell for, so they bound the range but never set the settle price.
+            </div>
+          </div>
+        )}
 
         {/* rejected outliers — manipulation resistance, visible */}
         {rejected.length > 0 && (
@@ -259,12 +288,31 @@ function SourceRow({ s, maxWeight, consensus }) {
   );
 }
 
+// Asking-price row — no influence bar (asks carry zero settlement weight by design).
+function AskRow({ s, consensus }) {
+  const dev = consensus > 0 && s.priceCents != null ? ((s.priceCents - consensus) / consensus) * 100 : null;
+  return (
+    <tr className="border-t border-sc-border/30 first:border-t-0 hover:bg-white/[0.02]">
+      <td className="px-3 py-1.5 align-top">
+        <PlatformTag platform={s.platform} muted />
+        <div className="text-[9px] text-sc-muted mt-0.5">live listing</div>
+      </td>
+      <td className="text-right px-2 py-1.5 font-medium text-sc-dim align-top">{cents(s.priceCents)}</td>
+      <td className="text-right px-3 py-1.5 align-top text-sc-muted" title="difference from the agreed price">
+        {dev == null ? '—' : `${dev >= 0 ? '+' : ''}${dev.toFixed(0)}%`}
+      </td>
+    </tr>
+  );
+}
+
 // Translate a coordinator flag into a plain-language note for bettors.
 function FlagNote({ flag, agree }) {
   const map = {
-    insufficient_sources: { tone: 'amber', text: `Only ${agree} marketplace${agree === 1 ? '' : 's'} had recent sales. A market needs at least 3 independent sources before it can settle — more comps needed first.` },
+    insufficient_sources: { tone: 'amber', text: `Only ${agree} independent marketplace${agree === 1 ? '' : 's'} had recent sales. A market needs at least 3 independent sold sources before it can settle — more comps needed first.` },
     wide_disagreement: { tone: 'no', text: 'The marketplaces disagree by a lot right now. The oracle won’t settle on a shaky number — treat this price with caution.' },
     all_outliers: { tone: 'no', text: 'Every source looked manipulated and was rejected — no trustworthy price yet.' },
+    asks_above_consensus: { tone: 'amber', text: 'Cards are currently listed well above the last sold prices — the market may be moving up. The settle price tracks actual sales, not asks.' },
+    consensus_above_lowest_ask: { tone: 'amber', text: 'Someone is listing this below the agreed price right now. Could be a deal — or a stale listing. The settle price tracks completed sales.' },
   };
   const m = map[flag] || { tone: 'muted', text: flag.replace(/_/g, ' ') };
   const cls = m.tone === 'no' ? 'border-sc-no/30 bg-sc-no/5 text-sc-no'

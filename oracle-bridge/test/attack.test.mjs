@@ -101,16 +101,74 @@ test('single source is flagged insufficient_sources with sourceCount < 3', () =>
 // ─────────────────────────────────────────────────────────────────────────
 // 3. Thin market — two sources still flagged
 // ─────────────────────────────────────────────────────────────────────────
-test('two sources (thin market) still flagged insufficient_sources', () => {
+test('two realized sources (thin market) still flagged insufficient_sources', () => {
+  // ebay + goldin are both REALIZED, distinct families. alt would be an ASK (it doesn't
+  // count toward the realized independence gate), so use two realized venues here.
   const signals = makeSignals([
     { platform: 'ebay', priceCents: 1500000 },
-    { platform: 'alt', priceCents: 1510000 },
+    { platform: 'goldin', priceCents: 1510000 },
   ]);
   const result = aggregate(CARD, signals, {});
 
   assert.ok(result.flags.includes('insufficient_sources'), 'two sources should flag insufficient_sources');
   assert.ok(result.sourceCount < 3, `sourceCount ${result.sourceCount} should be < 3`);
   assert.equal(result.sourceCount, 2);
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// 3b. Asks bound but never VOTE in settlement
+// ─────────────────────────────────────────────────────────────────────────
+test('asks (Cardmarket/ALT) do not vote in the settlement median', () => {
+  // Three realized eBay-origin + Goldin + PSA sales near $5k; two live asks far above.
+  // Settlement must land on the realized cluster, not be dragged up by the asks. And
+  // because the asks sit well above realized, the market-moved-up flag fires.
+  const signals = makeSignals([
+    { platform: 'ebay', priceCents: 500000, source: 'ebay_sold', compCount: 12 },
+    { platform: 'goldin', priceCents: 510000, source: 'goldin-auctions', compCount: 3 },
+    { platform: 'psa-apr', priceCents: 490000, source: 'psa-apr', compCount: 3 },
+    { platform: 'cardmarket', priceCents: 900000, source: 'cardmarket-eu-ask', compCount: 2 },
+    { platform: 'alt', priceCents: 950000, source: 'alt-ask', compCount: 1 },
+  ]);
+  const result = aggregate(CARD, signals, {});
+
+  // Consensus stays in the realized cluster (~$5k), NOT pulled toward the $9k+ asks.
+  assert.ok(result.consensusPriceCents < 600000, `consensus ${result.consensusPriceCents} pulled up by asks`);
+  // The asks are recorded but carry zero settlement weight.
+  const ask = result.contributingSources.find((s) => s.platform === 'cardmarket');
+  assert.equal(ask.kind, 'ask');
+  assert.equal(ask.weight, 0);
+  // Realized independence gate counts families: ebay-sold + goldin + psa-apr = 3 (asks excluded).
+  assert.equal(result.sourceCount, 3);
+  assert.equal(result.askCount, 2);
+  // Live asks far above realized → market-may-have-moved-up signal.
+  assert.ok(result.flags.includes('asks_above_consensus'), 'asks well above realized should flag asks_above_consensus');
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// 3c. Cross-source plausibility gate — thin mis-grab rejected
+// ─────────────────────────────────────────────────────────────────────────
+test('a 1-comp source far below the well-supported anchor is rejected (Goldin $425 case)', () => {
+  // The real Flareon failure: Goldin grabbed $425 (1 comp) for a PSA-10 worth ~$5.6k.
+  // It sits inside MAD tolerance (wide spread) but is obviously a wrong-variant snippet.
+  // The anchor gate (>=3-comp realized sources) must reject it.
+  const signals = makeSignals([
+    { platform: 'ebay', priceCents: 561600, source: 'ebay_sold', compCount: 12 },
+    { platform: 'pricecharting', priceCents: 561600, source: 'pc_sold_all', compCount: 12 },
+    { platform: 'psa-apr', priceCents: 300100, source: 'psa-apr', compCount: 3 },
+    { platform: 'goldin', priceCents: 42500, source: 'goldin-auctions', compCount: 1 }, // the mis-grab
+  ]);
+  const result = aggregate(CARD, signals, {});
+
+  const rejected = result.rejectedSources.find((r) => r.platform === 'goldin');
+  assert.ok(rejected, 'the $425 Goldin mis-grab should be rejected');
+  assert.ok(/implausible vs anchor/.test(rejected.reason), 'reason should cite the anchor gate');
+  assert.ok(
+    !result.contributingSources.some((s) => s.platform === 'goldin'),
+    'rejected source must not contribute',
+  );
+  // Consensus is no longer dragged toward $425; eBay+PC dedupe to one family, leaving
+  // ebay-sold + psa-apr = 2 realized families.
+  assert.ok(result.consensusPriceCents > 300000, `consensus ${result.consensusPriceCents} still dragged low`);
 });
 
 // ─────────────────────────────────────────────────────────────────────────
