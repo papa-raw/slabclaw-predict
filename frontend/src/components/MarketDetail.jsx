@@ -476,18 +476,23 @@ function GraphPanel({ isLoading, oracle, chart, productId }) {
   return (
     <div className="bg-sc-card border border-sc-border rounded-xl overflow-hidden">
       <div className="flex items-center gap-1 border-b border-sc-border px-2">
-        <Tab id="chart">Chart</Tab>
-        <Tab id="swarm">How it’s priced</Tab>
+        <Tab id="chart">Price</Tab>
         <Tab id="resolve">How it settles</Tab>
       </div>
       <div className="p-3">
-        {tab === 'chart'
-          ? (isLoading
-              ? <div className="h-[300px] grid place-items-center text-sm text-sc-muted">Loading oracle history…</div>
-              : chart)
-          : tab === 'resolve'
-            ? <Resolution oracle={oracle} bare />
-            : <OracleConsensusPanel productId={productId} />}
+        {tab === 'resolve'
+          ? <Resolution oracle={oracle} bare />
+          : isLoading
+            ? <div className="h-[300px] grid place-items-center text-sm text-sc-muted">Loading oracle history…</div>
+            : (
+              <>
+                {chart}
+                {/* the price chart and where that price comes from, in one view */}
+                <div className="mt-4 pt-4 border-t border-sc-border/60">
+                  <OracleConsensusPanel productId={productId} />
+                </div>
+              </>
+            )}
       </div>
     </div>
   );
@@ -502,8 +507,8 @@ function Resolution({ oracle, bare }) {
       </p>
       <ol className="space-y-2.5">
         <ResolveStep n="1" title="The market closes">
-          At expiry, the oracle posts the card’s real price: the swarm consensus from the{' '}
-          <span className="text-sc-text font-medium">Oracle Swarm</span> tab
+          At expiry, the oracle posts the card’s real price: the swarm consensus shown under the{' '}
+          <span className="text-sc-text font-medium">Price</span> tab
           {oracle ? <> (right now, the median of <span className="text-sc-text font-semibold">{oracle.saleCount}</span> completed sale{oracle.saleCount === 1 ? '' : 's'})</> : ''}.
         </ResolveStep>
         <ResolveStep n="2" title="Who wins">
