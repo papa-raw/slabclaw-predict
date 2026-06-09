@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "swarmId": "slabclaw-oracle-swarm",
-  "timestamp": "2026-06-09T14:46:09.441Z",
+  "timestamp": "2026-06-09T14:43:43.952Z",
   "cardIds": [
     "neo1-1st-18",
     "jp-vs-091",
@@ -21,8 +21,8 @@
           "kind": "realized",
           "priceCents": 497512,
           "confidence": 0.9,
-          "reliability": 0.8448432077069163,
-          "weight": 1.7002118167569393,
+          "reliability": 0.8323958216699532,
+          "weight": 1.6751619562208475,
           "source": "pc_sold",
           "compCount": 5
         },
@@ -32,8 +32,8 @@
           "kind": "realized",
           "priceCents": 337500,
           "confidence": 0.85,
-          "reliability": 0.4059993795622355,
-          "weight": 0.597728947579754,
+          "reliability": 0.44825288289250365,
+          "weight": 0.6599362825917394,
           "source": "psa-apr",
           "compCount": 3
         },
@@ -43,7 +43,7 @@
           "kind": "ask",
           "priceCents": 600000,
           "confidence": 0.5,
-          "reliability": 0.8562875087562558,
+          "reliability": 0.8831285721062662,
           "weight": 0,
           "source": "ebay_active",
           "compCount": 4
@@ -54,7 +54,7 @@
           "kind": "ask",
           "priceCents": 383700,
           "confidence": 0.4,
-          "reliability": 0.33051910276242785,
+          "reliability": 0.3516548852708952,
           "weight": 0,
           "source": "alt-ask",
           "compCount": 1
@@ -73,8 +73,8 @@
         "consensus_above_lowest_ask"
       ],
       "sourceCount": 2,
-      "roundId": "neo1-1st-18_1781016369439",
-      "timestamp": "2026-06-09T14:46:09.439Z",
+      "roundId": "neo1-1st-18_1781016223950",
+      "timestamp": "2026-06-09T14:43:43.950Z",
       "rawSourceCount": 2,
       "sourceFamilies": [
         "ebay-sold",
@@ -95,8 +95,8 @@
           "kind": "realized",
           "priceCents": 1588230,
           "confidence": 0.9,
-          "reliability": 0.8477925849535843,
-          "weight": 1.706147456845784,
+          "reliability": 0.8354330322152717,
+          "weight": 1.681274330044258,
           "source": "pc_sold",
           "compCount": 5
         },
@@ -106,7 +106,7 @@
           "kind": "ask",
           "priceCents": 1850000,
           "confidence": 0.6,
-          "reliability": 0.8491939449345691,
+          "reliability": 0.876432824505443,
           "weight": 0,
           "source": "ebay_active",
           "compCount": 5
@@ -117,7 +117,7 @@
           "kind": "ask",
           "priceCents": 1674000,
           "confidence": 0.5,
-          "reliability": 0.6662773904401634,
+          "reliability": 0.6653690792449893,
           "weight": 0,
           "source": "cardmarket-eu-ask",
           "compCount": 2
@@ -145,8 +145,8 @@
         "insufficient_sources"
       ],
       "sourceCount": 1,
-      "roundId": "jp-vs-091_1781016369440",
-      "timestamp": "2026-06-09T14:46:09.440Z",
+      "roundId": "jp-vs-091_1781016223951",
+      "timestamp": "2026-06-09T14:43:43.951Z",
       "rawSourceCount": 1,
       "sourceFamilies": [
         "ebay-sold"
@@ -157,7 +157,7 @@
     "base5-1st-83": {
       "cardId": "base5-1st-83",
       "consensusPriceCents": 798656,
-      "confidenceLower": 798656,
+      "confidenceLower": 470000,
       "confidenceUpper": 798656,
       "contributingSources": [
         {
@@ -166,8 +166,8 @@
           "kind": "realized",
           "priceCents": 793000,
           "confidence": 0.8,
-          "reliability": 0.4037597354120125,
-          "weight": 0.32300778726146256,
+          "reliability": 0.41035457291454325,
+          "weight": 0.32828365724604053,
           "source": "goldin-auctions",
           "compCount": 1
         },
@@ -177,8 +177,8 @@
           "kind": "realized",
           "priceCents": 798656,
           "confidence": 0.9,
-          "reliability": 0.8506340717823715,
-          "weight": 1.71186589647895,
+          "reliability": 0.8386299096645815,
+          "weight": 1.6877079663492132,
           "source": "pc_sold",
           "compCount": 5
         },
@@ -188,10 +188,21 @@
           "kind": "realized",
           "priceCents": 470000,
           "confidence": 0.7,
-          "reliability": 0.31953548771293205,
-          "weight": 0.22367451631630983,
+          "reliability": 0.35737629949093647,
+          "weight": 0.25016304358139435,
           "source": "fanatics-pwcc",
           "compCount": 1
+        },
+        {
+          "platform": "psa-apr",
+          "family": "psa-apr",
+          "kind": "realized",
+          "priceCents": 397000,
+          "confidence": 0.85,
+          "reliability": 0.4344758648677511,
+          "weight": 0.6396540756670239,
+          "source": "psa-apr",
+          "compCount": 3
         },
         {
           "platform": "ebay",
@@ -199,7 +210,7 @@
           "kind": "ask",
           "priceCents": 1499995,
           "confidence": 0.125,
-          "reliability": 0.840627748697762,
+          "reliability": 0.8674753018970873,
           "weight": 0,
           "source": "ebay_active",
           "compCount": 1
@@ -210,30 +221,26 @@
           "kind": "ask",
           "priceCents": 527250,
           "confidence": 0.4,
-          "reliability": 0.32087630151630814,
+          "reliability": 0.3407595165974575,
           "weight": 0,
           "source": "alt-ask",
           "compCount": 1
         }
       ],
-      "rejectedSources": [
-        {
-          "platform": "psa-apr",
-          "priceCents": 397000,
-          "reason": "implausible vs anchor (0.50x of $7987)"
-        }
-      ],
+      "rejectedSources": [],
       "flags": [
-        "consensus_above_lowest_ask"
+        "consensus_above_lowest_ask",
+        "wide_disagreement"
       ],
-      "sourceCount": 3,
-      "roundId": "base5-1st-83_1781016369440",
-      "timestamp": "2026-06-09T14:46:09.440Z",
-      "rawSourceCount": 3,
+      "sourceCount": 4,
+      "roundId": "base5-1st-83_1781016223951",
+      "timestamp": "2026-06-09T14:43:43.951Z",
+      "rawSourceCount": 4,
       "sourceFamilies": [
         "goldin",
         "ebay-sold",
-        "fanatics-pwcc"
+        "fanatics-pwcc",
+        "psa-apr"
       ],
       "askCount": 2,
       "lowestAskCents": 527250
@@ -241,7 +248,7 @@
     "base2-1st-3": {
       "cardId": "base2-1st-3",
       "consensusPriceCents": 730000,
-      "confidenceLower": 730000,
+      "confidenceLower": 300100,
       "confidenceUpper": 730000,
       "contributingSources": [
         {
@@ -250,10 +257,32 @@
           "kind": "realized",
           "priceCents": 730000,
           "confidence": 0.8500000000000001,
-          "reliability": 0.8533720397165296,
-          "weight": 1.450730690084073,
+          "reliability": 0.841785051330747,
+          "weight": 1.4310327819072746,
           "source": "pc_sold",
           "compCount": 4
+        },
+        {
+          "platform": "fanatics",
+          "family": "fanatics-pwcc",
+          "kind": "realized",
+          "priceCents": 338000,
+          "confidence": 0.7,
+          "reliability": 0.34721288984728094,
+          "weight": 0.3437227220976267,
+          "source": "fanatics-pwcc",
+          "compCount": 2
+        },
+        {
+          "platform": "psa-apr",
+          "family": "psa-apr",
+          "kind": "realized",
+          "priceCents": 300100,
+          "confidence": 0.85,
+          "reliability": 0.4199979318741184,
+          "weight": 0.6183390403537781,
+          "source": "psa-apr",
+          "compCount": 3
         },
         {
           "platform": "ebay",
@@ -261,7 +290,7 @@
           "kind": "ask",
           "priceCents": 795000,
           "confidence": 0.6,
-          "reliability": 0.8317582170824469,
+          "reliability": 0.8579953995578902,
           "weight": 0,
           "source": "ebay_active",
           "compCount": 6
@@ -272,7 +301,7 @@
           "kind": "ask",
           "priceCents": 875000,
           "confidence": 0.4,
-          "reliability": 0.3162628904548924,
+          "reliability": 0.33556118831257054,
           "weight": 0,
           "source": "alt-ask",
           "compCount": 1
@@ -282,28 +311,20 @@
         {
           "platform": "goldin",
           "priceCents": 42500,
-          "reason": "implausible vs anchor (0.06x of $7300, thin source)"
-        },
-        {
-          "platform": "fanatics",
-          "priceCents": 338000,
-          "reason": "implausible vs anchor (0.46x of $7300, thin source)"
-        },
-        {
-          "platform": "psa-apr",
-          "priceCents": 300100,
-          "reason": "implausible vs anchor (0.41x of $7300)"
+          "reason": "implausible vs anchor (0.08x of $5151, thin source)"
         }
       ],
       "flags": [
-        "insufficient_sources"
+        "wide_disagreement"
       ],
-      "sourceCount": 1,
-      "roundId": "base2-1st-3_1781016369440",
-      "timestamp": "2026-06-09T14:46:09.440Z",
-      "rawSourceCount": 1,
+      "sourceCount": 3,
+      "roundId": "base2-1st-3_1781016223951",
+      "timestamp": "2026-06-09T14:43:43.951Z",
+      "rawSourceCount": 3,
       "sourceFamilies": [
-        "ebay-sold"
+        "ebay-sold",
+        "fanatics-pwcc",
+        "psa-apr"
       ],
       "askCount": 2,
       "lowestAskCents": 795000
@@ -311,7 +332,7 @@
   },
   "agentSignals": {
     "ebay": {
-      "timestamp": "2026-06-09T14:46:08.713Z",
+      "timestamp": "2026-06-09T14:43:43.205Z",
       "signals": [
         {
           "cardId": "neo1-1st-18",
@@ -339,7 +360,7 @@
               "url": "https://www.ebay.com/itm/318122855037?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item4a11998a7d:g:4G4AAeSwPZBp1pgY"
             }
           ],
-          "observedAt": "2026-06-09T14:46:08.580Z",
+          "observedAt": "2026-06-09T14:43:43.084Z",
           "flags": []
         },
         {
@@ -372,7 +393,7 @@
               "url": "https://www.ebay.com/itm/157907348885?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item24c402ed95:g:O2YAAeSwMdJplShd"
             }
           ],
-          "observedAt": "2026-06-09T14:46:08.669Z",
+          "observedAt": "2026-06-09T14:43:43.163Z",
           "flags": []
         },
         {
@@ -389,7 +410,7 @@
               "url": "https://www.ebay.com/itm/188060533997?_skw=%22Dark+Raichu%22+team+rocket+pokemon&hash=item2bc94804ed:g:oO8AAeSwaaVpkMUZ"
             }
           ],
-          "observedAt": "2026-06-09T14:46:08.708Z",
+          "observedAt": "2026-06-09T14:43:43.197Z",
           "flags": []
         },
         {
@@ -426,21 +447,21 @@
               "url": "https://www.ebay.com/itm/287168706835?_skw=%22Flareon%22+jungle+pokemon&hash=item42dc96b913:g:XGoAAeSw~~1pod~W"
             }
           ],
-          "observedAt": "2026-06-09T14:46:08.712Z",
+          "observedAt": "2026-06-09T14:43:43.204Z",
           "flags": []
         }
       ]
     },
     "courtyard": {
-      "timestamp": "2026-06-09T14:46:08.704Z",
+      "timestamp": "2026-06-09T14:43:43.192Z",
       "signals": []
     },
     "tcgplayer": {
-      "timestamp": "2026-06-09T14:46:08.684Z",
+      "timestamp": "2026-06-09T14:43:43.176Z",
       "signals": []
     },
     "alt": {
-      "timestamp": "2026-06-09T14:46:08.563Z",
+      "timestamp": "2026-06-09T14:43:43.070Z",
       "signals": [
         {
           "cardId": "neo1-1st-18",
@@ -449,7 +470,7 @@
           "compCount": 1,
           "source": "alt-ask",
           "platform": "alt",
-          "observedAt": "2026-06-09T14:46:08.562Z"
+          "observedAt": "2026-06-09T14:43:43.068Z"
         },
         {
           "cardId": "jp-vs-091",
@@ -458,7 +479,7 @@
           "compCount": 1,
           "source": "alt-ask",
           "platform": "alt",
-          "observedAt": "2026-06-09T14:46:08.562Z"
+          "observedAt": "2026-06-09T14:43:43.068Z"
         },
         {
           "cardId": "base5-1st-83",
@@ -467,7 +488,7 @@
           "compCount": 1,
           "source": "alt-ask",
           "platform": "alt",
-          "observedAt": "2026-06-09T14:46:08.562Z"
+          "observedAt": "2026-06-09T14:43:43.068Z"
         },
         {
           "cardId": "base2-1st-3",
@@ -476,12 +497,12 @@
           "compCount": 1,
           "source": "alt-ask",
           "platform": "alt",
-          "observedAt": "2026-06-09T14:46:08.562Z"
+          "observedAt": "2026-06-09T14:43:43.069Z"
         }
       ]
     },
     "cardmarket": {
-      "timestamp": "2026-06-09T14:46:08.565Z",
+      "timestamp": "2026-06-09T14:43:43.072Z",
       "signals": [
         {
           "cardId": "jp-vs-091",
@@ -490,20 +511,20 @@
           "compCount": 2,
           "source": "cardmarket-eu-ask",
           "platform": "cardmarket",
-          "observedAt": "2026-06-09T14:46:08.564Z"
+          "observedAt": "2026-06-09T14:43:43.071Z"
         }
       ]
     },
     "beezie": {
-      "timestamp": "2026-06-09T14:46:08.693Z",
+      "timestamp": "2026-06-09T14:43:43.186Z",
       "signals": []
     },
     "collector-crypt": {
-      "timestamp": "2026-06-09T14:46:08.675Z",
+      "timestamp": "2026-06-09T14:43:43.169Z",
       "signals": []
     },
     "goldin": {
-      "timestamp": "2026-06-09T14:46:09.438Z",
+      "timestamp": "2026-06-09T14:43:43.949Z",
       "signals": [
         {
           "cardId": "jp-vs-091",
@@ -512,7 +533,7 @@
           "compCount": 1,
           "source": "goldin-auctions",
           "platform": "goldin",
-          "observedAt": "2026-06-09T14:46:09.438Z"
+          "observedAt": "2026-06-09T14:43:43.948Z"
         },
         {
           "cardId": "base5-1st-83",
@@ -521,7 +542,7 @@
           "compCount": 1,
           "source": "goldin-auctions",
           "platform": "goldin",
-          "observedAt": "2026-06-09T14:46:09.438Z"
+          "observedAt": "2026-06-09T14:43:43.949Z"
         },
         {
           "cardId": "base2-1st-3",
@@ -530,12 +551,12 @@
           "compCount": 1,
           "source": "goldin-auctions",
           "platform": "goldin",
-          "observedAt": "2026-06-09T14:46:09.438Z"
+          "observedAt": "2026-06-09T14:43:43.949Z"
         }
       ]
     },
     "pricecharting": {
-      "timestamp": "2026-06-09T14:46:08.699Z",
+      "timestamp": "2026-06-09T14:43:43.189Z",
       "signals": [
         {
           "cardId": "neo1-1st-18",
@@ -545,7 +566,7 @@
           "confidence": 0.9,
           "source": "pc_sold",
           "compCount": 5,
-          "observedAt": "2026-06-09T14:46:08.607Z",
+          "observedAt": "2026-06-09T14:43:43.112Z",
           "flags": []
         },
         {
@@ -556,7 +577,7 @@
           "confidence": 0.9,
           "source": "pc_sold",
           "compCount": 5,
-          "observedAt": "2026-06-09T14:46:08.657Z",
+          "observedAt": "2026-06-09T14:43:43.154Z",
           "flags": []
         },
         {
@@ -567,7 +588,7 @@
           "confidence": 0.9,
           "source": "pc_sold",
           "compCount": 5,
-          "observedAt": "2026-06-09T14:46:08.680Z",
+          "observedAt": "2026-06-09T14:43:43.173Z",
           "flags": []
         },
         {
@@ -578,13 +599,13 @@
           "confidence": 0.8500000000000001,
           "source": "pc_sold",
           "compCount": 4,
-          "observedAt": "2026-06-09T14:46:08.699Z",
+          "observedAt": "2026-06-09T14:43:43.188Z",
           "flags": []
         }
       ]
     },
     "fanatics": {
-      "timestamp": "2026-06-09T14:46:08.561Z",
+      "timestamp": "2026-06-09T14:43:43.067Z",
       "signals": [
         {
           "cardId": "neo1-1st-18",
@@ -593,7 +614,7 @@
           "compCount": 2,
           "source": "fanatics-pwcc",
           "platform": "fanatics",
-          "observedAt": "2026-06-09T14:46:08.560Z"
+          "observedAt": "2026-06-09T14:43:43.065Z"
         },
         {
           "cardId": "jp-vs-091",
@@ -602,7 +623,7 @@
           "compCount": 1,
           "source": "fanatics-pwcc",
           "platform": "fanatics",
-          "observedAt": "2026-06-09T14:46:08.561Z"
+          "observedAt": "2026-06-09T14:43:43.066Z"
         },
         {
           "cardId": "base5-1st-83",
@@ -611,7 +632,7 @@
           "compCount": 1,
           "source": "fanatics-pwcc",
           "platform": "fanatics",
-          "observedAt": "2026-06-09T14:46:08.561Z"
+          "observedAt": "2026-06-09T14:43:43.066Z"
         },
         {
           "cardId": "base2-1st-3",
@@ -620,12 +641,12 @@
           "compCount": 2,
           "source": "fanatics-pwcc",
           "platform": "fanatics",
-          "observedAt": "2026-06-09T14:46:08.561Z"
+          "observedAt": "2026-06-09T14:43:43.067Z"
         }
       ]
     },
     "psa-apr": {
-      "timestamp": "2026-06-09T14:46:09.434Z",
+      "timestamp": "2026-06-09T14:43:43.899Z",
       "signals": [
         {
           "cardId": "neo1-1st-18",
@@ -634,7 +655,7 @@
           "compCount": 3,
           "source": "psa-apr",
           "platform": "psa-apr",
-          "observedAt": "2026-06-09T14:46:08.557Z"
+          "observedAt": "2026-06-09T14:43:43.061Z"
         },
         {
           "cardId": "base5-1st-83",
@@ -643,7 +664,7 @@
           "compCount": 3,
           "source": "psa-apr",
           "platform": "psa-apr",
-          "observedAt": "2026-06-09T14:46:09.433Z"
+          "observedAt": "2026-06-09T14:43:43.898Z"
         },
         {
           "cardId": "base2-1st-3",
@@ -652,23 +673,23 @@
           "compCount": 3,
           "source": "psa-apr",
           "platform": "psa-apr",
-          "observedAt": "2026-06-09T14:46:09.434Z"
+          "observedAt": "2026-06-09T14:43:43.899Z"
         }
       ]
     },
     "yahoo-jp": {
-      "timestamp": "2026-06-09T14:46:09.367Z",
+      "timestamp": "2026-06-09T14:43:43.887Z",
       "signals": []
     }
   },
   "reputationWeights": {
     "ebay": {
-      "reliability": 0.8303785289545211,
-      "rounds": 94,
-      "hits": 78,
-      "misses": 16,
+      "reliability": 0.8562875087562558,
+      "rounds": 90,
+      "hits": 77,
+      "misses": 13,
       "lastDeviation": 0.08904109589041095,
-      "lastUpdated": "2026-06-09T14:46:09.440Z"
+      "lastUpdated": "2026-06-09T14:43:43.951Z"
     },
     "courtyard": {
       "reliability": 0.8231539724917363,
@@ -687,20 +708,20 @@
       "lastUpdated": "2026-06-09T13:24:58.340Z"
     },
     "alt": {
-      "reliability": 0.3117802755871719,
-      "rounds": 71,
+      "reliability": 0.33051910276242785,
+      "rounds": 67,
       "hits": 22,
-      "misses": 49,
+      "misses": 45,
       "lastDeviation": 0.19863013698630136,
-      "lastUpdated": "2026-06-09T14:46:09.440Z"
+      "lastUpdated": "2026-06-09T14:43:43.951Z"
     },
     "cardmarket": {
-      "reliability": 0.675883217132049,
-      "rounds": 25,
-      "hits": 17,
+      "reliability": 0.6662773904401634,
+      "rounds": 24,
+      "hits": 16,
       "misses": 8,
       "lastDeviation": 0.05400351334504448,
-      "lastUpdated": "2026-06-09T14:46:09.440Z"
+      "lastUpdated": "2026-06-09T14:43:43.951Z"
     },
     "beezie": {
       "reliability": 0.4508780438228856,
@@ -719,36 +740,36 @@
       "lastUpdated": "2026-06-09T13:24:58.340Z"
     },
     "goldin": {
-      "reliability": 0.40674488025212174,
-      "rounds": 42,
-      "hits": 17,
-      "misses": 25,
+      "reliability": 0.412532451373375,
+      "rounds": 39,
+      "hits": 16,
+      "misses": 23,
       "lastDeviation": 1,
-      "lastUpdated": "2026-06-09T14:46:09.440Z"
+      "lastUpdated": "2026-06-09T14:43:43.951Z"
     },
     "pricecharting": {
-      "reliability": 0.8560116119149588,
-      "rounds": 56,
-      "hits": 48,
+      "reliability": 0.8448432077069163,
+      "rounds": 52,
+      "hits": 44,
       "misses": 8,
       "lastDeviation": 0,
-      "lastUpdated": "2026-06-09T14:46:09.440Z"
+      "lastUpdated": "2026-06-09T14:43:43.951Z"
     },
     "psa-apr": {
-      "reliability": 0.3686445345678284,
-      "rounds": 33,
+      "reliability": 0.4059993795622355,
+      "rounds": 30,
       "hits": 12,
-      "misses": 21,
-      "lastDeviation": 1,
-      "lastUpdated": "2026-06-09T14:46:09.440Z"
+      "misses": 18,
+      "lastDeviation": 0.588904109589041,
+      "lastUpdated": "2026-06-09T14:43:43.951Z"
     },
     "fanatics": {
-      "reliability": 0.3033735785095485,
-      "rounds": 40,
+      "reliability": 0.3374972002875176,
+      "rounds": 36,
       "hits": 12,
-      "misses": 28,
-      "lastDeviation": 1,
-      "lastUpdated": "2026-06-09T14:46:09.440Z"
+      "misses": 24,
+      "lastDeviation": 0.536986301369863,
+      "lastUpdated": "2026-06-09T14:43:43.951Z"
     }
   },
   "aggregationMethod": "confidence_weighted_median",

@@ -1,11 +1,11 @@
 {
   "ebay": {
-    "reliability": 0.8710734003738595,
-    "rounds": 78,
-    "hits": 68,
-    "misses": 10,
-    "lastDeviation": 0,
-    "lastUpdated": "2026-06-09T13:24:58.340Z"
+    "reliability": 0.8303785289545211,
+    "rounds": 94,
+    "hits": 78,
+    "misses": 16,
+    "lastDeviation": 0.08904109589041095,
+    "lastUpdated": "2026-06-09T14:46:09.440Z"
   },
   "courtyard": {
     "reliability": 0.8231539724917363,
@@ -24,20 +24,20 @@
     "lastUpdated": "2026-06-09T13:24:58.340Z"
   },
   "alt": {
-    "reliability": 0.4032272421698527,
-    "rounds": 55,
+    "reliability": 0.3117802755871719,
+    "rounds": 71,
     "hits": 22,
-    "misses": 33,
-    "lastDeviation": 0.5580484330484331,
-    "lastUpdated": "2026-06-09T13:24:58.340Z"
+    "misses": 49,
+    "lastDeviation": 0.19863013698630136,
+    "lastUpdated": "2026-06-09T14:46:09.440Z"
   },
   "cardmarket": {
-    "reliability": 0.7296169103637375,
-    "rounds": 21,
-    "hits": 15,
-    "misses": 6,
-    "lastDeviation": 0.29767441860465116,
-    "lastUpdated": "2026-06-09T13:24:58.339Z"
+    "reliability": 0.675883217132049,
+    "rounds": 25,
+    "hits": 17,
+    "misses": 8,
+    "lastDeviation": 0.05400351334504448,
+    "lastUpdated": "2026-06-09T14:46:09.440Z"
   },
   "beezie": {
     "reliability": 0.4508780438228856,
@@ -56,35 +56,35 @@
     "lastUpdated": "2026-06-09T13:24:58.340Z"
   },
   "goldin": {
-    "reliability": 0.4909977494775651,
-    "rounds": 31,
-    "hits": 15,
-    "misses": 16,
+    "reliability": 0.40674488025212174,
+    "rounds": 42,
+    "hits": 17,
+    "misses": 25,
     "lastDeviation": 1,
-    "lastUpdated": "2026-06-09T13:24:58.340Z"
+    "lastUpdated": "2026-06-09T14:46:09.440Z"
   },
   "pricecharting": {
-    "reliability": 0.8490591790564027,
-    "rounds": 40,
-    "hits": 34,
-    "misses": 6,
+    "reliability": 0.8560116119149588,
+    "rounds": 56,
+    "hits": 48,
+    "misses": 8,
     "lastDeviation": 0,
-    "lastUpdated": "2026-06-09T13:24:58.340Z"
+    "lastUpdated": "2026-06-09T14:46:09.440Z"
   },
   "psa-apr": {
-    "reliability": 0.4818572149506509,
-    "rounds": 21,
-    "hits": 10,
-    "misses": 11,
-    "lastDeviation": 0.4656339031339031,
-    "lastUpdated": "2026-06-09T13:24:58.340Z"
+    "reliability": 0.3686445345678284,
+    "rounds": 33,
+    "hits": 12,
+    "misses": 21,
+    "lastDeviation": 1,
+    "lastUpdated": "2026-06-09T14:46:09.440Z"
   },
   "fanatics": {
-    "reliability": 0.4205318141419525,
-    "rounds": 24,
-    "hits": 10,
-    "misses": 14,
-    "lastDeviation": 0.39814814814814814,
-    "lastUpdated": "2026-06-09T13:24:58.340Z"
+    "reliability": 0.3033735785095485,
+    "rounds": 40,
+    "hits": 12,
+    "misses": 28,
+    "lastDeviation": 1,
+    "lastUpdated": "2026-06-09T14:46:09.440Z"
   }
 }

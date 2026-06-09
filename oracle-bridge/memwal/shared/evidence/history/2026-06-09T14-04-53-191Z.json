@@ -1,0 +1,1113 @@
+{
+  "version": "1.0.0",
+  "swarmId": "slabclaw-oracle-swarm",
+  "timestamp": "2026-06-09T14:04:53.191Z",
+  "cardIds": [
+    "neo1-1st-18",
+    "jp-vs-091",
+    "base5-1st-83",
+    "base2-1st-3"
+  ],
+  "consensus": {
+    "neo1-1st-18": {
+      "cardId": "neo1-1st-18",
+      "consensusPriceCents": 259999,
+      "confidenceLower": 259999,
+      "confidenceUpper": 259999,
+      "contributingSources": [
+        {
+          "platform": "ebay",
+          "family": "ebay-sold",
+          "kind": "realized",
+          "priceCents": 259999,
+          "confidence": 1,
+          "reliability": 0.8710734003738595,
+          "weight": 2.385517050798447,
+          "source": "ebay_sold",
+          "compCount": 30
+        },
+        {
+          "platform": "pricecharting",
+          "family": "ebay-sold",
+          "kind": "realized",
+          "priceCents": 259999,
+          "confidence": 0.95,
+          "reliability": 0.8490591790564027,
+          "weight": 2.2089676636095326,
+          "source": "pc_sold_all",
+          "compCount": 30
+        },
+        {
+          "platform": "psa-apr",
+          "family": "psa-apr",
+          "kind": "realized",
+          "priceCents": 337500,
+          "confidence": 0.85,
+          "reliability": 0.4818572149506509,
+          "weight": 0.7094063049969116,
+          "source": "psa-apr",
+          "compCount": 3
+        },
+        {
+          "platform": "alt",
+          "family": "alt",
+          "kind": "ask",
+          "priceCents": 383700,
+          "confidence": 0.4,
+          "reliability": 0.4032272421698527,
+          "weight": 0,
+          "source": "alt-ask",
+          "compCount": 1
+        }
+      ],
+      "rejectedSources": [
+        {
+          "platform": "fanatics",
+          "priceCents": 1332500,
+          "reason": "MAD outlier (z=17.99)",
+          "zScore": 17.993695881343466
+        }
+      ],
+      "flags": [
+        "insufficient_sources",
+        "asks_above_consensus"
+      ],
+      "sourceCount": 2,
+      "roundId": "neo1-1st-18_1781013893189",
+      "timestamp": "2026-06-09T14:04:53.189Z",
+      "rawSourceCount": 3,
+      "sourceFamilies": [
+        "ebay-sold",
+        "psa-apr"
+      ],
+      "askCount": 1,
+      "lowestAskCents": 383700
+    },
+    "jp-vs-091": {
+      "cardId": "jp-vs-091",
+      "consensusPriceCents": 1290000,
+      "confidenceLower": 1290000,
+      "confidenceUpper": 1600000,
+      "contributingSources": [
+        {
+          "platform": "ebay",
+          "family": "ebay-sold",
+          "kind": "realized",
+          "priceCents": 1290000,
+          "confidence": 1,
+          "reliability": 0.8727144251754488,
+          "weight": 2.4295184510361985,
+          "source": "ebay_sold",
+          "compCount": 31
+        },
+        {
+          "platform": "pricecharting",
+          "family": "ebay-sold",
+          "kind": "realized",
+          "priceCents": 1600000,
+          "confidence": 0.95,
+          "reliability": 0.8522787293266769,
+          "weight": 2.2539967991114804,
+          "source": "pc_sold_recent",
+          "compCount": 31
+        },
+        {
+          "platform": "cardmarket",
+          "family": "cardmarket",
+          "kind": "ask",
+          "priceCents": 1674000,
+          "confidence": 0.5,
+          "reliability": 0.7296169103637375,
+          "weight": 0,
+          "source": "cardmarket-eu-ask",
+          "compCount": 2
+        }
+      ],
+      "rejectedSources": [
+        {
+          "platform": "fanatics",
+          "priceCents": 2700000,
+          "reason": "implausible vs anchor (1.87x of $14450, thin source)"
+        },
+        {
+          "platform": "alt",
+          "priceCents": 147000,
+          "reason": "listing off-anchor (0.10x of $14450 — likely wrong grade/variant)"
+        }
+      ],
+      "flags": [
+        "insufficient_sources"
+      ],
+      "sourceCount": 1,
+      "roundId": "jp-vs-091_1781013893190",
+      "timestamp": "2026-06-09T14:04:53.190Z",
+      "rawSourceCount": 2,
+      "sourceFamilies": [
+        "ebay-sold"
+      ],
+      "askCount": 1,
+      "lowestAskCents": 1674000
+    },
+    "base5-1st-83": {
+      "cardId": "base5-1st-83",
+      "consensusPriceCents": 416100,
+      "confidenceLower": 416100,
+      "confidenceUpper": 416100,
+      "contributingSources": [
+        {
+          "platform": "ebay",
+          "family": "ebay-sold",
+          "kind": "realized",
+          "priceCents": 416100,
+          "confidence": 1,
+          "reliability": 0.8743143275526346,
+          "weight": 2.394393068520486,
+          "source": "ebay_sold",
+          "compCount": 30
+        },
+        {
+          "platform": "pricecharting",
+          "family": "ebay-sold",
+          "kind": "realized",
+          "priceCents": 416100,
+          "confidence": 0.95,
+          "reliability": 0.8390169521313364,
+          "weight": 2.182841364884449,
+          "source": "pc_sold_all",
+          "compCount": 30
+        },
+        {
+          "platform": "fanatics",
+          "family": "fanatics-pwcc",
+          "kind": "realized",
+          "priceCents": 470000,
+          "confidence": 0.7,
+          "reliability": 0.3910786325035449,
+          "weight": 0.27375323266187845,
+          "source": "fanatics-pwcc",
+          "compCount": 1
+        },
+        {
+          "platform": "psa-apr",
+          "family": "psa-apr",
+          "kind": "realized",
+          "priceCents": 397000,
+          "confidence": 0.85,
+          "reliability": 0.4627389826670134,
+          "weight": 0.6812616097778216,
+          "source": "psa-apr",
+          "compCount": 3
+        },
+        {
+          "platform": "alt",
+          "family": "alt",
+          "kind": "ask",
+          "priceCents": 527250,
+          "confidence": 0.4,
+          "reliability": 0.38896589039177787,
+          "weight": 0,
+          "source": "alt-ask",
+          "compCount": 1
+        }
+      ],
+      "rejectedSources": [
+        {
+          "platform": "goldin",
+          "priceCents": 793000,
+          "reason": "MAD outlier (z=13.31)",
+          "zScore": 13.309897905759161
+        }
+      ],
+      "flags": [],
+      "sourceCount": 3,
+      "roundId": "base5-1st-83_1781013893190",
+      "timestamp": "2026-06-09T14:04:53.190Z",
+      "rawSourceCount": 4,
+      "sourceFamilies": [
+        "ebay-sold",
+        "fanatics-pwcc",
+        "psa-apr"
+      ],
+      "askCount": 1,
+      "lowestAskCents": 527250
+    },
+    "base2-1st-3": {
+      "cardId": "base2-1st-3",
+      "consensusPriceCents": 561600,
+      "confidenceLower": 338000,
+      "confidenceUpper": 561600,
+      "contributingSources": [
+        {
+          "platform": "ebay",
+          "family": "ebay-sold",
+          "kind": "realized",
+          "priceCents": 561600,
+          "confidence": 1,
+          "reliability": 0.8758745451793706,
+          "weight": 1.5170495109817654,
+          "source": "ebay_sold",
+          "compCount": 12
+        },
+        {
+          "platform": "pricecharting",
+          "family": "ebay-sold",
+          "kind": "realized",
+          "priceCents": 561600,
+          "confidence": 0.95,
+          "reliability": 0.837751597267308,
+          "weight": 1.3784680684051802,
+          "source": "pc_sold_all",
+          "compCount": 12
+        },
+        {
+          "platform": "fanatics",
+          "family": "fanatics-pwcc",
+          "kind": "realized",
+          "priceCents": 338000,
+          "confidence": 0.7,
+          "reliability": 0.4025087749362486,
+          "weight": 0.3984607239290226,
+          "source": "fanatics-pwcc",
+          "compCount": 2
+        },
+        {
+          "platform": "psa-apr",
+          "family": "psa-apr",
+          "kind": "realized",
+          "priceCents": 300100,
+          "confidence": 0.85,
+          "reliability": 0.4736043034957562,
+          "weight": 0.6972579408322734,
+          "source": "psa-apr",
+          "compCount": 3
+        },
+        {
+          "platform": "alt",
+          "family": "alt",
+          "kind": "ask",
+          "priceCents": 875000,
+          "confidence": 0.4,
+          "reliability": 0.3822070084968437,
+          "weight": 0,
+          "source": "alt-ask",
+          "compCount": 1
+        }
+      ],
+      "rejectedSources": [
+        {
+          "platform": "goldin",
+          "priceCents": 42500,
+          "reason": "implausible vs anchor (0.08x of $5616, thin source)"
+        }
+      ],
+      "flags": [
+        "asks_above_consensus"
+      ],
+      "sourceCount": 3,
+      "roundId": "base2-1st-3_1781013893190",
+      "timestamp": "2026-06-09T14:04:53.190Z",
+      "rawSourceCount": 4,
+      "sourceFamilies": [
+        "ebay-sold",
+        "fanatics-pwcc",
+        "psa-apr"
+      ],
+      "askCount": 1,
+      "lowestAskCents": 875000
+    }
+  },
+  "agentSignals": {
+    "ebay": {
+      "timestamp": "2026-06-09T14:04:49.322Z",
+      "signals": [
+        {
+          "cardId": "neo1-1st-18",
+          "platform": "ebay",
+          "priceCents": 259999,
+          "priceUsd": 2599.99,
+          "confidence": 1,
+          "source": "ebay_sold",
+          "compCount": 30,
+          "comps": [
+            {
+              "price": 5100
+            },
+            {
+              "price": 5100
+            },
+            {
+              "price": 5850
+            },
+            {
+              "price": 4474.6
+            },
+            {
+              "price": 4351
+            },
+            {
+              "price": 4649.97
+            },
+            {
+              "price": 4500
+            },
+            {
+              "price": 4569
+            },
+            {
+              "price": 4050.67
+            },
+            {
+              "price": 3350
+            },
+            {
+              "price": 3650
+            },
+            {
+              "price": 3600
+            },
+            {
+              "price": 2700
+            },
+            {
+              "price": 3285
+            },
+            {
+              "price": 2325
+            },
+            {
+              "price": 2599.99
+            },
+            {
+              "price": 2050
+            },
+            {
+              "price": 2500
+            },
+            {
+              "price": 1050
+            },
+            {
+              "price": 1250
+            },
+            {
+              "price": 1500
+            },
+            {
+              "price": 1250
+            },
+            {
+              "price": 1175
+            },
+            {
+              "price": 1929.89
+            },
+            {
+              "price": 1050
+            },
+            {
+              "price": 1000
+            },
+            {
+              "price": 1300
+            },
+            {
+              "price": 1500
+            },
+            {
+              "price": 1250
+            },
+            {
+              "price": 1349.06
+            }
+          ],
+          "observedAt": "2026-06-09T14:04:49.209Z",
+          "flags": []
+        },
+        {
+          "cardId": "jp-vs-091",
+          "platform": "ebay",
+          "priceCents": 1290000,
+          "priceUsd": 12900,
+          "confidence": 1,
+          "source": "ebay_sold",
+          "compCount": 31,
+          "comps": [
+            {
+              "price": 14200
+            },
+            {
+              "price": 16000
+            },
+            {
+              "price": 17437.5
+            },
+            {
+              "price": 14800
+            },
+            {
+              "price": 15000
+            },
+            {
+              "price": 16174
+            },
+            {
+              "price": 17777
+            },
+            {
+              "price": 15000
+            },
+            {
+              "price": 16242
+            },
+            {
+              "price": 13700
+            },
+            {
+              "price": 13999.99
+            },
+            {
+              "price": 15000
+            },
+            {
+              "price": 16100
+            },
+            {
+              "price": 19800
+            },
+            {
+              "price": 15900
+            },
+            {
+              "price": 12900
+            },
+            {
+              "price": 8088.3
+            },
+            {
+              "price": 11000
+            },
+            {
+              "price": 9000
+            },
+            {
+              "price": 7500
+            },
+            {
+              "price": 7989
+            },
+            {
+              "price": 6899
+            },
+            {
+              "price": 6000
+            },
+            {
+              "price": 6999.99
+            },
+            {
+              "price": 7074.78
+            },
+            {
+              "price": 6166.65
+            },
+            {
+              "price": 5650
+            },
+            {
+              "price": 5800
+            },
+            {
+              "price": 5585.76
+            },
+            {
+              "price": 6500
+            },
+            {
+              "price": 6000
+            }
+          ],
+          "observedAt": "2026-06-09T14:04:49.285Z",
+          "flags": []
+        },
+        {
+          "cardId": "base5-1st-83",
+          "platform": "ebay",
+          "priceCents": 416100,
+          "priceUsd": 4161,
+          "confidence": 1,
+          "source": "ebay_sold",
+          "compCount": 30,
+          "comps": [
+            {
+              "price": 7930
+            },
+            {
+              "price": 7758
+            },
+            {
+              "price": 8300
+            },
+            {
+              "price": 6808.81
+            },
+            {
+              "price": 9136
+            },
+            {
+              "price": 5890
+            },
+            {
+              "price": 6000
+            },
+            {
+              "price": 4500
+            },
+            {
+              "price": 4900
+            },
+            {
+              "price": 5206.81
+            },
+            {
+              "price": 4700
+            },
+            {
+              "price": 5000
+            },
+            {
+              "price": 4000
+            },
+            {
+              "price": 3150
+            },
+            {
+              "price": 4161
+            },
+            {
+              "price": 3700
+            },
+            {
+              "price": 3686
+            },
+            {
+              "price": 4200
+            },
+            {
+              "price": 5678.69
+            },
+            {
+              "price": 2250
+            },
+            {
+              "price": 1799
+            },
+            {
+              "price": 1599.95
+            },
+            {
+              "price": 1250
+            },
+            {
+              "price": 1450
+            },
+            {
+              "price": 1619.94
+            },
+            {
+              "price": 1549.95
+            },
+            {
+              "price": 1349.99
+            },
+            {
+              "price": 1699.99
+            },
+            {
+              "price": 1267.84
+            },
+            {
+              "price": 1579.13
+            }
+          ],
+          "observedAt": "2026-06-09T14:04:49.318Z",
+          "flags": []
+        },
+        {
+          "cardId": "base2-1st-3",
+          "platform": "ebay",
+          "priceCents": 561600,
+          "priceUsd": 5616,
+          "confidence": 1,
+          "source": "ebay_sold",
+          "compCount": 12,
+          "comps": [
+            {
+              "price": 5551
+            },
+            {
+              "price": 7800
+            },
+            {
+              "price": 7850
+            },
+            {
+              "price": 7999
+            },
+            {
+              "price": 5616
+            },
+            {
+              "price": 5499
+            },
+            {
+              "price": 6000
+            },
+            {
+              "price": 5200
+            },
+            {
+              "price": 4699.99
+            },
+            {
+              "price": 4051
+            },
+            {
+              "price": 4650
+            },
+            {
+              "price": 6350.4
+            }
+          ],
+          "observedAt": "2026-06-09T14:04:49.322Z",
+          "flags": []
+        }
+      ]
+    },
+    "courtyard": {
+      "timestamp": "2026-06-09T14:04:49.313Z",
+      "signals": []
+    },
+    "tcgplayer": {
+      "timestamp": "2026-06-09T14:04:49.297Z",
+      "signals": []
+    },
+    "alt": {
+      "timestamp": "2026-06-09T14:04:49.194Z",
+      "signals": [
+        {
+          "cardId": "neo1-1st-18",
+          "priceCents": 383700,
+          "confidence": 0.4,
+          "compCount": 1,
+          "source": "alt-ask",
+          "platform": "alt",
+          "observedAt": "2026-06-09T14:04:49.192Z"
+        },
+        {
+          "cardId": "jp-vs-091",
+          "priceCents": 147000,
+          "confidence": 0.4,
+          "compCount": 1,
+          "source": "alt-ask",
+          "platform": "alt",
+          "observedAt": "2026-06-09T14:04:49.193Z"
+        },
+        {
+          "cardId": "base5-1st-83",
+          "priceCents": 527250,
+          "confidence": 0.4,
+          "compCount": 1,
+          "source": "alt-ask",
+          "platform": "alt",
+          "observedAt": "2026-06-09T14:04:49.193Z"
+        },
+        {
+          "cardId": "base2-1st-3",
+          "priceCents": 875000,
+          "confidence": 0.4,
+          "compCount": 1,
+          "source": "alt-ask",
+          "platform": "alt",
+          "observedAt": "2026-06-09T14:04:49.193Z"
+        }
+      ]
+    },
+    "cardmarket": {
+      "timestamp": "2026-06-09T14:04:49.196Z",
+      "signals": [
+        {
+          "cardId": "jp-vs-091",
+          "priceCents": 1674000,
+          "confidence": 0.5,
+          "compCount": 2,
+          "source": "cardmarket-eu-ask",
+          "platform": "cardmarket",
+          "observedAt": "2026-06-09T14:04:49.195Z"
+        }
+      ]
+    },
+    "beezie": {
+      "timestamp": "2026-06-09T14:04:49.306Z",
+      "signals": []
+    },
+    "collector-crypt": {
+      "timestamp": "2026-06-09T14:04:49.289Z",
+      "signals": []
+    },
+    "goldin": {
+      "timestamp": "2026-06-09T14:04:53.188Z",
+      "signals": [
+        {
+          "cardId": "base5-1st-83",
+          "priceCents": 793000,
+          "confidence": 0.8,
+          "compCount": 1,
+          "source": "goldin-auctions",
+          "platform": "goldin",
+          "observedAt": "2026-06-09T14:04:53.188Z"
+        },
+        {
+          "cardId": "base2-1st-3",
+          "priceCents": 42500,
+          "confidence": 0.8,
+          "compCount": 1,
+          "source": "goldin-auctions",
+          "platform": "goldin",
+          "observedAt": "2026-06-09T14:04:53.188Z"
+        }
+      ]
+    },
+    "pricecharting": {
+      "timestamp": "2026-06-09T14:04:49.310Z",
+      "signals": [
+        {
+          "cardId": "neo1-1st-18",
+          "platform": "pricecharting",
+          "priceCents": 259999,
+          "priceUsd": 2599.99,
+          "confidence": 0.95,
+          "source": "pc_sold_all",
+          "compCount": 30,
+          "recentCount": 0,
+          "comps": [
+            {
+              "price": 1000,
+              "date": "2024-08-29",
+              "url": "https://www.pricecharting.com/game/pokemon-neo-genesis/typhlosion-1st-edition-18"
+            },
+            {
+              "price": 1300,
+              "date": "2024-07-30",
+              "url": "https://www.pricecharting.com/game/pokemon-neo-genesis/typhlosion-1st-edition-18"
+            },
+            {
+              "price": 1500,
+              "date": "2024-07-11",
+              "url": "https://www.pricecharting.com/game/pokemon-neo-genesis/typhlosion-1st-edition-18"
+            },
+            {
+              "price": 1250,
+              "date": "2024-07-01",
+              "url": "https://www.pricecharting.com/game/pokemon-neo-genesis/typhlosion-1st-edition-18"
+            },
+            {
+              "price": 1349.06,
+              "date": "2024-06-22",
+              "url": "https://www.pricecharting.com/game/pokemon-neo-genesis/typhlosion-1st-edition-18"
+            }
+          ],
+          "observedAt": "2026-06-09T14:04:49.235Z",
+          "flags": []
+        },
+        {
+          "cardId": "jp-vs-091",
+          "platform": "pricecharting",
+          "priceCents": 1600000,
+          "priceUsd": 16000,
+          "confidence": 0.95,
+          "source": "pc_sold_recent",
+          "compCount": 31,
+          "recentCount": 3,
+          "comps": [
+            {
+              "price": 5650,
+              "date": "2025-12-28",
+              "url": "https://www.pricecharting.com/game/pokemon-japanese-vs/karen's-umbreon-91"
+            },
+            {
+              "price": 5800,
+              "date": "2025-12-10",
+              "url": "https://www.pricecharting.com/game/pokemon-japanese-vs/karen's-umbreon-91"
+            },
+            {
+              "price": 5585.76,
+              "date": "2025-12-08",
+              "url": "https://www.pricecharting.com/game/pokemon-japanese-vs/karen's-umbreon-91"
+            },
+            {
+              "price": 6500,
+              "date": "2025-12-02",
+              "url": "https://www.pricecharting.com/game/pokemon-japanese-vs/karen's-umbreon-91"
+            },
+            {
+              "price": 6000,
+              "date": "2025-12-02",
+              "url": "https://www.pricecharting.com/game/pokemon-japanese-vs/karen's-umbreon-91"
+            }
+          ],
+          "observedAt": "2026-06-09T14:04:49.275Z",
+          "flags": []
+        },
+        {
+          "cardId": "base5-1st-83",
+          "platform": "pricecharting",
+          "priceCents": 416100,
+          "priceUsd": 4161,
+          "confidence": 0.95,
+          "source": "pc_sold_all",
+          "compCount": 30,
+          "recentCount": 0,
+          "comps": [
+            {
+              "price": 1549.95,
+              "date": "2024-07-03",
+              "url": "https://www.pricecharting.com/game/pokemon-team-rocket/dark-raichu-1st-edition-83"
+            },
+            {
+              "price": 1349.99,
+              "date": "2024-05-23",
+              "url": "https://www.pricecharting.com/game/pokemon-team-rocket/dark-raichu-1st-edition-83"
+            },
+            {
+              "price": 1699.99,
+              "date": "2024-03-03",
+              "url": "https://www.pricecharting.com/game/pokemon-team-rocket/dark-raichu-1st-edition-83"
+            },
+            {
+              "price": 1267.84,
+              "date": "2024-02-13",
+              "url": "https://www.pricecharting.com/game/pokemon-team-rocket/dark-raichu-1st-edition-83"
+            },
+            {
+              "price": 1579.13,
+              "date": "2023-11-21",
+              "url": "https://www.pricecharting.com/game/pokemon-team-rocket/dark-raichu-1st-edition-83"
+            }
+          ],
+          "observedAt": "2026-06-09T14:04:49.294Z",
+          "flags": []
+        },
+        {
+          "cardId": "base2-1st-3",
+          "platform": "pricecharting",
+          "priceCents": 561600,
+          "priceUsd": 5616,
+          "confidence": 0.95,
+          "source": "pc_sold_all",
+          "compCount": 12,
+          "recentCount": 1,
+          "comps": [
+            {
+              "price": 5200,
+              "date": "2026-01-13",
+              "url": "https://www.pricecharting.com/game/pokemon-jungle/flareon-1st-edition-3"
+            },
+            {
+              "price": 4699.99,
+              "date": "2026-01-06",
+              "url": "https://www.pricecharting.com/game/pokemon-jungle/flareon-1st-edition-3"
+            },
+            {
+              "price": 4051,
+              "date": "2025-12-22",
+              "url": "https://www.pricecharting.com/game/pokemon-jungle/flareon-1st-edition-3"
+            },
+            {
+              "price": 4650,
+              "date": "2025-12-22",
+              "url": "https://www.pricecharting.com/game/pokemon-jungle/flareon-1st-edition-3"
+            },
+            {
+              "price": 6350.4,
+              "date": "2025-12-14",
+              "url": "https://www.pricecharting.com/game/pokemon-jungle/flareon-1st-edition-3"
+            }
+          ],
+          "observedAt": "2026-06-09T14:04:49.309Z",
+          "flags": []
+        }
+      ]
+    },
+    "fanatics": {
+      "timestamp": "2026-06-09T14:04:49.192Z",
+      "signals": [
+        {
+          "cardId": "neo1-1st-18",
+          "priceCents": 1332500,
+          "confidence": 0.7,
+          "compCount": 2,
+          "source": "fanatics-pwcc",
+          "platform": "fanatics",
+          "observedAt": "2026-06-09T14:04:49.190Z"
+        },
+        {
+          "cardId": "jp-vs-091",
+          "priceCents": 2700000,
+          "confidence": 0.7,
+          "compCount": 1,
+          "source": "fanatics-pwcc",
+          "platform": "fanatics",
+          "observedAt": "2026-06-09T14:04:49.191Z"
+        },
+        {
+          "cardId": "base5-1st-83",
+          "priceCents": 470000,
+          "confidence": 0.7,
+          "compCount": 1,
+          "source": "fanatics-pwcc",
+          "platform": "fanatics",
+          "observedAt": "2026-06-09T14:04:49.191Z"
+        },
+        {
+          "cardId": "base2-1st-3",
+          "priceCents": 338000,
+          "confidence": 0.7,
+          "compCount": 2,
+          "source": "fanatics-pwcc",
+          "platform": "fanatics",
+          "observedAt": "2026-06-09T14:04:49.192Z"
+        }
+      ]
+    },
+    "psa-apr": {
+      "timestamp": "2026-06-09T14:04:50.789Z",
+      "signals": [
+        {
+          "cardId": "neo1-1st-18",
+          "priceCents": 337500,
+          "confidence": 0.85,
+          "compCount": 3,
+          "source": "psa-apr",
+          "platform": "psa-apr",
+          "observedAt": "2026-06-09T14:04:49.186Z"
+        },
+        {
+          "cardId": "base5-1st-83",
+          "priceCents": 397000,
+          "confidence": 0.85,
+          "compCount": 3,
+          "source": "psa-apr",
+          "platform": "psa-apr",
+          "observedAt": "2026-06-09T14:04:50.789Z"
+        },
+        {
+          "cardId": "base2-1st-3",
+          "priceCents": 300100,
+          "confidence": 0.85,
+          "compCount": 3,
+          "source": "psa-apr",
+          "platform": "psa-apr",
+          "observedAt": "2026-06-09T14:04:50.789Z"
+        }
+      ]
+    },
+    "yahoo-jp": {
+      "timestamp": "2026-06-09T14:04:50.018Z",
+      "signals": []
+    }
+  },
+  "reputationWeights": {
+    "ebay": {
+      "reliability": 0.8773965098952745,
+      "rounds": 82,
+      "hits": 72,
+      "misses": 10,
+      "lastDeviation": 0,
+      "lastUpdated": "2026-06-09T14:04:53.190Z"
+    },
+    "courtyard": {
+      "reliability": 0.8231539724917363,
+      "rounds": 49,
+      "hits": 40,
+      "misses": 9,
+      "lastDeviation": 1,
+      "lastUpdated": "2026-06-09T13:24:58.340Z"
+    },
+    "tcgplayer": {
+      "reliability": 0.7340022741596267,
+      "rounds": 44,
+      "hits": 32,
+      "misses": 12,
+      "lastDeviation": 1,
+      "lastUpdated": "2026-06-09T13:24:58.340Z"
+    },
+    "alt": {
+      "reliability": 0.37567905170159543,
+      "rounds": 59,
+      "hits": 22,
+      "misses": 37,
+      "lastDeviation": 0.5580484330484331,
+      "lastUpdated": "2026-06-09T14:04:53.190Z"
+    },
+    "cardmarket": {
+      "reliability": 0.6961578003818485,
+      "rounds": 22,
+      "hits": 15,
+      "misses": 7,
+      "lastDeviation": 0.29767441860465116,
+      "lastUpdated": "2026-06-09T14:04:53.190Z"
+    },
+    "beezie": {
+      "reliability": 0.4508780438228856,
+      "rounds": 27,
+      "hits": 12,
+      "misses": 15,
+      "lastDeviation": 1,
+      "lastUpdated": "2026-06-09T13:24:58.340Z"
+    },
+    "collector-crypt": {
+      "reliability": 0.5860592743967794,
+      "rounds": 19,
+      "hits": 11,
+      "misses": 8,
+      "lastDeviation": 1,
+      "lastUpdated": "2026-06-09T13:24:58.340Z"
+    },
+    "goldin": {
+      "reliability": 0.46080911563479904,
+      "rounds": 33,
+      "hits": 15,
+      "misses": 18,
+      "lastDeviation": 1,
+      "lastUpdated": "2026-06-09T14:04:53.190Z"
+    },
+    "pricecharting": {
+      "reliability": 0.8399618428165561,
+      "rounds": 44,
+      "hits": 37,
+      "misses": 7,
+      "lastDeviation": 0,
+      "lastUpdated": "2026-06-09T14:04:53.190Z"
+    },
+    "psa-apr": {
+      "reliability": 0.46291462438206016,
+      "rounds": 24,
+      "hits": 11,
+      "misses": 13,
+      "lastDeviation": 0.4656339031339031,
+      "lastUpdated": "2026-06-09T14:04:53.190Z"
+    },
+    "fanatics": {
+      "reliability": 0.39575263248087456,
+      "rounds": 28,
+      "hits": 11,
+      "misses": 17,
+      "lastDeviation": 0.39814814814814814,
+      "lastUpdated": "2026-06-09T14:04:53.190Z"
+    }
+  },
+  "aggregationMethod": "confidence_weighted_median",
+  "outlierMethod": "MAD_modified_z_score",
+  "madThreshold": 3.5,
+  "minSources": 3
+}

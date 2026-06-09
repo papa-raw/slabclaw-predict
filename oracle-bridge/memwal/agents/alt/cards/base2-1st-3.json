@@ -77,6 +77,34 @@
       "confidence": 0.4,
       "comps": 1,
       "source": "alt-ask"
+    },
+    {
+      "date": "2026-06-09T14:04:49.194Z",
+      "priceCents": 875000,
+      "confidence": 0.4,
+      "comps": 1,
+      "source": "alt-ask"
+    },
+    {
+      "date": "2026-06-09T14:38:10.901Z",
+      "priceCents": 875000,
+      "confidence": 0.4,
+      "comps": 1,
+      "source": "alt-ask"
+    },
+    {
+      "date": "2026-06-09T14:43:43.069Z",
+      "priceCents": 875000,
+      "confidence": 0.4,
+      "comps": 1,
+      "source": "alt-ask"
+    },
+    {
+      "date": "2026-06-09T14:46:08.563Z",
+      "priceCents": 875000,
+      "confidence": 0.4,
+      "comps": 1,
+      "source": "alt-ask"
     }
   ],
   "anomalies": []

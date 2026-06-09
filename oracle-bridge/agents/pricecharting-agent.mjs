@@ -12,39 +12,29 @@ export class PricechartingAgent extends BaseAgent {
     const grader = this.grader.toUpperCase();
     const grade = this.grade;
 
-    const comps = (cardData.soldComps || []).filter(
-      (c) => (c.grader || '').toUpperCase() === grader && Number(c.grade) === grade && c.price > 0,
+    // Report the REGISTRY's grade-matched current_oracle — the production-quality price that
+    // already does recency-weighting (5 most recent sales), the eBay validation gate, and
+    // contamination guards. Re-deriving a naive median from all 250 raw comps UNDER-prices
+    // the card: old low sales drag it down (e.g. Dark Raichu $4,161 vs the real $7,987).
+    const oracle = (cardData.oracles || []).find(
+      (o) => (o.grader || '').toUpperCase() === grader && Number(o.grade) === grade && o.price > 0,
     );
+    if (!oracle) return null;
 
-    if (comps.length === 0) return null;
-
-    const prices = comps.map((c) => c.price);
-    prices.sort((a, b) => a - b);
-    const median = prices[Math.floor(prices.length / 2)];
-
-    // Recent comps weighted higher
-    const now = Date.now();
-    const recentComps = comps.filter((c) => {
-      if (!c.sale_date) return true;
-      return now - new Date(c.sale_date).getTime() < 30 * 86400000;
-    });
-
-    const recentMedian = recentComps.length >= 3
-      ? (() => { const p = recentComps.map((c) => c.price).sort((a, b) => a - b); return p[Math.floor(p.length / 2)]; })()
-      : null;
-
-    const finalPrice = recentMedian || median;
+    // T1 (real grade-matched sales) is trustworthy; T2 thinner; anything display-only weak.
+    const realSale = /pc_sold/.test(oracle.source || '');
+    const confidence = !realSale ? 0.35
+      : oracle.tier === 1 ? Math.min(0.95, 0.65 + (oracle.saleCount || 0) * 0.05)
+      : 0.6;
 
     return {
       cardId,
       platform: 'pricecharting',
-      priceCents: Math.round(finalPrice * 100),
-      priceUsd: finalPrice,
-      confidence: Math.min(0.95, comps.length / 10),
-      source: recentMedian ? 'pc_sold_recent' : 'pc_sold_all',
-      compCount: comps.length,
-      recentCount: recentComps.length,
-      comps: comps.slice(-5).map((c) => ({ price: c.price, date: c.sale_date, url: c.url })),
+      priceCents: Math.round(oracle.price * 100),
+      priceUsd: oracle.price,
+      confidence,
+      source: oracle.source || 'pc_sold',
+      compCount: oracle.saleCount || 0,
       observedAt: new Date().toISOString(),
       flags: [],
     };

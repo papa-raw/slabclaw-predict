@@ -216,20 +216,26 @@ export class BaseAgent {
 
     for (const cardId of this.cardIds) {
       let rawSignal = null;
-      let fetchErr = null;
+      let backendUnreachable = false;
       try {
         const cardData = await this.fetchCardData(cardId);
         rawSignal = cardData ? await this.fetchPlatformData(cardId, cardData) : null;
       } catch (err) {
-        fetchErr = err.message;
+        // A thrown error = the backend is unreachable (timeout / network / 5xx). Only THIS
+        // warrants reusing cached data. A clean null below means the source genuinely has no
+        // grade-matched listing this run — return nothing, never resurrect stale seed.
+        backendUnreachable = true;
+        runLog.cards[cardId] = { fetchError: err.message };
       }
 
-      // Fresh data this run? If not, stand in the last good cached observation.
       const fresh = !!(rawSignal && rawSignal.priceCents != null);
-      if (!fresh) rawSignal = this.warmFallback(cardId);
+      // Warm-cache ONLY covers a backend outage — NOT a successful "no grade-matched data"
+      // result. This is the root fix for stale `*_seeded` tokenized prices reappearing for
+      // platforms that legitimately have no PSA-10 listing for the card.
+      if (!fresh && backendUnreachable) rawSignal = this.warmFallback(cardId);
 
       if (!rawSignal || rawSignal.priceCents == null) {
-        runLog.cards[cardId] = { error: fetchErr || 'no platform data (no warm cache)' };
+        runLog.cards[cardId] = runLog.cards[cardId] || { error: 'no grade-matched data this run' };
         continue;
       }
 

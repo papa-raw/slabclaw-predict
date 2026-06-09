@@ -35,7 +35,37 @@
       "confidence": 0.95,
       "comps": 10,
       "source": "goldin_seeded"
+    },
+    {
+      "date": "2026-06-09T14:38:15.595Z",
+      "priceCents": 68265000,
+      "confidence": 0.3,
+      "comps": 1,
+      "source": "goldin-auctions"
+    },
+    {
+      "date": "2026-06-09T14:43:43.948Z",
+      "priceCents": 68265000,
+      "confidence": 0.3,
+      "comps": 1,
+      "source": "goldin-auctions"
+    },
+    {
+      "date": "2026-06-09T14:46:09.438Z",
+      "priceCents": 68265000,
+      "confidence": 0.3,
+      "comps": 1,
+      "source": "goldin-auctions"
     }
   ],
-  "anomalies": []
+  "anomalies": [
+    {
+      "date": "2026-06-09T14:38:15.595Z",
+      "flags": [
+        "price_jump"
+      ],
+      "priceCents": 68265000,
+      "detail": "price_jump"
+    }
+  ]
 }

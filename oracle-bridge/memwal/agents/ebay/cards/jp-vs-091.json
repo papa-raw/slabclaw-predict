@@ -133,6 +133,34 @@
       "confidence": 1,
       "comps": 31,
       "source": "ebay_sold"
+    },
+    {
+      "date": "2026-06-09T14:04:49.286Z",
+      "priceCents": 1290000,
+      "confidence": 1,
+      "comps": 31,
+      "source": "ebay_sold"
+    },
+    {
+      "date": "2026-06-09T14:38:11.062Z",
+      "priceCents": 1290000,
+      "confidence": 1,
+      "comps": 31,
+      "source": "ebay_sold"
+    },
+    {
+      "date": "2026-06-09T14:43:43.163Z",
+      "priceCents": 1850000,
+      "confidence": 0.6,
+      "comps": 5,
+      "source": "ebay_active"
+    },
+    {
+      "date": "2026-06-09T14:46:08.669Z",
+      "priceCents": 1850000,
+      "confidence": 0.6,
+      "comps": 5,
+      "source": "ebay_active"
     }
   ],
   "anomalies": []

@@ -70,6 +70,34 @@
       "confidence": 0.5,
       "comps": 2,
       "source": "cardmarket-eu-ask"
+    },
+    {
+      "date": "2026-06-09T14:04:49.195Z",
+      "priceCents": 1674000,
+      "confidence": 0.5,
+      "comps": 2,
+      "source": "cardmarket-eu-ask"
+    },
+    {
+      "date": "2026-06-09T14:38:10.902Z",
+      "priceCents": 1674000,
+      "confidence": 0.5,
+      "comps": 2,
+      "source": "cardmarket-eu-ask"
+    },
+    {
+      "date": "2026-06-09T14:43:43.071Z",
+      "priceCents": 1674000,
+      "confidence": 0.5,
+      "comps": 2,
+      "source": "cardmarket-eu-ask"
+    },
+    {
+      "date": "2026-06-09T14:46:08.564Z",
+      "priceCents": 1674000,
+      "confidence": 0.5,
+      "comps": 2,
+      "source": "cardmarket-eu-ask"
     }
   ],
   "anomalies": []

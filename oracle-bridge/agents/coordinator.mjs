@@ -183,21 +183,23 @@ export function aggregate(cardId, allSignals, reputationWeights) {
     return result;
   }
 
-  // ── Cross-source plausibility gate (the production oracle's eBay-gate, generalized) ─
-  // A thin / mis-scraped source (e.g. a 1-comp Goldin snippet that grabbed a wrong
-  // variant at $425) can sit inside MAD tolerance yet be obviously wrong. Anchor on the
-  // well-supported realized sources (>=3 comps) and reject realized prices below 0.4x or
-  // above 2.5x that anchor.
+  // ── Cross-source plausibility gate (anchored on the registry's grade-matched oracle) ─
+  // Prefer the registry's grade-matched current_oracle (pc_sold / pc_consensus) as the anchor:
+  // it's the production-quality, recency-weighted, validated PSA-10 price. A naive median over
+  // all "realized" sources is itself poisoned by wrong-grade scrapers (a PSA-APR or Fanatics
+  // snippet that grabbed a lower-grade sale), which then drag the anchor down and let other
+  // wrong sources survive. With the true anchor, anything >50% below it is a wrong-grade/variant
+  // grab and is rejected; trusted feeds keep a lenient 2.5x ceiling.
   const wellSupported = realized.filter((s) => (s.compCount || 0) >= 3);
-  const anchor = median((wellSupported.length ? wellSupported : realized).map((s) => s.priceCents));
+  const registryOracle = realized.find((s) => /pc_sold|pc_consensus/.test(s.source || '') && (s.compCount || 0) >= 3);
+  const anchor = registryOracle
+    ? registryOracle.priceCents
+    : median((wellSupported.length ? wellSupported : realized).map((s) => s.priceCents));
   if (anchor > 0) {
     realized = realized.filter((s) => {
-      // Trusted high-comp feeds get a lenient band; THIN search-snippet sources (1-2 comps,
-      // mis-grab prone — a wrong-variant Goldin $425 or Fanatics $27k) must sit within +-50%
-      // of the well-supported anchor. Only tightened when a trusted anchor actually exists.
       const thin = (s.compCount || 0) < 3 && wellSupported.length > 0;
-      const lo = thin ? 0.5 : 0.4;
-      const hi = thin ? 1.5 : 2.5;
+      const lo = 0.5;                  // a realized PSA-10 sale 50%+ below the grade-matched oracle
+      const hi = thin ? 1.5 : 2.5;     // is a wrong grade/variant, not a real comp
       if (s.priceCents < lo * anchor || s.priceCents > hi * anchor) {
         result.rejectedSources.push({
           platform: s.platform,
