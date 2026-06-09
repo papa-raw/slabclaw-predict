@@ -97,9 +97,14 @@ export default function OracleStrikeChart({
     const timeTicks = [];
     for (let i = 0; i <= 4; i++) timeTicks.push(tMin + ((tMax - tMin) * i) / 4);
 
-    const oraclePath = oracleLine.length
+    let oraclePath = oracleLine.length
       ? oracleLine.map((p, i) => `${i ? 'L' : 'M'}${x(p.t).toFixed(1)},${y(p.price).toFixed(1)}`).join(' ')
       : null;
+    // The line must END exactly at the "now" dot — otherwise the white marker floats
+    // disconnected from the trend. Append a final segment to (now, oracleNow).
+    if (oraclePath && oracleNow != null) {
+      oraclePath += ` L${x(now).toFixed(1)},${y(oracleNow).toFixed(1)}`;
+    }
 
     let conePaths = null;
     if (cone) {
@@ -272,22 +277,25 @@ export default function OracleStrikeChart({
         />
       )}
 
-      {/* footer — one cohesive key: legend cluster (left) + stats cluster (right) */}
-      <div className="mt-3 rounded-lg border border-sc-border/60 bg-sc-surface/30 px-3 py-2 flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px]">
-        <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-sc-muted">
+      {/* footer key — two clear sections: what's on the chart (top), the read-out (below) */}
+      <div className="mt-3 rounded-lg border border-sc-border/60 bg-sc-surface/30 text-[10px] overflow-hidden">
+        {/* chart key */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-3 py-2 text-sc-muted">
           <span className="flex items-center gap-1.5"><span className="inline-block w-2 h-2 rounded-full bg-sc-yes" />sold comp · {grader} {grade}</span>
           <span className="flex items-center gap-1.5"><span className="inline-block w-3.5 h-[2px] rounded bg-white/75" />oracle TWAP</span>
           <span className="flex items-center gap-1.5"><span className="inline-block w-3.5 border-t border-dashed border-sc-accent" />strike {usd(strike)}</span>
           <span className="flex items-center gap-1.5"><span className="inline-block w-3.5 h-2.5 rounded-sm bg-white/[0.08] border border-dashed border-white/30" />95% cone</span>
-          <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-sc-yes/20 border border-sc-yes/40" />YES</span>
-          <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-sc-no/20 border border-sc-no/40" />NO</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-sc-yes/20 border border-sc-yes/40" />YES zone</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-sc-no/20 border border-sc-no/40" />NO zone</span>
         </div>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 ml-auto tnum">
+        {/* read-out */}
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-3 py-1.5 border-t border-sc-border/40 tnum bg-sc-surface/40">
           <span className="text-sc-muted">comps <span className="text-sc-text font-semibold">{series.length}</span></span>
           <span className="text-sc-muted">to expiry <span className="text-sc-text font-semibold">{timeUntil(expiryMs)}</span></span>
           {oracleNow != null && (
-            <span className="text-sc-muted">vs strike{' '}
-              <span className={`font-semibold ${oracleNow >= strike ? 'text-sc-yes' : 'text-sc-no'}`}>{oracleNow >= strike ? 'ABOVE' : 'BELOW'}</span>
+            <span className="text-sc-muted ml-auto">oracle{' '}
+              <span className="text-sc-text font-semibold">{usd(oracleNow)}</span>{' '}
+              <span className={`font-semibold ${oracleNow >= strike ? 'text-sc-yes' : 'text-sc-no'}`}>{oracleNow >= strike ? 'ABOVE' : 'BELOW'} strike</span>
             </span>
           )}
         </div>
