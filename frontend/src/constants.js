@@ -1,10 +1,11 @@
 /// SlabClaw Predict — onchain constants and config.
 
-// EVIDENCE deployment (2026-06-08). Markets settle in faucet-minted tUSD AND
-// cannot settle without a verifiable Walrus evidence blob referenced onchain.
-export const PACKAGE_ID = '0x66debb86ea160e10334a3fba2d5afd07660d15e307037f7b1665535e4d9a802a';
-export const REGISTRY_ID = '0x8dedbb371903b9fec334aaab1f10fc8275962209e2aa386914b9664fbb8d8f48';
-export const FAUCET_ID = '0xaebce6a9a79cef13c660f2a17fbcf3f4723a1939757a32f59ac023ad8aebdf79';
+// HARDENED + FORMALLY-VERIFIED deployment (2026-06-09). Onchain version-gating,
+// governance ProtocolConfig, enum state, and a Sui-Prover-verified payout. Markets
+// settle in faucet-minted tUSD and cannot settle without a Walrus evidence blob.
+export const PACKAGE_ID = '0x9807050b60400d30c848dcf035a2038b615ffdb7d6d2ed46332959d39b14f115';
+export const REGISTRY_ID = '0x18c19b198a263421ff7882af139ce3645bc1a94c7d4f6ab715e318dd44fc108a';
+export const FAUCET_ID = '0xa1e2ca665f6d2b8aa11d5a6caf0d3cc4d88da68b942991a007c87d0b516c8870';
 export const TEST_USD_TYPE = `${PACKAGE_ID}::test_usd::TEST_USD`;
 export const CLOCK_ID = '0x6';
 
@@ -45,7 +46,7 @@ export const ERAS = [
 // off-chain oracle/evidence layer can hydrate each market (live + snapshot).
 export const DEMO_MARKETS = [
   {
-    id: '0x372e2f8f29980077ebb199236c7e976adb527aa29e4d716c73d91266139e2181',
+    id: '0x2756a52ba2f0837f19fb30c8ea7ef90486972c5e7fa8944cb977042c3f7db480',
     assetId: 'NEO1_1ST_18_PSA_1000',
     name: 'Typhlosion',
     set: 'Neo Genesis — 1st Edition',
@@ -60,7 +61,7 @@ export const DEMO_MARKETS = [
     productId: 'neo1-1st-18',
   },
   {
-    id: '0xbeef11f535c89d972ac0c0efdfbdfcf8e280e8707907f17fedee9f552434019d',
+    id: '0x56ae16ad0aa385d68a809e9fa6f1e9f0973dc97c4ea6df07df73c70656243e15',
     assetId: 'JP_VS_091_PSA_1000',
     name: "Karen's Umbreon",
     set: 'Pokémon Card VS — 1st Edition',
@@ -76,7 +77,7 @@ export const DEMO_MARKETS = [
     productId: 'jp-vs-091',
   },
   {
-    id: '0xa6aebeead1c6741a8740b3d3f3e333432404dd468b093de3559f448eac85a38a',
+    id: '0xd77d634059460679568e4370fe570b758a47841ebf35a479d88f5b05f617879c',
     assetId: 'BASE5_1ST_83_PSA_1000',
     name: 'Dark Raichu',
     set: 'Team Rocket — 1st Edition',
@@ -91,7 +92,7 @@ export const DEMO_MARKETS = [
     productId: 'base5-1st-83',
   },
   {
-    id: '0xaf7c5ab1d7c41dc20be9b488445e8f748a5203373da9c6c633bfa2fa7c9b732f',
+    id: '0xc977441b9b51d77c619cff43af997f15696d2102110e18871c919a6874b34231',
     assetId: 'BASE2_1ST_3_PSA_1000',
     name: 'Flareon',
     set: 'Jungle — 1st Edition',

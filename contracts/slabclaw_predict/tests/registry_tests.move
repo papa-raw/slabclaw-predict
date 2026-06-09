@@ -145,4 +145,92 @@ module slabclaw_predict::registry_tests {
 
         ts::end(scenario);
     }
+
+    // ── Governance config ────────────────────────────────────────────────
+
+    #[test]
+    fun test_config_setters() {
+        let mut scenario = ts::begin(ADMIN);
+        {
+            let ctx = ts::ctx(&mut scenario);
+            let admin_cap = registry::create_admin_cap_for_testing(ctx);
+            let mut config = registry::create_config_for_testing(ctx);
+
+            // Genesis defaults
+            assert!(registry::min_dispute_bond(&config) == 10_000_000_000, 0);
+            assert!(registry::dispute_window_ms(&config) == 86_400_000, 1);
+            assert!(registry::min_sources(&config) == 3, 2);
+
+            // Governance tunes them
+            registry::set_min_dispute_bond(&admin_cap, &mut config, 25_000_000_000);
+            registry::set_dispute_window_ms(&admin_cap, &mut config, 43_200_000);
+            registry::set_min_sources(&admin_cap, &mut config, 5);
+
+            assert!(registry::min_dispute_bond(&config) == 25_000_000_000, 3);
+            assert!(registry::dispute_window_ms(&config) == 43_200_000, 4);
+            assert!(registry::min_sources(&config) == 5, 5);
+
+            registry::destroy_config_for_testing(config);
+            registry::destroy_admin_cap_for_testing(admin_cap);
+        };
+        ts::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = registry::EInvalidConfig)]
+    fun test_config_zero_rejected() {
+        let mut scenario = ts::begin(ADMIN);
+        {
+            let ctx = ts::ctx(&mut scenario);
+            let admin_cap = registry::create_admin_cap_for_testing(ctx);
+            let mut config = registry::create_config_for_testing(ctx);
+            registry::set_min_sources(&admin_cap, &mut config, 0); // aborts EInvalidConfig
+            registry::destroy_config_for_testing(config);
+            registry::destroy_admin_cap_for_testing(admin_cap);
+        };
+        ts::end(scenario);
+    }
+
+    // ── Upgrade safety ───────────────────────────────────────────────────
+
+    #[test]
+    fun test_migrate_registry() {
+        let mut scenario = ts::begin(ADMIN);
+        {
+            let ctx = ts::ctx(&mut scenario);
+            let admin_cap = registry::create_admin_cap_for_testing(ctx);
+            let mut registry = registry::create_registry_for_testing(ctx);
+
+            // Simulate a pre-upgrade object stuck at an older version
+            registry::set_registry_version_for_testing(&mut registry, 0);
+            assert!(registry::registry_version(&registry) == 0, 0);
+
+            registry::migrate_registry(&admin_cap, &mut registry);
+            assert!(registry::registry_version(&registry) == registry::version(), 1);
+
+            registry::destroy_registry_for_testing(registry);
+            registry::destroy_admin_cap_for_testing(admin_cap);
+        };
+        ts::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = registry::EWrongVersion)]
+    fun test_register_wrong_version_fails() {
+        let mut scenario = ts::begin(ADMIN);
+        {
+            let ctx = ts::ctx(&mut scenario);
+            let admin_cap = registry::create_admin_cap_for_testing(ctx);
+            let mut registry = registry::create_registry_for_testing(ctx);
+            // A stale (un-migrated) registry must reject state mutations
+            registry::set_registry_version_for_testing(&mut registry, 0);
+            registry::register_asset(
+                &admin_cap, &mut registry,
+                b"STALE", b"Set", b"1", b"PSA", 1000, 3,
+            );
+            registry::destroy_registry_for_testing(registry);
+            registry::destroy_admin_cap_for_testing(admin_cap);
+        };
+        ts::end(scenario);
+    }
 }

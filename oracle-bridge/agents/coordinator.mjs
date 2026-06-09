@@ -22,6 +22,9 @@ const MIN_SOURCES = 3;
 // sold; the eBay agent falls back to PriceCharting comps). Fanatics + PWCC are one venue.
 const SOURCE_FAMILY = {
   ebay: 'ebay-sold', pricecharting: 'ebay-sold', ebay_sold: 'ebay-sold', 'ebay-api': 'ebay-sold',
+  // 130point aggregates eBay-completed sales (same tape, same shill-exposure) → eBay family,
+  // so it cross-checks/backs up the eBay vote rather than inflating independent-source count.
+  point130: 'ebay-sold',
   fanatics: 'fanatics-pwcc', pwcc: 'fanatics-pwcc', 'fanatics-pwcc': 'fanatics-pwcc',
 };
 const familyOf = (p) => SOURCE_FAMILY[String(p || '').toLowerCase()] || String(p || '').toLowerCase();

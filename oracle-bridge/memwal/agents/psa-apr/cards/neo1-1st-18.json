@@ -84,6 +84,27 @@
       "confidence": 0.85,
       "comps": 3,
       "source": "psa-apr"
+    },
+    {
+      "date": "2026-06-09T17:09:10.136Z",
+      "priceCents": 337500,
+      "confidence": 0.85,
+      "comps": 3,
+      "source": "psa-apr"
+    },
+    {
+      "date": "2026-06-09T17:33:22.021Z",
+      "priceCents": 337500,
+      "confidence": 0.85,
+      "comps": 3,
+      "source": "psa-apr"
+    },
+    {
+      "date": "2026-06-09T21:51:08.077Z",
+      "priceCents": 337500,
+      "confidence": 0.85,
+      "comps": 3,
+      "source": "psa-apr"
     }
   ],
   "anomalies": []

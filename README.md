@@ -25,6 +25,16 @@ The Walrus track asks for *AI agents / agentic workflows with long-term memory (
 
 This is durable, portable, multi-agent memory — applied to a real $2B+/yr market that has never had a trustworthy onchain price.
 
+## Provably solvent — the settlement contract is formally verified
+
+Most hackathon contracts are *tested*. SlabClaw Predict's settlement math is **proven**: the two functions that move money are machine-checked by the [Sui Prover](https://github.com/asymptotic-code/sui-prover) (Z3 + Boogie) to hold for *every* input, not just the cases a unit test happens to try.
+
+- **Solvency** — a winner's payout is always `≤` the pool. No claim can ever overdraw the market.
+- **No silent truncation** — the `u128 → u64` payout narrowing is proven lossless.
+- **Bounded probability** — the YES price is always a valid `[0–10000]` bps, and provably overflow-safe.
+
+Behind that: a 40-check security review with every finding root-caused and fixed, **28/28 Move tests green**, onchain version-gating for safe upgrades, and governance-tunable economic parameters. Full writeup in [`docs/FORMAL-VERIFICATION.md`](docs/FORMAL-VERIFICATION.md); reproduce with `cd contracts/slabclaw_predict_proofs && sui-prover`.
+
 ## Architecture
 
 ```

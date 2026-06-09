@@ -105,6 +105,41 @@
       "confidence": 0.5,
       "comps": 2,
       "source": "cardmarket-eu-ask"
+    },
+    {
+      "date": "2026-06-09T17:05:42.656Z",
+      "priceCents": 2047500,
+      "confidence": 0.2,
+      "comps": 1,
+      "source": "cardmarket_active"
+    },
+    {
+      "date": "2026-06-09T17:09:10.340Z",
+      "priceCents": 2047500,
+      "confidence": 0.2,
+      "comps": 1,
+      "source": "cardmarket_active"
+    },
+    {
+      "date": "2026-06-09T17:33:22.242Z",
+      "priceCents": 2047500,
+      "confidence": 0.2,
+      "comps": 1,
+      "source": "cardmarket_active"
+    },
+    {
+      "date": "2026-06-09T17:33:22.306Z",
+      "priceCents": 2047500,
+      "confidence": 0.2,
+      "comps": 1,
+      "source": "cardmarket_active"
+    },
+    {
+      "date": "2026-06-09T21:51:08.284Z",
+      "priceCents": 2047500,
+      "confidence": 0.2,
+      "comps": 1,
+      "source": "cardmarket_active"
     }
   ],
   "anomalies": []

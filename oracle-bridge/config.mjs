@@ -5,22 +5,28 @@ export const CONFIG = {
   // Sui network
   rpcUrl: 'https://fullnode.testnet.sui.io:443',
 
-  // Package + objects from EVIDENCE deployment (2026-06-08): evidence_blob_id is
-  // now a first-class onchain field — markets cannot settle without a Walrus blob.
-  // (Prev TEST_USD pkg 0xdc18fc79… retired; it lacked onchain evidence.)
-  packageId: '0x66debb86ea160e10334a3fba2d5afd07660d15e307037f7b1665535e4d9a802a',
-  adminCapId: '0x3601cdc3e240f8c7d9f368e5315677b0bd2f01bb4cb0a3d6e981c5967e98ef90',
-  registryId: '0x8dedbb371903b9fec334aaab1f10fc8275962209e2aa386914b9664fbb8d8f48',
+  // Package + objects from the HARDENED + FORMALLY-VERIFIED deployment (2026-06-09):
+  // onchain version-gating, governance ProtocolConfig, enum state, scope-fixed
+  // emergency_refund, and a Sui-Prover-verified payout. evidence_blob_id remains a
+  // first-class field — markets cannot settle without a Walrus blob.
+  // (Prev evidence pkg 0x66debb86… retired; struct/signature changes are upgrade-incompatible.)
+  packageId: '0x9807050b60400d30c848dcf035a2038b615ffdb7d6d2ed46332959d39b14f115',
+  adminCapId: '0x440584ef9721924d6832345e42da6f804108d7cea5362b6cf59d094468ac1634',
+  registryId: '0x18c19b198a263421ff7882af139ce3645bc1a94c7d4f6ab715e318dd44fc108a',
+
+  // Governance config — admin-tunable dispute bond / window / source floor.
+  // propose_resolution snapshots its terms into each market at proposal time.
+  configId: '0xecbaca290e63b931dce3014cb71d85bad2af75083625331942b0a72a23e64bc3',
 
   // Shared faucet holding the TEST_USD treasury (public mint)
-  faucetId: '0xaebce6a9a79cef13c660f2a17fbcf3f4723a1939757a32f59ac023ad8aebdf79',
-  testUsdType: '0x66debb86ea160e10334a3fba2d5afd07660d15e307037f7b1665535e4d9a802a::test_usd::TEST_USD',
+  faucetId: '0xa1e2ca665f6d2b8aa11d5a6caf0d3cc4d88da68b942991a007c87d0b516c8870',
+  testUsdType: '0x9807050b60400d30c848dcf035a2038b615ffdb7d6d2ed46332959d39b14f115::test_usd::TEST_USD',
 
-  // OracleCap — authorized oracle operator on the evidence package (2026-06-08)
-  oracleCapId: '0xe7d28be03e6360be34d84a3c42d58e821d8dd4ca96ede9c776f514ec1006ebd8',
+  // OracleCap — authorized oracle operator on the hardened package (2026-06-09).
+  oracleCapId: '0x2a859611dfb8279c46a3d211227ceb43a4ca4aae444269cc016e6fa966bb44b7',
 
-  // UpgradeCap for the evidence package (kept for future compatible upgrades)
-  upgradeCapId: '0xf34cf3fe5271dd3ff3e544d48a8fc7cb236f69dfbae203f04742f32efaa4d063',
+  // UpgradeCap for the hardened package (used by migrate_* after future upgrades)
+  upgradeCapId: '0x8d918a08746ac1bd1cc25813e00ab6b369cc6b242995ce5a06ccd3ace54fdc06',
 
   // SlabClaw backend API
   slabclawApi: 'http://localhost:3456',
@@ -54,4 +60,13 @@ export function gradeToBps(grade) {
 /// Convert USD price to cents (15000.00 → 1500000)
 export function priceToCents(priceUsd) {
   return Math.round(priceUsd * 100);
+}
+
+/// Map the onchain MarketState to its numeric code (0=Active,1=Proposed,2=Disputed,3=Settled).
+/// The Move 2024 enum serializes over JSON-RPC as { variant: 'Proposed', ... }; the legacy
+/// u8 came through as a number/string. Handle both so state checks never silently fail.
+export function marketStateCode(s) {
+  const CODE = { Active: 0, Proposed: 1, Disputed: 2, Settled: 3 };
+  if (s && typeof s === 'object' && s.variant) return CODE[s.variant] ?? 0;
+  return Number(s);
 }

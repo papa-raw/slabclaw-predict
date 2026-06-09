@@ -1,6 +1,16 @@
-/// registry.move — Asset class registry for collectible prediction markets.
-/// Maps (set_name, card_number, grader, grade) tuples to asset class IDs.
-/// Shared object — single source of truth for which cards can have markets.
+/// registry.move — Asset registry + protocol governance for SlabClaw Predict.
+///
+/// Two admin-governed shared objects:
+///   • `AssetRegistry`  — the single source of truth for which graded cards may have markets.
+///   • `ProtocolConfig` — governance-tunable economic parameters (dispute bond, dispute
+///     window, oracle source floor). Safety *floors* that must never be loosened
+///     (e.g. the dust-sized minimum position) stay as compile-time constants in `market`;
+///     only economically meaningful knobs are governed here.
+///
+/// Both objects carry an on-chain `version`. Every state-mutating entry function asserts
+/// `version == VERSION` so that, after a package upgrade, calls against a not-yet-migrated
+/// object abort instead of silently corrupting state — the standard Sui upgrade-safety
+/// pattern. `migrate_*` bumps a stale object to the current version under `AdminCap`.
 #[allow(lint(public_entry))]
 module slabclaw_predict::registry {
     use sui::table::{Self, Table};
@@ -9,9 +19,16 @@ module slabclaw_predict::registry {
     use sui::object::{Self, UID};
     use sui::event;
 
-    // ── Capability ────────────────────────────────────────────────────────────
+    // ── Versioning ──────────────────────────────────────────────────────────────
 
-    /// Admin capability — held by the deployer. Required to register asset classes.
+    /// Current on-chain state version. Bump on every state-shape-changing upgrade,
+    /// then call `migrate_registry` / `migrate_config` on the live shared objects.
+    const VERSION: u64 = 1;
+
+    // ── Capability ──────────────────────────────────────────────────────────────
+
+    /// Admin capability — held by the deployer. Required to register assets and to
+    /// tune the protocol config.
     public struct AdminCap has key {
         id: UID,
     }
@@ -40,11 +57,34 @@ module slabclaw_predict::registry {
     /// Shared registry — maps asset_id → AssetClass.
     public struct AssetRegistry has key {
         id: UID,
+        /// On-chain state version (see module docs).
+        version: u64,
         /// asset_id → AssetClass
         assets: Table<vector<u8>, AssetClass>,
         /// Total registered asset classes
         total_assets: u64,
     }
+
+    /// Governance-tunable economic parameters. Shared, admin-mutable.
+    public struct ProtocolConfig has key {
+        id: UID,
+        /// On-chain state version (see module docs).
+        version: u64,
+        /// Minimum dispute bond, in tUSD MIST (9 decimals).
+        min_dispute_bond: u64,
+        /// Optimistic-oracle dispute window, in milliseconds.
+        dispute_window_ms: u64,
+        /// Minimum independent oracle sources required to propose a resolution.
+        min_sources: u64,
+    }
+
+    // Default governance parameters at genesis.
+    /// 10 tUSD (9 decimals).
+    const DEFAULT_MIN_DISPUTE_BOND: u64 = 10_000_000_000;
+    /// 24 hours.
+    const DEFAULT_DISPUTE_WINDOW_MS: u64 = 86_400_000;
+    /// Three independent marketplace sources.
+    const DEFAULT_MIN_SOURCES: u64 = 3;
 
     // ── Events ───────────────────────────────────────────────────────────────
 
@@ -60,6 +100,12 @@ module slabclaw_predict::registry {
         asset_id: vector<u8>,
     }
 
+    public struct ConfigUpdated has copy, drop {
+        min_dispute_bond: u64,
+        dispute_window_ms: u64,
+        min_sources: u64,
+    }
+
     // ── Init ─────────────────────────────────────────────────────────────────
 
     fun init(ctx: &mut TxContext) {
@@ -70,13 +116,24 @@ module slabclaw_predict::registry {
         // Create and share the registry
         let registry = AssetRegistry {
             id: object::new(ctx),
+            version: VERSION,
             assets: table::new(ctx),
             total_assets: 0,
         };
         transfer::share_object(registry);
+
+        // Create and share the governance config with genesis defaults
+        let config = ProtocolConfig {
+            id: object::new(ctx),
+            version: VERSION,
+            min_dispute_bond: DEFAULT_MIN_DISPUTE_BOND,
+            dispute_window_ms: DEFAULT_DISPUTE_WINDOW_MS,
+            min_sources: DEFAULT_MIN_SOURCES,
+        };
+        transfer::share_object(config);
     }
 
-    // ── Entry functions ──────────────────────────────────────────────────────
+    // ── Asset entry functions ──────────────────────────────────────────────────
 
     /// Register a new asset class. Requires AdminCap.
     public entry fun register_asset(
@@ -89,6 +146,7 @@ module slabclaw_predict::registry {
         grade_bps: u64,
         platform_count: u64,
     ) {
+        assert!(registry.version == VERSION, EWrongVersion);
         assert!(!table::contains(&registry.assets, asset_id), EAssetAlreadyRegistered);
         assert!(grade_bps > 0 && grade_bps <= 1000, EInvalidGrade);
 
@@ -120,6 +178,7 @@ module slabclaw_predict::registry {
         registry: &mut AssetRegistry,
         asset_id: vector<u8>,
     ) {
+        assert!(registry.version == VERSION, EWrongVersion);
         assert!(table::contains(&registry.assets, asset_id), EAssetNotFound);
         let asset = table::borrow_mut(&mut registry.assets, asset_id);
         asset.active = false;
@@ -133,6 +192,7 @@ module slabclaw_predict::registry {
         registry: &mut AssetRegistry,
         asset_id: vector<u8>,
     ) {
+        assert!(registry.version == VERSION, EWrongVersion);
         assert!(table::contains(&registry.assets, asset_id), EAssetNotFound);
         let asset = table::borrow_mut(&mut registry.assets, asset_id);
         asset.active = true;
@@ -145,9 +205,70 @@ module slabclaw_predict::registry {
         asset_id: vector<u8>,
         platform_count: u64,
     ) {
+        assert!(registry.version == VERSION, EWrongVersion);
         assert!(table::contains(&registry.assets, asset_id), EAssetNotFound);
         let asset = table::borrow_mut(&mut registry.assets, asset_id);
         asset.platform_count = platform_count;
+    }
+
+    // ── Governance entry functions ──────────────────────────────────────────────
+
+    /// Set the minimum dispute bond (tUSD MIST). Requires AdminCap.
+    public entry fun set_min_dispute_bond(
+        _: &AdminCap,
+        config: &mut ProtocolConfig,
+        value: u64,
+    ) {
+        assert!(config.version == VERSION, EWrongVersion);
+        assert!(value > 0, EInvalidConfig);
+        config.min_dispute_bond = value;
+        emit_config(config);
+    }
+
+    /// Set the optimistic-oracle dispute window (ms). Requires AdminCap.
+    public entry fun set_dispute_window_ms(
+        _: &AdminCap,
+        config: &mut ProtocolConfig,
+        value: u64,
+    ) {
+        assert!(config.version == VERSION, EWrongVersion);
+        assert!(value > 0, EInvalidConfig);
+        config.dispute_window_ms = value;
+        emit_config(config);
+    }
+
+    /// Set the minimum independent oracle source floor. Requires AdminCap.
+    public entry fun set_min_sources(
+        _: &AdminCap,
+        config: &mut ProtocolConfig,
+        value: u64,
+    ) {
+        assert!(config.version == VERSION, EWrongVersion);
+        assert!(value > 0, EInvalidConfig);
+        config.min_sources = value;
+        emit_config(config);
+    }
+
+    fun emit_config(config: &ProtocolConfig) {
+        event::emit(ConfigUpdated {
+            min_dispute_bond: config.min_dispute_bond,
+            dispute_window_ms: config.dispute_window_ms,
+            min_sources: config.min_sources,
+        });
+    }
+
+    // ── Migration ──────────────────────────────────────────────────────────────
+
+    /// Bump a stale registry to the current version after a package upgrade.
+    public entry fun migrate_registry(_: &AdminCap, registry: &mut AssetRegistry) {
+        assert!(registry.version < VERSION, ENotStale);
+        registry.version = VERSION;
+    }
+
+    /// Bump a stale config to the current version after a package upgrade.
+    public entry fun migrate_config(_: &AdminCap, config: &mut ProtocolConfig) {
+        assert!(config.version < VERSION, ENotStale);
+        config.version = VERSION;
     }
 
     // ── Read accessors ───────────────────────────────────────────────────────
@@ -176,11 +297,24 @@ module slabclaw_predict::registry {
     public fun active(asset: &AssetClass): bool { asset.active }
     public fun total_assets(registry: &AssetRegistry): u64 { registry.total_assets }
 
+    /// Governance parameter accessors — read by `market` at proposal time.
+    public fun min_dispute_bond(config: &ProtocolConfig): u64 { config.min_dispute_bond }
+    public fun dispute_window_ms(config: &ProtocolConfig): u64 { config.dispute_window_ms }
+    public fun min_sources(config: &ProtocolConfig): u64 { config.min_sources }
+
+    /// Version accessors.
+    public fun version(): u64 { VERSION }
+    public fun registry_version(registry: &AssetRegistry): u64 { registry.version }
+    public fun config_version(config: &ProtocolConfig): u64 { config.version }
+
     // ── Error codes ──────────────────────────────────────────────────────────
 
     const EAssetAlreadyRegistered: u64 = 0;
     const EAssetNotFound: u64 = 1;
     const EInvalidGrade: u64 = 2;
+    const EWrongVersion: u64 = 3;
+    const EInvalidConfig: u64 = 4;
+    const ENotStale: u64 = 5;
 
     // ── Test helpers ─────────────────────────────────────────────────────────
 
@@ -199,6 +333,7 @@ module slabclaw_predict::registry {
     public fun create_registry_for_testing(ctx: &mut TxContext): AssetRegistry {
         AssetRegistry {
             id: object::new(ctx),
+            version: VERSION,
             assets: table::new(ctx),
             total_assets: 0,
         }
@@ -206,8 +341,37 @@ module slabclaw_predict::registry {
 
     #[test_only]
     public fun destroy_registry_for_testing(registry: AssetRegistry) {
-        let AssetRegistry { id, assets, total_assets: _ } = registry;
+        let AssetRegistry { id, version: _, assets, total_assets: _ } = registry;
         table::drop(assets);
         object::delete(id);
+    }
+
+    #[test_only]
+    public fun create_config_for_testing(ctx: &mut TxContext): ProtocolConfig {
+        ProtocolConfig {
+            id: object::new(ctx),
+            version: VERSION,
+            min_dispute_bond: DEFAULT_MIN_DISPUTE_BOND,
+            dispute_window_ms: DEFAULT_DISPUTE_WINDOW_MS,
+            min_sources: DEFAULT_MIN_SOURCES,
+        }
+    }
+
+    #[test_only]
+    public fun destroy_config_for_testing(config: ProtocolConfig) {
+        let ProtocolConfig {
+            id,
+            version: _,
+            min_dispute_bond: _,
+            dispute_window_ms: _,
+            min_sources: _,
+        } = config;
+        object::delete(id);
+    }
+
+    #[test_only]
+    /// Force a registry's version backwards to exercise the migrate path.
+    public fun set_registry_version_for_testing(registry: &mut AssetRegistry, v: u64) {
+        registry.version = v;
     }
 }

@@ -1,0 +1,18 @@
+Sui Prover version:
+sui-prover 1.5.3
+
+$ sui-prover   (run from contracts/slabclaw_predict_proofs/)
+
+🔄 settlement::compute_payout_spec_Check
+✅ settlement::compute_payout_spec_Check
+🔄 settlement::yes_price_bps_spec_Check
+✅ settlement::yes_price_bps_spec_Check
+🔄 settlement::compute_payout_spec_Assume
+✅ settlement::compute_payout_spec_Assume
+🔄 settlement::yes_price_bps_spec_Assume
+✅ settlement::yes_price_bps_spec_Assume
+🔄 settlement::compute_payout_spec_SpecNoAbortCheck
+✅ settlement::compute_payout_spec_SpecNoAbortCheck
+🔄 settlement::yes_price_bps_spec_SpecNoAbortCheck
+✅ settlement::yes_price_bps_spec_SpecNoAbortCheck
+Verification successful

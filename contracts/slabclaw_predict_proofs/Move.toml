@@ -1,0 +1,6 @@
+[package]
+name = "slabclaw_predict_proofs"
+edition = "2024.beta"
+
+[addresses]
+slabclaw_proofs = "0x0"

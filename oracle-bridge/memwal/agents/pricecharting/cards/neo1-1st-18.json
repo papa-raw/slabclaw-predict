@@ -98,6 +98,27 @@
       "confidence": 0.8,
       "comps": 3,
       "source": "pc_sold"
+    },
+    {
+      "date": "2026-06-09T17:05:42.639Z",
+      "priceCents": 535000,
+      "confidence": 0.8,
+      "comps": 3,
+      "source": "pc_sold"
+    },
+    {
+      "date": "2026-06-09T17:09:10.378Z",
+      "priceCents": 535000,
+      "confidence": 0.8,
+      "comps": 3,
+      "source": "pc_sold"
+    },
+    {
+      "date": "2026-06-09T17:33:22.290Z",
+      "priceCents": 535000,
+      "confidence": 0.8,
+      "comps": 3,
+      "source": "pc_sold"
     }
   ],
   "anomalies": []

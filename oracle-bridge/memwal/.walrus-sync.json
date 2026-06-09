@@ -90,6 +90,20 @@
       "fileCount": 122,
       "sizeBytes": 563854,
       "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/9iAxDoWeiyePixm9biArRfwOCPME7QIFeN8YBVRHZVY"
+    },
+    {
+      "blobId": "s3f0cMX9_zNKT8R7GLqe1ND8FyCBfnogd-KroKt6sX0",
+      "timestamp": "2026-06-09T17:10:30.629Z",
+      "fileCount": 129,
+      "sizeBytes": 611564,
+      "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/s3f0cMX9_zNKT8R7GLqe1ND8FyCBfnogd-KroKt6sX0"
+    },
+    {
+      "blobId": "1h244fZbaHiJHzhBaF-PoQLigrMO6znG-dfuTkgEGHU",
+      "timestamp": "2026-06-09T21:52:45.643Z",
+      "fileCount": 133,
+      "sizeBytes": 672779,
+      "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/1h244fZbaHiJHzhBaF-PoQLigrMO6znG-dfuTkgEGHU"
     }
   ]
 }

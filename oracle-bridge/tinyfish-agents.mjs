@@ -10,6 +10,7 @@
 import { BaseAgent } from './agents/base-agent.mjs';
 import { tfSearch, tfFetch, tfResolve, grade10Prices, psaCardfactsGem10, median } from './tinyfish.mjs';
 import { scrapeYahooJp } from './yahoo-jp-tinyfish.mjs';
+import { searchSold130, close130 } from './point130.mjs';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
@@ -20,10 +21,10 @@ const CACHE_TTL = 6 * 3600 * 1000; // 6h — realized prices move slowly
 
 /// Query metadata per product (good search strings matter for hit-rate).
 export const CARD_META = {
-  'neo1-1st-18':  { query: '2000 Pokemon Neo Genesis 1st Edition Typhlosion #18' },
-  'jp-vs-091':    { query: 'Pokemon Card VS Umbreon Karen 091 Japanese 1st Edition' },
-  'base5-1st-83': { query: '2000 Pokemon Team Rocket 1st Edition Dark Raichu #83' },
-  'base2-1st-3':  { query: '1999 Pokemon Jungle 1st Edition Flareon #3' },
+  'neo1-1st-18':  { query: '2000 Pokemon Neo Genesis 1st Edition Typhlosion #18', point130Tokens: ['typhlosion'] },
+  'jp-vs-091':    { query: 'Pokemon Card VS Umbreon Karen 091 Japanese 1st Edition', point130Tokens: ['umbreon'] },
+  'base5-1st-83': { query: '2000 Pokemon Team Rocket 1st Edition Dark Raichu #83', point130Tokens: ['dark raichu'] },
+  'base2-1st-3':  { query: '1999 Pokemon Jungle 1st Edition Flareon #3', point130Tokens: ['flareon'] },
 };
 
 class TinyfishAgent extends BaseAgent {
@@ -185,10 +186,55 @@ class YahooJpAgent extends TinyfishAgent {
   }
 }
 
+/// 130point.com realized SOLD comps — the CREDIT-FREE, browser-native source (no TinyFish
+/// API). 130point aggregates COMPLETED sales across eBay + auction houses, grade-searchable,
+/// each row stamped with its sold date; we recency-filter, strip non-single-card lots, and
+/// take the median. The data is eBay-origin, so the coordinator dedups it into the eBay-sold
+/// family (`point130 → ebay-sold` in SOURCE_FAMILY): it's a realized cross-check and a
+/// credit-free BACKUP for the eBay vote when TinyFish/PriceCharting are unavailable — not a
+/// new independent family. Runs a HEADED stealth browser; if no display is available the
+/// fetch simply fails per-card and the swarm continues (graceful, optional).
+class Point130Agent extends TinyfishAgent {
+  constructor(c) { super('point130', c); }
+  async fetchSignal(meta) {
+    const rows = await searchSold130(meta.query, { withinDays: 365 });
+    if (!rows?.length) return null;
+    const tokens = (meta.point130Tokens || []).map((t) => t.toLowerCase());
+    const clean = rows.filter((r) => {
+      const t = r.title.toLowerCase();
+      if (/pack|unopened|sealed|\blot\b|bundle|booster|complete set|jumbo|sticker|proxy/.test(t)) return false; // single graded card only
+      // Grade-match strictly to PSA 10 — the grader the markets settle in. 130point mixes PSA
+      // 7/8/9, raw, AND other graders. CGC 10 / BGS 10 trade at a steep discount to PSA 10
+      // (different population), so mixing them corrupts the median: keep PSA 10 only, reject
+      // any other grader and any sub-10 PSA. ("GEM MT/MINT 10" is PSA's own phrasing — allow
+      // it only when no rival grader is named in the title.)
+      const otherGrader = /\b(cgc|bgs|sgc|ace|tag)\b/.test(t);
+      const isPsaTen = /\bpsa\s*10\b/.test(t) || (/gem\s*m(?:t|int)\s*10\b/.test(t) && !otherGrader);
+      const isSubPsa = /\bpsa\s*[1-9](?:\.5)?\b/.test(t);
+      if (!isPsaTen || otherGrader || isSubPsa) return false;
+      return tokens.every((tok) => t.includes(tok));
+    });
+    if (!clean.length) return null;
+    // Prefer a tight 180d window when it has enough comps; else fall back to the full 365d.
+    const recent = clean.filter((r) => r.ageDays <= 180);
+    const pool = recent.length >= 3 ? recent : clean;
+    const med = median(pool.map((r) => r.priceUsd));
+    if (!(med >= 300)) return null; // vintage PSA-10 here is well above $300 — guard mis-parse
+    return {
+      priceCents: Math.round(med * 100),
+      source: 'point130-sold',
+      confidence: pool.length >= 3 ? 0.72 : 0.5,
+      compCount: pool.length,
+    };
+  }
+  // Tear down the shared headed browser once all cards for this agent are done.
+  async run() { try { return await super.run(); } finally { await close130(); } }
+}
+
 /// Build the independent TinyFish source agents for a swarm config.
 export function createTinyfishAgents(cfg) {
   const c = { ...cfg, cardMetas: cfg.cardMetas || CARD_META };
-  return [new PsaAprAgent(c), new GoldinTfAgent(c), new FanaticsTfAgent(c), new AltTfAgent(c), new CardmarketLiveAgent(c), new YahooJpAgent(c)];
+  return [new PsaAprAgent(c), new GoldinTfAgent(c), new FanaticsTfAgent(c), new AltTfAgent(c), new CardmarketLiveAgent(c), new YahooJpAgent(c), new Point130Agent(c)];
 }
 
-export { TinyfishAgent, PsaAprAgent, GoldinTfAgent, FanaticsTfAgent, AltTfAgent, CardmarketLiveAgent, YahooJpAgent };
+export { TinyfishAgent, PsaAprAgent, GoldinTfAgent, FanaticsTfAgent, AltTfAgent, CardmarketLiveAgent, YahooJpAgent, Point130Agent };

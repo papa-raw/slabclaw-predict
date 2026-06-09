@@ -13,7 +13,7 @@
 ///   node bridge.mjs --dry           # status only, never propose
 
 import { getClient, fetchOraclePrice, proposeResolution } from './sui-client.mjs';
-import { CONFIG } from './config.mjs';
+import { CONFIG, marketStateCode } from './config.mjs';
 import { DEMO_MARKETS } from '../frontend/src/constants.js';
 
 const STATE = { 0: 'ACTIVE', 1: 'PROPOSED', 2: 'DISPUTED', 3: 'SETTLED' };
@@ -35,7 +35,7 @@ async function readMarket(client, id) {
   if (!f) return null;
   return {
     id,
-    state: Number(f.state),
+    state: marketStateCode(f.state),
     strikeCents: Number(f.strike_usd_cents),
     expiryMs: Number(f.expiry_ms),
     totalYes: Number(f.total_yes),
