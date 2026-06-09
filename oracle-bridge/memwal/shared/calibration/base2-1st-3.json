@@ -1,16 +1,16 @@
 {
   "cardId": "base2-1st-3",
-  "rounds": 10,
+  "rounds": 11,
   "gradeRatios": {
     "PSA9/PSA10": {
       "ema": 0.107,
-      "n": 9
+      "n": 10
     }
   },
   "anchorGap": {
-    "ema": 0.42671780821917815,
-    "n": 9
+    "ema": 0.3483046575342466,
+    "n": 10
   },
   "sourceStaleness": {},
-  "updatedAt": "2026-06-09T09:17:03.259Z"
+  "updatedAt": "2026-06-09T09:25:52.649Z"
 }

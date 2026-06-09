@@ -1,15 +1,17 @@
 {
   "_seed": false,
-  "roundId": "live-1780996634285",
-  "timestamp": 1780996634285,
+  "roundId": "live-1780997165248",
+  "timestamp": 1780997165248,
   "consensus": {
     "neo1-1st-18": {
       "productId": "neo1-1st-18",
       "consensusPriceCents": 259999,
       "confidenceLower": 259999,
-      "confidenceUpper": 356644,
-      "sourceCount": 3,
-      "flags": [],
+      "confidenceUpper": 259999,
+      "sourceCount": 2,
+      "flags": [
+        "insufficient_sources"
+      ],
       "contributingSources": [
         {
           "platform": "ebay",
@@ -17,21 +19,10 @@
           "kind": "realized",
           "priceCents": 259999,
           "confidence": 1,
-          "reliability": 0.8678070004261815,
-          "weight": 2.3708019533693663,
+          "reliability": 0.860660891091359,
+          "weight": 2.356998355954412,
           "source": "ebay_sold",
           "compCount": 30
-        },
-        {
-          "platform": "tcgplayer",
-          "family": "tcgplayer",
-          "kind": "realized",
-          "priceCents": 356644,
-          "confidence": 0.95,
-          "reliability": 0.9049240454459404,
-          "weight": 2.430579189407669,
-          "source": "tcgplayer_seeded",
-          "compCount": 12
         },
         {
           "platform": "pricecharting",
@@ -39,8 +30,8 @@
           "kind": "realized",
           "priceCents": 259999,
           "confidence": 0.95,
-          "reliability": 0.9386992021747028,
-          "weight": 2.4362521363468215,
+          "reliability": 0.8840774346165916,
+          "weight": 2.3000706771859547,
           "source": "pc_sold_all",
           "compCount": 30
         },
@@ -50,8 +41,8 @@
           "kind": "realized",
           "priceCents": 337500,
           "confidence": 0.85,
-          "reliability": 0.48821680406054546,
-          "weight": 0.7187358149092642,
+          "reliability": 0.5205921101198911,
+          "weight": 0.7664321130871977,
           "source": "psa-apr",
           "compCount": 3
         },
@@ -61,10 +52,21 @@
           "kind": "ask",
           "priceCents": 351046,
           "confidence": 0.95,
-          "reliability": 1,
+          "reliability": 0.9361677347684407,
           "weight": 0,
           "source": "courtyard_seeded",
           "compCount": 10
+        },
+        {
+          "platform": "tcgplayer",
+          "family": "tcgplayer",
+          "kind": "ask",
+          "priceCents": 356644,
+          "confidence": 0.95,
+          "reliability": 0.842860544304654,
+          "weight": 0,
+          "source": "tcgplayer_seeded",
+          "compCount": 12
         },
         {
           "platform": "alt",
@@ -72,7 +74,7 @@
           "kind": "ask",
           "priceCents": 383700,
           "confidence": 0.4,
-          "reliability": 0.4909841815505181,
+          "reliability": 0.4625182133582315,
           "weight": 0,
           "source": "alt-ask",
           "compCount": 1
@@ -83,7 +85,7 @@
           "kind": "ask",
           "priceCents": 307731,
           "confidence": 0.95,
-          "reliability": 0.5948116073655696,
+          "reliability": 0.5375957668473185,
           "weight": 0,
           "source": "beezie_seeded",
           "compCount": 10
@@ -94,7 +96,7 @@
           "kind": "ask",
           "priceCents": 274210,
           "confidence": 0.95,
-          "reliability": 0.4866699848333333,
+          "reliability": 0.5469268028772132,
           "weight": 0,
           "source": "collector-crypt_seeded",
           "compCount": 10
@@ -104,22 +106,22 @@
         {
           "platform": "fanatics",
           "priceCents": 1332500,
-          "reason": "MAD outlier (z=8.66)",
-          "zScore": 8.659597940671734
+          "reason": "MAD outlier (z=17.99)",
+          "zScore": 17.993695881343466
         }
       ],
-      "updatedAt": "2026-06-09T09:17:14.285Z",
+      "updatedAt": "2026-06-09T09:26:05.248Z",
       "evidence": {
-        "blobId": "zv1tG1uKMTDcniEixgJHwZMwasqjDj7FEGYT_1hJW2A",
-        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/zv1tG1uKMTDcniEixgJHwZMwasqjDj7FEGYT_1hJW2A"
+        "blobId": "UxI0mIQDb45JHJyJ1xVY38XPch7NN7Nh02MK3C_MmPM",
+        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/UxI0mIQDb45JHJyJ1xVY38XPch7NN7Nh02MK3C_MmPM"
       }
     },
     "jp-vs-091": {
       "productId": "jp-vs-091",
       "consensusPriceCents": 1290000,
-      "confidenceLower": 1180221,
+      "confidenceLower": 1290000,
       "confidenceUpper": 1600000,
-      "sourceCount": 2,
+      "sourceCount": 1,
       "flags": [
         "insufficient_sources",
         "consensus_above_lowest_ask"
@@ -131,21 +133,10 @@
           "kind": "realized",
           "priceCents": 1290000,
           "confidence": 1,
-          "reliability": 0.8663122493815858,
-          "weight": 2.405840734195186,
+          "reliability": 0.859606718031633,
+          "weight": 2.393025390914674,
           "source": "ebay_sold",
           "compCount": 31
-        },
-        {
-          "platform": "tcgplayer",
-          "family": "tcgplayer",
-          "kind": "realized",
-          "priceCents": 1180221,
-          "confidence": 0.95,
-          "reliability": 0.8866287287852972,
-          "weight": 2.381438914969421,
-          "source": "tcgplayer_seeded",
-          "compCount": 12
         },
         {
           "platform": "pricecharting",
@@ -153,8 +144,8 @@
           "kind": "realized",
           "priceCents": 1600000,
           "confidence": 0.95,
-          "reliability": 0.9333338985834453,
-          "weight": 2.46236864779557,
+          "reliability": 0.8803747455364925,
+          "weight": 2.328298702937479,
           "source": "pc_sold_recent",
           "compCount": 31
         },
@@ -164,10 +155,21 @@
           "kind": "ask",
           "priceCents": 1242596,
           "confidence": 0.95,
-          "reliability": 0.9815789473684211,
+          "reliability": 0.9141836537638655,
           "weight": 0,
           "source": "courtyard_seeded",
           "compCount": 11
+        },
+        {
+          "platform": "tcgplayer",
+          "family": "tcgplayer",
+          "kind": "ask",
+          "priceCents": 1180221,
+          "confidence": 0.95,
+          "reliability": 0.8204257308589638,
+          "weight": 0,
+          "source": "tcgplayer_seeded",
+          "compCount": 12
         },
         {
           "platform": "cardmarket",
@@ -175,7 +177,7 @@
           "kind": "ask",
           "priceCents": 1674000,
           "confidence": 0.5,
-          "reliability": 0.8288914169805335,
+          "reliability": 0.8012990040415284,
           "weight": 0,
           "source": "cardmarket-eu-ask",
           "compCount": 2
@@ -186,7 +188,7 @@
           "kind": "ask",
           "priceCents": 1176208,
           "confidence": 0.95,
-          "reliability": 0.5721934822096708,
+          "reliability": 0.5112787300541956,
           "weight": 0,
           "source": "beezie_seeded",
           "compCount": 8
@@ -197,7 +199,7 @@
           "kind": "ask",
           "priceCents": 1256174,
           "confidence": 0.95,
-          "reliability": 0.5278191772681817,
+          "reliability": 0.5640780408631639,
           "weight": 0,
           "source": "collector-crypt_seeded",
           "compCount": 10
@@ -207,22 +209,21 @@
         {
           "platform": "fanatics",
           "priceCents": 2700000,
-          "reason": "MAD outlier (z=4.03)",
-          "zScore": 4.033062635339071
+          "reason": "implausible vs anchor (1.87x of $14450, thin source)"
         }
       ],
-      "updatedAt": "2026-06-09T09:17:14.285Z",
+      "updatedAt": "2026-06-09T09:26:05.248Z",
       "evidence": {
-        "blobId": "zv1tG1uKMTDcniEixgJHwZMwasqjDj7FEGYT_1hJW2A",
-        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/zv1tG1uKMTDcniEixgJHwZMwasqjDj7FEGYT_1hJW2A"
+        "blobId": "UxI0mIQDb45JHJyJ1xVY38XPch7NN7Nh02MK3C_MmPM",
+        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/UxI0mIQDb45JHJyJ1xVY38XPch7NN7Nh02MK3C_MmPM"
       }
     },
     "base5-1st-83": {
       "productId": "base5-1st-83",
       "consensusPriceCents": 416100,
       "confidenceLower": 416100,
-      "confidenceUpper": 527955,
-      "sourceCount": 4,
+      "confidenceUpper": 416100,
+      "sourceCount": 3,
       "flags": [],
       "contributingSources": [
         {
@@ -231,21 +232,10 @@
           "kind": "realized",
           "priceCents": 416100,
           "confidence": 1,
-          "reliability": 0.8672466159909462,
-          "weight": 2.3692715029758187,
+          "reliability": 0.8606597931872677,
+          "weight": 2.3569958636675565,
           "source": "ebay_sold",
           "compCount": 30
-        },
-        {
-          "platform": "tcgplayer",
-          "family": "tcgplayer",
-          "kind": "realized",
-          "priceCents": 527955,
-          "confidence": 0.95,
-          "reliability": 0.8836356774591185,
-          "weight": 2.1666076167963726,
-          "source": "tcgplayer_seeded",
-          "compCount": 10
         },
         {
           "platform": "pricecharting",
@@ -253,8 +243,8 @@
           "kind": "realized",
           "priceCents": 416100,
           "confidence": 0.95,
-          "reliability": 0.9100001695750336,
-          "weight": 2.361768315152058,
+          "reliability": 0.8611712471903594,
+          "weight": 2.2404766751111995,
           "source": "pc_sold_all",
           "compCount": 30
         },
@@ -264,8 +254,8 @@
           "kind": "realized",
           "priceCents": 470000,
           "confidence": 0.7,
-          "reliability": 0.44029558928852597,
-          "weight": 0.30819188676206116,
+          "reliability": 0.4538210347961128,
+          "weight": 0.317672208917081,
           "source": "fanatics-pwcc",
           "compCount": 1
         },
@@ -275,8 +265,8 @@
           "kind": "realized",
           "priceCents": 397000,
           "confidence": 0.85,
-          "reliability": 0.46954196429508677,
-          "weight": 0.6912460494447271,
+          "reliability": 0.5061776330359673,
+          "weight": 0.7452140293993579,
           "source": "psa-apr",
           "compCount": 3
         },
@@ -286,9 +276,20 @@
           "kind": "ask",
           "priceCents": 532468,
           "confidence": 0.95,
-          "reliability": 0.9765249662618083,
+          "reliability": 0.9091388170593921,
           "weight": 0,
           "source": "courtyard_seeded",
+          "compCount": 10
+        },
+        {
+          "platform": "tcgplayer",
+          "family": "tcgplayer",
+          "kind": "ask",
+          "priceCents": 527955,
+          "confidence": 0.95,
+          "reliability": 0.8171803508366364,
+          "weight": 0,
+          "source": "tcgplayer_seeded",
           "compCount": 10
         },
         {
@@ -297,7 +298,7 @@
           "kind": "ask",
           "priceCents": 527250,
           "confidence": 0.4,
-          "reliability": 0.4820778631608076,
+          "reliability": 0.4530411782931837,
           "weight": 0,
           "source": "alt-ask",
           "compCount": 1
@@ -308,7 +309,7 @@
           "kind": "ask",
           "priceCents": 655139,
           "confidence": 0.95,
-          "reliability": 0.5834227505452542,
+          "reliability": 0.5200502856829253,
           "weight": 0,
           "source": "beezie_seeded",
           "compCount": 11
@@ -318,25 +319,24 @@
         {
           "platform": "goldin",
           "priceCents": 793000,
-          "reason": "MAD outlier (z=6.47)",
-          "zScore": 6.466884246575343
+          "reason": "MAD outlier (z=13.31)",
+          "zScore": 13.309897905759161
         }
       ],
-      "updatedAt": "2026-06-09T09:17:14.285Z",
+      "updatedAt": "2026-06-09T09:26:05.248Z",
       "evidence": {
-        "blobId": "zv1tG1uKMTDcniEixgJHwZMwasqjDj7FEGYT_1hJW2A",
-        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/zv1tG1uKMTDcniEixgJHwZMwasqjDj7FEGYT_1hJW2A"
+        "blobId": "UxI0mIQDb45JHJyJ1xVY38XPch7NN7Nh02MK3C_MmPM",
+        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/UxI0mIQDb45JHJyJ1xVY38XPch7NN7Nh02MK3C_MmPM"
       }
     },
     "base2-1st-3": {
       "productId": "base2-1st-3",
-      "consensusPriceCents": 338000,
-      "confidenceLower": 208860,
+      "consensusPriceCents": 561600,
+      "confidenceLower": 338000,
       "confidenceUpper": 561600,
-      "sourceCount": 4,
+      "sourceCount": 3,
       "flags": [
-        "consensus_above_lowest_ask",
-        "wide_disagreement"
+        "consensus_above_lowest_ask"
       ],
       "contributingSources": [
         {
@@ -345,21 +345,10 @@
           "kind": "realized",
           "priceCents": 561600,
           "confidence": 1,
-          "reliability": 0.8688696369711968,
-          "weight": 1.5012632009087385,
+          "reliability": 0.8623075269972762,
+          "weight": 1.4935490320011378,
           "source": "ebay_sold",
           "compCount": 12
-        },
-        {
-          "platform": "tcgplayer",
-          "family": "tcgplayer",
-          "kind": "realized",
-          "priceCents": 208860,
-          "confidence": 0.95,
-          "reliability": 0.8650907032377355,
-          "weight": 1.9416878095769123,
-          "source": "tcgplayer_seeded",
-          "compCount": 9
         },
         {
           "platform": "pricecharting",
@@ -367,8 +356,8 @@
           "kind": "realized",
           "priceCents": 561600,
           "confidence": 0.95,
-          "reliability": 0.905258115388639,
-          "weight": 1.4859296687283317,
+          "reliability": 0.8583513741571078,
+          "weight": 1.412362001670821,
           "source": "pc_sold_all",
           "compCount": 12
         },
@@ -378,8 +367,8 @@
           "kind": "realized",
           "priceCents": 338000,
           "confidence": 0.7,
-          "reliability": 0.45875534345322444,
-          "weight": 0.45412247870270184,
+          "reliability": 0.4677252578072548,
+          "weight": 0.4630207157780717,
           "source": "fanatics-pwcc",
           "compCount": 2
         },
@@ -389,8 +378,8 @@
           "kind": "realized",
           "priceCents": 300100,
           "confidence": 0.85,
-          "reliability": 0.490862589288526,
-          "weight": 0.7226336546410654,
+          "reliability": 0.5224415252049078,
+          "weight": 0.7691583534264259,
           "source": "psa-apr",
           "compCount": 3
         },
@@ -400,10 +389,21 @@
           "kind": "ask",
           "priceCents": 212888,
           "confidence": 0.95,
-          "reliability": 0.9579574898785423,
+          "reliability": 0.893196190572363,
           "weight": 0,
           "source": "courtyard_seeded",
           "compCount": 10
+        },
+        {
+          "platform": "tcgplayer",
+          "family": "tcgplayer",
+          "kind": "ask",
+          "priceCents": 208860,
+          "confidence": 0.95,
+          "reliability": 0.8015643616612472,
+          "weight": 0,
+          "source": "tcgplayer_seeded",
+          "compCount": 9
         },
         {
           "platform": "alt",
@@ -411,7 +411,7 @@
           "kind": "ask",
           "priceCents": 875000,
           "confidence": 0.4,
-          "reliability": 0.4722829334163273,
+          "reliability": 0.4439123534879551,
           "weight": 0,
           "source": "alt-ask",
           "compCount": 1
@@ -422,7 +422,7 @@
           "kind": "ask",
           "priceCents": 237967,
           "confidence": 0.95,
-          "reliability": 0.5639157140524651,
+          "reliability": 0.5060150857048775,
           "weight": 0,
           "source": "beezie_seeded",
           "compCount": 9
@@ -433,7 +433,7 @@
           "kind": "ask",
           "priceCents": 232370,
           "confidence": 0.95,
-          "reliability": 0.5666790865137878,
+          "reliability": 0.5892234122589491,
           "weight": 0,
           "source": "collector-crypt_seeded",
           "compCount": 11
@@ -443,13 +443,13 @@
         {
           "platform": "goldin",
           "priceCents": 42500,
-          "reason": "implausible vs anchor (0.10x of $4309)"
+          "reason": "implausible vs anchor (0.08x of $5616, thin source)"
         }
       ],
-      "updatedAt": "2026-06-09T09:17:14.285Z",
+      "updatedAt": "2026-06-09T09:26:05.248Z",
       "evidence": {
-        "blobId": "zv1tG1uKMTDcniEixgJHwZMwasqjDj7FEGYT_1hJW2A",
-        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/zv1tG1uKMTDcniEixgJHwZMwasqjDj7FEGYT_1hJW2A"
+        "blobId": "UxI0mIQDb45JHJyJ1xVY38XPch7NN7Nh02MK3C_MmPM",
+        "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/UxI0mIQDb45JHJyJ1xVY38XPch7NN7Nh02MK3C_MmPM"
       }
     }
   }

@@ -1,28 +1,28 @@
 {
   "cardId": "base5-1st-83",
-  "rounds": 10,
+  "rounds": 11,
   "gradeRatios": {
     "PSA9/PSA10": {
       "ema": 0.086,
-      "n": 9
+      "n": 10
     },
     "PSA8/PSA10": {
       "ema": 0.047,
-      "n": 9
+      "n": 10
     },
     "CGC9/PSA9": {
       "ema": 0.756,
-      "n": 9
+      "n": 10
     },
     "CGC8.5/PSA8.5": {
       "ema": 0.728,
-      "n": 9
+      "n": 10
     }
   },
   "anchorGap": {
     "ema": 0.47899971952880843,
-    "n": 9
+    "n": 10
   },
   "sourceStaleness": {},
-  "updatedAt": "2026-06-09T09:17:03.254Z"
+  "updatedAt": "2026-06-09T09:25:52.644Z"
 }

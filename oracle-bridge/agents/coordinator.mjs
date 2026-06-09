@@ -29,7 +29,9 @@ const familyOf = (p) => SOURCE_FAMILY[String(p || '').toLowerCase()] || String(p
 // Sources that report ASKS (live listings / FMV), not realized sales. Asks bound the
 // price — you can't realistically settle above the lowest ask — but must NOT vote in
 // the settlement median: an ask structurally sits above the clearing price.
-const ASK_PLATFORMS = new Set(['alt', 'cardmarket', 'courtyard', 'beezie', 'collector-crypt']);
+// tcgplayer is a LISTINGS venue (active asks), not a realized-sold feed — classify it as
+// an ask regardless of source suffix (tcgplayer_active / _seeded both dodge the regex).
+const ASK_PLATFORMS = new Set(['alt', 'cardmarket', 'courtyard', 'beezie', 'collector-crypt', 'tcgplayer']);
 const kindOf = (platform, source) =>
   (/ask|listing|active|fmv/i.test(source || '') || ASK_PLATFORMS.has(String(platform || '').toLowerCase())) ? 'ask' : 'realized';
 const MAD_THRESHOLD = 3.5;
@@ -190,11 +192,17 @@ export function aggregate(cardId, allSignals, reputationWeights) {
   const anchor = median((wellSupported.length ? wellSupported : realized).map((s) => s.priceCents));
   if (anchor > 0) {
     realized = realized.filter((s) => {
-      if (s.priceCents < 0.4 * anchor || s.priceCents > 2.5 * anchor) {
+      // Trusted high-comp feeds get a lenient band; THIN search-snippet sources (1-2 comps,
+      // mis-grab prone — a wrong-variant Goldin $425 or Fanatics $27k) must sit within +-50%
+      // of the well-supported anchor. Only tightened when a trusted anchor actually exists.
+      const thin = (s.compCount || 0) < 3 && wellSupported.length > 0;
+      const lo = thin ? 0.5 : 0.4;
+      const hi = thin ? 1.5 : 2.5;
+      if (s.priceCents < lo * anchor || s.priceCents > hi * anchor) {
         result.rejectedSources.push({
           platform: s.platform,
           priceCents: s.priceCents,
-          reason: `implausible vs anchor (${(s.priceCents / anchor).toFixed(2)}x of $${Math.round(anchor / 100)})`,
+          reason: `implausible vs anchor (${(s.priceCents / anchor).toFixed(2)}x of $${Math.round(anchor / 100)}${thin ? ', thin source' : ''})`,
         });
         return false;
       }
