@@ -1,43 +1,51 @@
 # SlabClaw Predict — Next Session Kickstart
 
-> Walrus track (Sui Overflow 2026). The deliverable is a **memory-backed, manipulation-resistant multi-agent oracle swarm** on MemWal/Walrus; the prediction market is the showcase. Everything below is on branch **`ux-audit-quickwins`** (NOT merged to `main` — fully revertable).
+> Walrus track (Sui Overflow 2026, **submit by Jun 18–19**, deadline Jun 21). The deliverable is a **memory-backed, manipulation-resistant multi-agent oracle swarm** on MemWal/Walrus; the prediction market is the showcase. Everything is on `main` and **live in production**.
 
 ## Paste-to-resume prompt
-> Resume SlabClaw Predict on branch `ux-audit-quickwins`. Build the **manipulation-signal engine**: (1) grade-inversion detector, (2) cross-grade/cross-grader multiplier-divergence detector — both compute from the existing oracle ladder + the captured Cardmarket graded ladder, emit confidence penalties + "widen dispute window" flags on concluded markets, and surface as plain-language warnings in the Oracle Swarm tab. Then (3) the listing→sale relation engine off `pull-listings.mjs` snapshots. Read `NEXT-SESSION.md`, `CLAUDE.md` session logs, and `oracle-bridge/memwal/shared/listings/` first.
+> Resume SlabClaw Predict. Run the **Judge Gauntlet fix sprint** in NEXT-SESSION.md order: (1) blob durability re-upload at max epochs, (2) canonical agent roster sweep, (3) fresh-cloner README fixes, (4) gas hint, then the **onchain MemWal anchor** package (SwarmMemory pointer onchain + prove-memory-loop.mjs + restoredFromBlobId in /predict/health). After the sprint: E2E full-flow test, then the demo video script. Read NEXT-SESSION.md and the CLAUDE.md 2026-06-10 session log first.
 
-## Where we are (done, committed)
-- **Onchain Walrus evidence** is mandatory: `evidence_blob_id` is a first-class field; markets can't settle without a verifiable blob. Pkg `0x66debb86…`. Proven via `reseed-and-prove.mjs`. PII redaction in `redact.mjs`. Move 19/19, JS 41/41.
-- **Independent per-venue source agents (TinyFish)** — `oracle-bridge/tinyfish.mjs` + `tinyfish-agents.mjs`: `psa-apr` (PSA CardFacts table), `goldin`, `fanatics`, `alt`. Every card now ≥3 sources. ALT fixed to strict grade-pairing.
-- **UX audit implemented** (7 batches): focus rings, AA contrast, single-gold, accessible dialog + `?market=` deep-link, tx-gating, error/empty, consolidated panel, Oracle-Swarm + Resolution-Guide tabs primed/de-jargoned (incl. salvaged **vs-agreed** deviation column + reliability track-record).
-- **Listing snapshot #1** captured (`oracle-bridge/pull-listings.mjs` → `memwal/shared/listings/`): eBay PSA-10 per card + **Cardmarket graded ladder manually extracted** (`cardmarket-2026-06-09.json`).
+## Where we are (live)
+- **slabclaw.com = the live submission** (Vercel, project `slabclaw-predict`), `/privacy` + `/terms` preserved. Live oracle feed: `api.slabclaw.com/predict/{consensus,signals,health}`.
+- **Production topology**: data-plane node runs the full swarm daily and snapshots memory to Walrus; serving node **restores memory from Walrus** before each 6h round (systemd timer) and serves the feed. No autonomous settlement; proposals stay operator-signed.
+- **Markets**: Typhlosion `0xf63f37a0…`, Umbreon `0x2da84029…`, Flareon `0x9700623a…` ACTIVE (expiry Oct 1 2026, post-judging); Dark Raichu `0xd77d6340…` PROPOSED with onchain evidence blob `Q2dlXakO…`.
+- **Daily health monitor** runs 07:00 UTC through Aug 27.
+- **Judge Gauntlet** (5 self-rubric judges + claim verifier + fresh cloner) scored: RWA 7.4 · UX 8.2 · Tech 7.7 · Presentation 7.8 · Walrus sponsor 7.4. The tech judge independently recomputed the settlement price from the onchain blob.
 
-## The headline next build — manipulation-signal engine (Pat's idea)
-Both signals are computable NOW from data we already have (oracle ladder + Cardmarket graded ladder). No scraping needed.
+## The sprint (Gauntlet-ranked, deduped)
 
-1. **Grade-inversion detector** — flag when `oracle[higherGrade] ≤ oracle[lowerGrade]`, OR any below-grade *listing* ≥ the settled price.
-   - Live example: **Dark Raichu BGS 9.5 listed €9,999 (~$10.7k) > PSA 10 oracle $7,987** — a 9.5 above the 10.
-2. **Multiplier-divergence detector** — expected PSA 9/10 ≈ 0.30–0.45; cross-grader CGC=0.75×PSA, BGS=0.80×PSA, SGC=0.55×. Flag deviations beyond a band.
-   - Live flags (PSA 9÷10): **Typhlosion 0.14 · Dark Raichu 0.09 · Flareon 0.11** (all anomalously low) · Umbreon 0.33 (ok).
-3. **Behavior:** these are NOT hard rejections (extreme ratios on ultra-scarce vintage PSA 10s can be real scarcity). They **lower settlement confidence + widen the dispute window** and surface a plain-language warning ("a graded 9.5 is asking more than the settled 10 — treat with caution"). Plug into `coordinator.mjs` flags + a "concluded-market audit."
-4. **Intra-grade spread** is a bonus signal: Dark Raichu PSA 9 listed €850 vs €3,460 (4×) = fishing/thin-liquidity flag.
+### Critical + cheap (~6h, do first)
+1. **Blob durability** (2h) — re-upload demo evidence + MemWal snapshots at max epochs (~53 on testnet) and re-propose, so nothing 404s during judging.
+2. **Canonical agent roster** (2h) — README says 9 (one list), deck says 9 (different list), code runs 13. One roster everywhere + fix ghosts: `OracleSwarmPanel.jsx` reference (README:223), `explain-site/` (doesn't exist), ArchitecturePage modules row says "market · oracle · resolution · registry" (real modules: market · oracle · registry · test_usd), stale hardcoded "latest blob" links (README:117,128).
+3. **Fresh-cloner fixes** (1h) — README "Run it": add `cd oracle-bridge && npm install` (cold clone crashes with ERR_MODULE_NOT_FOUND), document `SLABCLAW_API` env var, note which agents need TinyFish credits, distinguish "backend unreachable" from "no data" in agent output.
+4. **Gas hint** (1h) — next to Connect/Faucet: "Need gas? Get testnet SUI ↗" — a cold judge with an empty wallet can't trade and is never told why.
 
-## Supporting builds (priority order)
-- **Listing→sale relation engine**: re-run `pull-listings.mjs` each cycle → diff snapshots by `url` → inferred sales (vanished), relists (reappeared), ask↔realized divergence. Capture `certNumber` from titles for same-physical-card wash detection (currently null in DB).
-- **Umbreon now HAS a real PSA-10 source**: Cardmarket `PSA 10 €15,500` + `€19,500` (cert 71876478). Wire it so Umbreon's 3rd source is genuinely independent (EU), not eBay-derived.
-- **Scrydex agent** (`scrydex.com/pokemon/cards/<slug>?variant=…`): easy JP/coverage win via TinyFish fetch — but note it's eBay-derived like PriceCharting (boosts count, not true independence).
-- **Cardmarket product pages render client-side** on all IPs tried (2 Hetzner geos + local residential — product page timed out for a plain fetch). The fleet scraper (`slabclaw-app/backend/`: `cardmarket-scraper.mjs`, `cm-scope-runner.mjs`, `fleet.mjs --platform=cardmarket`) works but needs a **residential/rotating proxy**. Until then, manual export → vision-extract (as done for the 4 cards) or TinyFish aggregate.
-- **Frontend**: surface inversion/spread warnings + the cross-grade ladder in the Oracle Swarm tab.
-- **UX branch**: decide merge of `ux-audit-quickwins` → `main`. The one opinionated change to eyeball is the single-gold CTA reskin.
+### The convergent #1 (6h) — onchain MemWal anchor
+3 judges incl. the track decider converged: the latest-memory pointer is a LOCAL file (`memwal-sync.mjs:151`) — "memory that outlives its operator" currently dies with the operator's disk.
+- Publish each round's snapshot blobId onchain (shared `SwarmMemory` object or `MemoryCheckpoint` event, same pattern as `evidence_blob_id`).
+- Serving node restores from the ONCHAIN pointer; surface `restoredFromBlobId` in `/predict/health`.
+- Ship `prove-memory-loop.mjs`: delete `memwal/` → restore from chain+Walrus → run consensus → diff (kill-and-restore proof, ON CAMERA in the video).
 
-## Key files & commands
-- Swarm: `cd oracle-bridge && node swarm.mjs --dry` (TinyFish agents cached 6h; ≥3 sources/card)
-- Listings: `node pull-listings.mjs` (PSA-10 eBay snapshot → `memwal/shared/listings/`)
-- Onchain proof: `node reseed-and-prove.mjs`
-- Tests: `cd contracts/slabclaw_predict && sui move test` (19/19); `cd oracle-bridge && node --test "test/*.test.mjs"` (41/41)
-- Frontend: `cd frontend && npm run dev`
-- Scanner ops doc `/slabclaw` is STALE (says "cardmarket not viable" — false; fleet has cardmarket/goldin/fanatics/heritage/alt scrapers + tinyfish-swarm). Real backend: `slabclaw-app/backend/` (NOT `slabclaw/backend/`).
+### High (~9h)
+5. **Seeded-history honesty** (3h) — label seeded rounds "simulated bootstrap" at point of use (OracleSwarmPanel-successor + README:130 + deck:408); real rounds accumulate at 6h cadence (~40 by Jun 21). Fix deck's self-contradiction (Courtyard ~86% reputation vs ask-class weight-0 policy). Exclude asks from reputation updates (`coordinator.mjs`).
+6. **Dispute window staged through judging** (3h) — keep one market in an OPEN dispute window (re-propose cycle); drive DisputePanel from onchain `disputeDeadlineMs`/`requiredDisputeBond` (already parsed in `useMarket.js:33-34`) instead of hardcoded 24h/min-bond.
+7. **Era-trend strip honesty** (2h) — `/api/registry/era-trends` 404s in prod so static fallbacks render as if live; proxy via `/predict/` or label as snapshot.
+8. **Vendor card images** (1h) — pokemontcg.io hotlinks into `/public` (CDN outage during judging = "no image" grid; also fixes the deck title slide offline).
 
-## Watch-outs
-- Cardmarket lists graded slabs under a raw condition badge (MT/NM/EX); the **grade is in the seller comment** (collapsed in print-to-PDF — extract from notes/HTML, not condition).
-- Listing snapshots contain seller handles (public marketplace data) — **redact before any Walrus publish** (same posture as evidence bundles via `redact.mjs`).
+### Big bets (Pat decides)
+9. **"Swarm memory" tab in the dapp** (8h) — UX judge's #1: reputation/calibration/warm-cache evolving round-over-round, headed "memory restored from Walrus blob `<id>`". Pairs with fix #5's real-rounds data and the sponsor judge's Memory-tab ask.
+10. **Real-user evidence** (10h, mostly Pat) — 10–20 waitlist/TestFlight collectors trade during judging; put "N real collectors traded" in README/deck. Converts the 50% RWA criterion from asserted to demonstrated.
+11. **Repo presentation hygiene** (1h) — decide on DEBUG-LOG/NEXT-SESSION/TODO/BUILD_PLAN in the public repo (cloner: "reads as unswept"; counter: honest process docs); remove `contracts/slabclaw_predict/build/` from tracking; quarantine superseded scripts (`create-proposed.mjs` proposes without config/evidence).
+
+### Then (the win condition)
+- **E2E full-flow test** — wallet → faucet → trade → propose → dispute → finalize → claim → verify-on-Walrus, ONE uninterrupted pass.
+- **Demo video** (Pat records; structure per organizers): 60s problem → ~3min Dark Raichu walkthrough (buy YES → swarm round → Walruscan blob → onchain price == blob → dispute window) + the kill-and-restore memory proof → 60s vision.
+- `/release-checklist` gate, DeepSurge form (logo 1:1!), submit **Jun 18–19**.
+
+## Standing cautions
+- Keeper stays OFF in production (premortem finding #9). Old Jul-9-expiry markets are orphaned — never point anything at `0x2756a52b…`, `0x56ae16ad…`, `0xc977441b…`, `0x499d7f98…`.
+- TinyFish credits at 0 — top up before the next full data-plane swarm run if venue coverage matters for the video.
+- Cardmarket lists graded slabs under a raw condition badge; the **grade is in the seller comment** (extract from notes/HTML, not condition).
+- Listing snapshots contain seller handles — **redact before any Walrus publish** (`redact.mjs` posture).
 - macOS has no `timeout` command (use the harness tool timeout, not `timeout` in shell).
+- Premortem reports: `../premortem-report-20260610-0012.html` (parent dir, outside this repo).
