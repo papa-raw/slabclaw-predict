@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service — SlabClaw</title>
+    <meta name="description" content="SlabClaw Terms of Service.">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <style>
+        :root {
+            --bg: #0A0A0A;
+            --surface: #1C1C1E;
+            --text-primary: #FFFFFF;
+            --text-secondary: #8E8E93;
+            --text-tertiary: #636366;
+            --accent: #0A84FF;
+            --separator: #38383A;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(10, 10, 10, 0.8);
+            border-bottom: 1px solid var(--separator);
+        }
+        nav .nav-inner {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 56px;
+        }
+        .nav-logo {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        .nav-links { display: flex; gap: 24px; list-style: none; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+        .nav-links a:hover { color: var(--text-primary); }
+        .content { padding: 120px 0 80px; }
+        h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+        .meta { color: var(--text-tertiary); font-size: 14px; margin-bottom: 48px; }
+        h2 { font-size: 22px; font-weight: 600; margin-top: 48px; margin-bottom: 16px; letter-spacing: -0.01em; }
+        h3 { font-size: 17px; font-weight: 600; margin-top: 32px; margin-bottom: 12px; }
+        p { color: var(--text-secondary); font-size: 15px; margin-bottom: 16px; }
+        p strong { color: var(--text-primary); }
+        ul, ol { color: var(--text-secondary); font-size: 15px; margin-bottom: 16px; padding-left: 24px; }
+        li { margin-bottom: 8px; }
+        li strong { color: var(--text-primary); }
+        a { color: var(--accent); }
+        hr { border: none; border-top: 1px solid var(--separator); margin: 48px 0; }
+        .contact-block { background: var(--surface); padding: 24px; border-radius: 12px; margin: 16px 0; font-size: 14px; color: var(--text-secondary); line-height: 1.8; }
+        .disclaimer { background: var(--surface); border-left: 3px solid #FF453A; padding: 20px 24px; border-radius: 0 12px 12px 0; margin: 24px 0; }
+        .disclaimer p { margin-bottom: 8px; }
+        .disclaimer p:last-child { margin-bottom: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; }
+        th, td { text-align: left; padding: 10px 12px; font-size: 14px; border-bottom: 1px solid var(--separator); }
+        th { color: var(--text-tertiary); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+        td { color: var(--text-secondary); }
+        footer { padding: 32px 0; border-top: 1px solid var(--separator); text-align: center; }
+        footer p { font-size: 13px; color: var(--text-tertiary); }
+        footer a { color: var(--text-secondary); text-decoration: none; }
+        @media (max-width: 768px) { .nav-links { display: none; } }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-inner">
+        <a href="/" class="nav-logo">SlabClaw</a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/privacy">Privacy</a></li>
+            <li><a href="/terms">Terms</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="content">
+    <div class="container">
+        <h1>Terms of Service</h1>
+        <p class="meta">Effective Date: March 8, 2026 &middot; Last Updated: March 8, 2026</p>
+
+        <p>These Terms of Service ("Terms") govern your use of the SlabClaw mobile application ("App") operated by Ecofrontiers SARL ("we," "us," or "our").</p>
+
+        <div class="contact-block">
+            <strong>Ecofrontiers SARL</strong><br>
+            23 Chemin du Coupereau, Le Canebas<br>
+            83320 CARQUEIRANNE, France<br>
+            Register: 933 442 311 R.C.S. Toulon<br>
+            SIRET: 93344231100017 &middot; VAT: FR92933442311<br>
+            Email: <a href="mailto:support@slabclaw.com">support@slabclaw.com</a>
+        </div>
+
+        <p>By downloading, installing, or using the App, you agree to these Terms. If you do not agree, do not use the App.</p>
+
+        <hr>
+
+        <h2>1. Description of Service</h2>
+        <p>SlabClaw is a tool for vintage Pokemon card collectors (WOTC era, 1996&ndash;2003). The App provides:</p>
+        <ul>
+            <li>AI-powered card grade predictions using computer vision</li>
+            <li>Cross-platform price comparison across tokenized and physical marketplaces</li>
+            <li>Portfolio tracking and valuation</li>
+            <li>Arbitrage detection and deal alerts</li>
+            <li>Expected value calculations for grading decisions</li>
+        </ul>
+
+        <hr>
+
+        <h2>2. Important Disclaimers</h2>
+
+        <div class="disclaimer">
+            <h3>2.1 Not Financial Advice</h3>
+            <p><strong>SlabClaw is an informational tool, not a financial advisor.</strong> All price data, arbitrage suggestions, expected value calculations, portfolio projections, and deal recommendations are provided for informational purposes only and do not constitute financial, investment, or trading advice.</p>
+            <p>You are solely responsible for your buying, selling, grading, and trading decisions. We make no guarantees regarding the profitability of any transaction. Past performance does not guarantee future results.</p>
+        </div>
+
+        <div class="disclaimer">
+            <h3>2.2 AI Grade Predictions Are Estimates</h3>
+            <p>AI grade predictions are computational estimates based on image analysis. They are <strong>not</strong> professional grading assessments and <strong>do not</strong> replace evaluation by PSA, BGS, CGC, SGC, or any other grading service. Actual grades may differ significantly.</p>
+            <p>Do not rely solely on AI predictions when making grading submission or purchasing decisions.</p>
+        </div>
+
+        <h3>2.3 Price Data Accuracy</h3>
+        <p>Price data is aggregated from third-party marketplaces and may be delayed, incomplete, or inaccurate. Prices can change rapidly. We do not guarantee the accuracy, completeness, or timeliness of any price information.</p>
+
+        <h3>2.4 No Affiliation</h3>
+        <p>SlabClaw is not affiliated with, endorsed by, or sponsored by PSA, BGS/Beckett, CGC, SGC, The Pok&eacute;mon Company International, Nintendo, Courtyard.io, Collector's Crypt, Beezie, Phygitals, eBay, OpenSea, or Magic Eden. All trademarks belong to their respective owners.</p>
+
+        <hr>
+
+        <h2>3. Subscriptions</h2>
+
+        <h3>3.1 Free and Pro Tiers</h3>
+        <p>The App offers a free tier with limited features and a paid Pro subscription with full access.</p>
+
+        <h3>3.2 Billing</h3>
+        <ul>
+            <li>Subscriptions are billed through Apple's App Store.</li>
+            <li>Payment is charged to your Apple ID account at confirmation of purchase.</li>
+            <li><strong>Auto-renewal:</strong> Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period.</li>
+            <li>Your account will be charged for renewal within 24 hours prior to the end of the current period.</li>
+            <li>Manage and cancel subscriptions in Settings &gt; Apple ID &gt; Subscriptions.</li>
+        </ul>
+
+        <h3>3.3 Pricing</h3>
+        <table>
+            <thead><tr><th>Plan</th><th>Price</th></tr></thead>
+            <tbody>
+                <tr><td>Monthly</td><td>$7.99 USD/month</td></tr>
+                <tr><td>Annual</td><td>$59.99 USD/year (save 37%)</td></tr>
+            </tbody>
+        </table>
+        <p>Prices may vary by region. Prices may change with notice.</p>
+
+        <h3>3.4 Refunds</h3>
+        <p>Refunds are handled by Apple. Visit <a href="https://reportaproblem.apple.com">reportaproblem.apple.com</a>.</p>
+
+        <h3>3.5 Free Trial</h3>
+        <p>If offered, any unused portion of a free trial is forfeited upon subscription purchase.</p>
+
+        <hr>
+
+        <h2>4. Acceptable Use</h2>
+        <p>You agree not to:</p>
+        <ul>
+            <li>Reverse engineer, decompile, or disassemble the App</li>
+            <li>Use the App to scrape data from third-party marketplaces in violation of their terms</li>
+            <li>Resell, redistribute, or sublicense the App or its data</li>
+            <li>Use the App for any unlawful purpose</li>
+            <li>Circumvent the subscription paywall or usage limits</li>
+            <li>Use automated systems (bots, scripts) to interact with the App</li>
+        </ul>
+
+        <hr>
+
+        <h2>5. Intellectual Property</h2>
+        <p>The App, including its design, code, and algorithms, is owned by Ecofrontiers SARL and protected by copyright. Card images and marketplace data are the property of their respective owners and displayed for informational purposes.</p>
+
+        <hr>
+
+        <h2>6. Limitation of Liability</h2>
+        <p>To the maximum extent permitted by applicable law:</p>
+        <ul>
+            <li>The App is provided "AS IS" and "AS AVAILABLE" without warranties of any kind.</li>
+            <li>We are not liable for financial losses from trading decisions made using App data.</li>
+            <li>Our total liability shall not exceed subscription fees paid in the preceding twelve (12) months.</li>
+        </ul>
+        <p>Nothing in these Terms excludes liability for death or personal injury caused by negligence, fraud, or any liability that cannot be excluded under applicable law (including EU consumer protection law).</p>
+
+        <hr>
+
+        <h2>7. Indemnification</h2>
+        <p>You agree to indemnify and hold harmless Ecofrontiers SARL from claims arising from your use of the App or violation of these Terms.</p>
+
+        <hr>
+
+        <h2>8. Termination</h2>
+        <p>We may suspend or terminate access if you violate these Terms. Upon termination, data stored locally on your device remains under your control.</p>
+
+        <hr>
+
+        <h2>9. Governing Law</h2>
+        <p>These Terms are governed by the laws of France. Disputes shall be submitted to the competent courts of Toulon, France, except where EU consumer protection regulations grant you the right to bring proceedings in your country of residence.</p>
+        <p>The European Commission provides a platform for out-of-court online dispute resolution at <a href="https://www.ec.europa.eu/consumers/odr">ec.europa.eu/consumers/odr</a>.</p>
+
+        <hr>
+
+        <h2>10. Changes</h2>
+        <p>We may update these Terms. Material changes will be communicated through the App or by updating the date above. Continued use constitutes acceptance.</p>
+
+        <hr>
+
+        <h2>11. Severability</h2>
+        <p>If any provision is found unenforceable, the remaining provisions remain in effect.</p>
+
+        <hr>
+
+        <h2>12. Contact</h2>
+        <div class="contact-block">
+            <strong>Ecofrontiers SARL</strong><br>
+            23 Chemin du Coupereau, Le Canebas<br>
+            83320 CARQUEIRANNE, France<br>
+            Email: <a href="mailto:support@slabclaw.com">support@slabclaw.com</a><br>
+            Phone: +33 7 69 28 08 83
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <p>&copy; 2026 Ecofrontiers SARL &middot; <a href="/">SlabClaw</a> &middot; <a href="/privacy">Privacy</a> &middot; <a href="/terms">Terms</a></p>
+    </div>
+</footer>
+
+</body>
+</html>

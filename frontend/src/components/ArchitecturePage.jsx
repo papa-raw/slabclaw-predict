@@ -13,7 +13,11 @@ import { PACKAGE_ID, REGISTRY_ID, FAUCET_ID, EXPLORER_URL, DEMO_MARKETS } from '
 
 const REPO = 'https://github.com/papa-raw/slabclaw-predict';
 const WALRUSCAN = 'https://walruscan.com/testnet/blob';
-const EVIDENCE_BLOB = 'UxI0mIQDb45JHJyJ1xVY38XPch7NN7Nh02MK3C_MmPM'; // latest published evidence bundle
+// The evidence bundle referenced ONCHAIN by the live PROPOSED market — the strongest
+// verification anchor: read market.evidence_blob_id on Suiscan, fetch this blob on
+// Walrus, re-run the math.
+const EVIDENCE_BLOB = 'Q2dlXakO8CMH3vL9BKJn60jL0Ac7uWN-jx8cSWosGRE';
+const PREDICT_API = 'https://api.slabclaw.com/predict';
 
 const obj = (id) => `${EXPLORER_URL}/object/${id}`;
 const short = (id) => `${id.slice(0, 10)}…${id.slice(-4)}`;
@@ -131,6 +135,36 @@ export default function ArchitecturePage() {
         {TIERS.map((t, i) => (
           <TierRow key={t.n} tier={t} last={i === TIERS.length - 1} />
         ))}
+      </div>
+
+      {/* Running in production — the MemWal bootstrap is the live system, not a slide */}
+      <SectionTitle>Running in production · memory that outlives its operator</SectionTitle>
+      <div className="bg-sc-card border border-sc-border rounded-xl p-4 mb-10">
+        <p className="text-[12px] leading-relaxed text-sc-dim mb-3">
+          The swarm runs in two places, and <span className="text-sc-text font-medium">Walrus is the memory bus between them</span>.
+          A data-plane node runs the full swarm where its marketplaces are reachable and snapshots the agents&rsquo;
+          entire memory to Walrus every round. A serving node on independent infrastructure{' '}
+          <Term def="node memwal-sync.mjs restore — fetches the latest memory snapshot blob from a Walrus aggregator and rebuilds the swarm's MemWal state from it. The serving node never needs the data-plane machine to be online.">restores
+          that memory from Walrus</Term>{' '}
+          before each 6-hour consensus round and serves the result as a public feed. Kill either machine and the
+          other rebuilds the swarm&rsquo;s accumulated knowledge — price calibrations, source reputations, warm
+          caches — from the blob. The dapp you&rsquo;re reading ships a build-time snapshot and{' '}
+          <Term def="useLiveConsensus: the page fetches the production feed at load and swaps it in only if the full payload validates for every market — a partial or malformed payload is discarded whole, and the panel honestly labels itself 'live' or 'snapshot'.">upgrades
+          to the live feed</Term>{' '}
+          when it&rsquo;s reachable — each oracle panel tells you which one you&rsquo;re seeing.
+        </p>
+        <div className="grid gap-1.5 sm:grid-cols-2">
+          <a href={`${PREDICT_API}/consensus`} target="_blank" rel="noopener noreferrer"
+            className="flex items-center justify-between px-3 py-2 rounded-lg bg-sc-surface border border-sc-border hover:border-sc-accent/50 transition text-[11px]">
+            <span className="text-sc-dim">Live consensus feed</span>
+            <span className="font-mono text-sc-muted">/predict/consensus ↗</span>
+          </a>
+          <a href={`${PREDICT_API}/health`} target="_blank" rel="noopener noreferrer"
+            className="flex items-center justify-between px-3 py-2 rounded-lg bg-sc-surface border border-sc-border hover:border-sc-accent/50 transition text-[11px]">
+            <span className="text-sc-dim">Feed health · consensus age</span>
+            <span className="font-mono text-sc-muted">/predict/health ↗</span>
+          </a>
+        </div>
       </div>
 
       {/* Why TinyFish */}

@@ -2,9 +2,11 @@
 
 **Prediction markets on real-world collectibles, settled on Sui — priced by a memory-backed, manipulation-resistant multi-agent oracle swarm.**
 
-> *"Will PSA 10 Karen's Umbreon exceed $15,000 by July 7, 2026?"* — YES/NO, onchain, settled against real marketplace data from 9 independent source agents.
+> *"Will PSA 10 Karen's Umbreon exceed $15,000 by October 1, 2026?"* — YES/NO, onchain, settled against real marketplace data from 9 independent source agents.
 
 **Sui Overflow 2026 · Walrus track** — memory-backed agents / MemWal
+
+**Live:** [slabclaw.com](https://slabclaw.com) · [live consensus feed](https://api.slabclaw.com/predict/consensus) · [feed health](https://api.slabclaw.com/predict/health)
 
 ---
 
@@ -88,6 +90,9 @@ TIER 3: Bridge Keeper (conditional)
 | **Seeded history** — 10 rounds demonstrating learning (reliability divergence, CI narrowing, manipulation detection) | ✅ working |
 | Single-source oracle bridge (`bridge.mjs`) + offline snapshot fallback | ✅ working |
 | Swarm-powered bridge (`bridge-swarm.mjs`) — replaces single-source with multi-agent consensus | ✅ working |
+| **Production deployment** — [slabclaw.com](https://slabclaw.com) + 6-hour swarm rounds on a serving node | ✅ live |
+| **Walrus memory bus** — serving node restores full agent memory from Walrus before every round | ✅ live |
+| **Live consensus feed** — [`/predict/consensus`](https://api.slabclaw.com/predict/consensus) + honest [`/predict/health`](https://api.slabclaw.com/predict/health) | ✅ live |
 
 ## Key deliverables
 
@@ -128,21 +133,32 @@ Every swarm run uploads a complete evidence bundle to Walrus containing:
 2. **Confidence interval narrowing** — Round 1: ±25%. Round 10: ±4%. More data = tighter consensus.
 3. **Anomaly memory** — Round 5: manipulation detected (fake 4x price signal). Round 6+: that source is pre-weighted down. The swarm remembers attacks.
 
+## Running in production
+
+The swarm runs as a two-node system with **Walrus as the memory bus**:
+
+- **Data-plane node** — runs the full swarm where its marketplaces are reachable, snapshots the agents' entire memory (price calibrations, source reputations, warm caches) to Walrus every round.
+- **Serving node** (independent infrastructure) — **restores that memory from Walrus** (`memwal-sync.mjs restore`) before each 6-hour consensus round, re-aggregates, and serves the result publicly at [`/predict/consensus`](https://api.slabclaw.com/predict/consensus) with honest freshness reporting at [`/predict/health`](https://api.slabclaw.com/predict/health).
+
+Kill either machine and the other rebuilds the swarm's accumulated knowledge from the blob — *memory that outlives its operator*. The dapp at [slabclaw.com](https://slabclaw.com) ships a build-time snapshot and atomically upgrades to the live feed when reachable; every oracle panel labels itself `live` or `snapshot`.
+
+No autonomous settlement runs in production: consensus rounds are computed and published continuously, but onchain proposals remain operator-signed — the optimistic dispute window is the safety net, not a substitute for one.
+
 ## Live testnet deployment
 
 | | |
 |---|---|
-| Package | [`0xdc18fc79…af7b141`](https://suiscan.xyz/testnet/object/0xdc18fc79030aea4a39198d95c73271c41d955b3b548dc5090627bf224af7b141) |
-| AssetRegistry | `0x4ce60524…b215da3d` |
-| OracleCap | `0x183ae110…fa424ac` |
-| tUSD Faucet | `0x53100cc6…c26c671` |
+| Package (hardened + formally verified) | [`0x9807050b…b14f115`](https://suiscan.xyz/testnet/object/0x9807050b60400d30c848dcf035a2038b615ffdb7d6d2ed46332959d39b14f115) |
+| AssetRegistry | [`0x18c19b19…fc108a`](https://suiscan.xyz/testnet/object/0x18c19b198a263421ff7882af139ce3645bc1a94c7d4f6ab715e318dd44fc108a) |
+| ProtocolConfig (governance) | [`0xecbaca29…e64bc3`](https://suiscan.xyz/testnet/object/0xecbaca290e63b931dce3014cb71d85bad2af75083625331942b0a72a23e64bc3) |
+| tUSD Faucet | [`0xa1e2ca66…6c8870`](https://suiscan.xyz/testnet/object/0xa1e2ca665f6d2b8aa11d5a6caf0d3cc4d88da68b942991a007c87d0b516c8870) |
 
-| Market (PSA 10) | Strike | Market ID |
-|---|---|---|
-| Karen's Umbreon (VS, 1st Ed) | $15,000 | `0x9ff720…fdc44e` |
-| Typhlosion (Neo Genesis, 1st Ed) | $4,000 | `0x6d2131…fc5253` |
-| Dark Raichu (Team Rocket, 1st Ed) | $6,000 | `0x87a816…b6bcade` |
-| Flareon (Jungle, 1st Ed) | $2,500 | `0x2dae76…a5fd58` |
+| Market (PSA 10) | Strike | State | Market ID |
+|---|---|---|---|
+| Typhlosion (Neo Genesis, 1st Ed) | $4,000 | ACTIVE | [`0xf63f37a0…c1144ea`](https://suiscan.xyz/testnet/object/0xf63f37a07f61a38c78b3ea6d650315e903a6192b767c34cfc5a8a2266c1144ea) |
+| Karen's Umbreon (VS, 1st Ed) | $15,000 | ACTIVE | [`0x2da84029…02c9720`](https://suiscan.xyz/testnet/object/0x2da84029427ff70dfafadb8643d4f3a83f76f5344bd1de05c1902cff102c9720) |
+| Flareon (Jungle, 1st Ed) | $2,500 | ACTIVE | [`0x9700623a…c459b71`](https://suiscan.xyz/testnet/object/0x9700623a1e977a179b011908da25e7800d682e4bc8dd38929ac7bc121c459b71) |
+| Dark Raichu (Team Rocket, 1st Ed) | $6,000 | PROPOSED + [evidence on Walrus](https://walruscan.com/testnet/blob/Q2dlXakO8CMH3vL9BKJn60jL0Ac7uWN-jx8cSWosGRE) | [`0xd77d6340…617879c`](https://suiscan.xyz/testnet/object/0xd77d634059460679568e4370fe570b758a47841ebf35a479d88f5b05f617879c) |
 
 ## Run it
 
