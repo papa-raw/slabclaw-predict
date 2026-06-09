@@ -29,16 +29,31 @@ export default function MarketCard({ market, meta, onSelect }) {
   const rawSeries = card ? smoothOracleHistory(card, meta.grader, meta.grade) : [];
   const recentMs = Date.now() - 180 * 86400_000; // last 6 months — trims TWAP warmup ramp
   const series = rawSeries.filter(p => p.t >= recentMs);
-  const dist = oracle ? distanceToStrike(oracle.price, market.strikeUsdCents) : null;
-  const oracleAbove = oracle && oracle.price >= strikeDollars;
+  // For resolving markets (proposed/disputed/settled) the bet settles on the ONCHAIN
+  // proposed price, not the live oracle — lead the headline with THAT one number so the
+  // card never shows a live-oracle-vs-proposed-settle contradiction (e.g. "$8.0k over" up
+  // top while the settle is "$4.2k → NO" below).
+  const proposedDollars = market.proposedPrice ? market.proposedPrice / 100 : null;
+  const resolving = market.state !== 0 && proposedDollars != null;
+  const headLabel = resolving ? (market.state === 3 ? 'Settled at' : 'Proposed settle') : 'Oracle now';
+  const headValue = resolving ? proposedDollars : (oracle ? oracle.price : null);
+  const headDist = headValue != null ? distanceToStrike(headValue, market.strikeUsdCents) : null;
+  const headAbove = headValue != null && headValue >= strikeDollars;
 
-  const isDisputed = market.state === 2;
+  // Outline colour cues the market's life-stage: red = disputed, amber = resolving
+  // (proposed, dispute window open), default otherwise.
+  const borderCls = market.state === 2 ? 'border-sc-no/40 hover:border-sc-no/60'
+    : market.state === 1 ? 'border-sc-amber/40 hover:border-sc-amber/60'
+    : 'border-sc-border hover:border-sc-accent/50';
 
   return (
     <button
       onClick={() => onSelect(market)}
-      className={`group w-full text-left bg-sc-card border rounded-xl p-3.5 hover:bg-sc-card/80 active:scale-[.99] transition-all ${isDisputed ? 'border-sc-no/40 hover:border-sc-no/60' : 'border-sc-border hover:border-sc-accent/50'}`}
+      className={`group w-full text-left bg-sc-card border rounded-xl p-3.5 hover:bg-sc-card/80 active:scale-[.99] transition-all ${borderCls}`}
     >
+      {/* Resolution status — pinned to the top for non-active markets */}
+      {market.state !== 0 && <div className="mb-3"><StateBanner market={market} /></div>}
+
       {/* Top: image + identity + headline strike */}
       <div className="flex gap-3.5">
         <div className="w-[72px] h-[100px] rounded-lg overflow-hidden bg-sc-surface shrink-0 ring-1 ring-sc-border">
@@ -68,14 +83,14 @@ export default function MarketCard({ market, meta, onSelect }) {
             </div>
           </div>
 
-          {/* Oracle vs strike — inline with identity */}
+          {/* Oracle / settle vs strike — inline with identity */}
           <div className="mt-2">
-            <div className="text-[9px] text-sc-muted uppercase tracking-wide">Oracle now</div>
+            <div className="text-[9px] text-sc-muted uppercase tracking-wide">{headLabel}</div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-[15px] font-semibold tnum text-white">{oracle ? usd(oracle.price) : '—'}</span>
-              {dist != null && (
-                <span className={`text-[11px] font-semibold tnum ${oracleAbove ? 'text-sc-yes' : 'text-sc-no'}`}>
-                  {arrow(dist)} {pct(Math.abs(dist), { sign: false })} {oracleAbove ? 'over' : 'under'}
+              <span className="text-[15px] font-semibold tnum text-white">{headValue != null ? usd(headValue) : '—'}</span>
+              {headDist != null && (
+                <span className={`text-[11px] font-semibold tnum ${headAbove ? 'text-sc-yes' : 'text-sc-no'}`}>
+                  {arrow(headDist)} {pct(Math.abs(headDist), { sign: false })} {headAbove ? 'over' : 'under'}
                 </span>
               )}
             </div>
@@ -103,78 +118,74 @@ export default function MarketCard({ market, meta, onSelect }) {
       <div className="mt-2">
         <Sparkline points={series} strike={strikeDollars} height={40} />
       </div>
-
-      {market.state !== 0 && <StateBanner market={market} />}
     </button>
   );
 }
 
-// State-specific banner for non-active markets (proposed, disputed, settled)
+// Resolution strip for non-active markets. One tidy row: status dot + label + outcome +
+// (countdown / bond) right-aligned. The settle PRICE lives in the headline now, so the
+// strip never repeats (or contradicts) it — it only carries procedural status.
 function StateBanner({ market }) {
   const proposedDollars = market.proposedPrice ? market.proposedPrice / 100 : null;
   const strikeDollars = market.strikeUsdCents / 100;
-  const proposedAbove = proposedDollars != null && proposedDollars > strikeDollars;
+  const above = proposedDollars != null && proposedDollars > strikeDollars;
+  const outCls = above ? 'text-sc-yes' : 'text-sc-no';
+  const outcome = above ? 'YES' : 'NO';
 
-  // DISPUTED — red banner with dispute details
-  if (market.state === 2) {
-    return (
-      <div className="mt-2.5 rounded-lg bg-sc-no/10 border border-sc-no/30 px-3 py-2">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-wide text-sc-no">Disputed</span>
-          {market.disputeBond > 0 && (
-            <span className="text-[10px] tnum text-sc-dim">{sui(market.disputeBond)} tUSD bond</span>
-          )}
-        </div>
-        {proposedDollars != null && (
-          <div className="mt-1 text-[11px] text-sc-dim">
-            Oracle proposed <span className={`font-semibold ${proposedAbove ? 'text-sc-yes' : 'text-sc-no'}`}>{usd(proposedDollars)}</span>
-            <span className="text-sc-muted"> → {proposedAbove ? 'YES' : 'NO'} wins</span>
-            <span className="text-sc-no ml-1.5">· challenged</span>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // PROPOSED — amber banner with proposed price + countdown
+  // PROPOSED — resolving, dispute window open
   if (market.state === 1) {
     const deadlineMs = market.proposedAt ? market.proposedAt + 86_400_000 : null;
     return (
-      <div className="mt-2.5 rounded-lg bg-sc-amber/10 border border-sc-amber/30 px-3 py-2">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-wide text-sc-amber">Proposed</span>
-          {deadlineMs && <span className="text-[10px] tnum text-sc-dim">dispute window: {timeUntil(deadlineMs)}</span>}
-        </div>
-        {proposedDollars != null && (
-          <div className="mt-1 text-[11px] text-sc-dim">
-            Oracle: <span className={`font-semibold ${proposedAbove ? 'text-sc-yes' : 'text-sc-no'}`}>{usd(proposedDollars)}</span>
-            <span className="text-sc-muted"> → {proposedAbove ? 'YES' : 'NO'} wins if unchallenged</span>
-          </div>
-        )}
-      </div>
+      <ResolutionStrip
+        tone="amber" label="Resolving"
+        detail={proposedDollars != null
+          ? <><span className={`font-semibold ${outCls}`}>{outcome}</span> wins if unchallenged</>
+          : 'awaiting settlement'}
+        right={deadlineMs ? `${timeUntil(deadlineMs)} to dispute` : null}
+      />
     );
   }
 
-  // SETTLED — muted banner
-  if (market.state === 3) {
-    const outcomeLabel = market.outcome === true ? 'YES' : market.outcome === false ? 'NO' : '—';
-    const outcomeCls = market.outcome === true ? 'text-sc-yes' : market.outcome === false ? 'text-sc-no' : 'text-sc-muted';
+  // DISPUTED — challenged, in voting
+  if (market.state === 2) {
     return (
-      <div className="mt-2.5 rounded-lg bg-white/[0.03] border border-sc-border px-3 py-2">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-wide text-sc-muted">Settled</span>
-          {proposedDollars != null && <span className="text-[10px] tnum text-sc-dim">at {usd(proposedDollars)}</span>}
-        </div>
-        <div className="mt-1 text-[11px]">
-          <span className={`font-semibold ${outcomeCls}`}>{outcomeLabel}</span>
-          <span className="text-sc-muted"> wins · claim open</span>
-        </div>
-      </div>
+      <ResolutionStrip
+        tone="no" label="Disputed"
+        detail={<>in community voting{proposedDollars != null && <> · <span className={`font-semibold ${outCls}`}>{outcome}</span> proposed</>}</>}
+        right={market.disputeBond > 0 ? `${sui(market.disputeBond)} tUSD bond` : null}
+      />
     );
   }
 
-  // Fallback
+  // SETTLED — final outcome, claim open
+  if (market.state === 3) {
+    const out = market.outcome === true ? 'YES' : market.outcome === false ? 'NO' : '—';
+    const cls = market.outcome === true ? 'text-sc-yes' : market.outcome === false ? 'text-sc-no' : 'text-sc-muted';
+    return (
+      <ResolutionStrip
+        tone="muted" label="Settled"
+        detail={<><span className={`font-semibold ${cls}`}>{out}</span> won · claim open</>}
+        right={null}
+      />
+    );
+  }
+
+  return <div className="text-[10px] text-sc-amber uppercase tracking-wide">{MARKET_STATE[market.state]}</div>;
+}
+
+function ResolutionStrip({ tone, label, detail, right }) {
+  const dot = tone === 'no' ? 'bg-sc-no' : tone === 'amber' ? 'bg-sc-amber' : 'bg-sc-muted';
+  const text = tone === 'no' ? 'text-sc-no' : tone === 'amber' ? 'text-sc-amber' : 'text-sc-muted';
   return (
-    <div className="mt-2 text-[10px] text-sc-amber uppercase tracking-wide">{MARKET_STATE[market.state]}</div>
+    <div className="rounded-lg bg-sc-surface/60 border border-sc-border px-3 py-2">
+      {/* row 1: status + countdown/bond */}
+      <div className="flex items-center gap-2 text-[11px]">
+        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot}`} />
+        <span className={`font-bold uppercase tracking-wide text-[10px] ${text}`}>{label}</span>
+        {right && <span className="ml-auto tnum text-sc-muted shrink-0">{right}</span>}
+      </div>
+      {/* row 2: outcome — full, never truncated */}
+      {detail && <div className="text-[11px] text-sc-dim mt-1 leading-snug">{detail}</div>}
+    </div>
   );
 }

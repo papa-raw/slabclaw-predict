@@ -28,12 +28,6 @@ export default function Header() {
           <span className="text-[10px] font-semibold text-sc-accent tracking-wide">PREDICT</span>
         </a>
 
-        {/* Primary nav */}
-        <nav className="hidden sm:flex items-center gap-3 shrink-0 text-[12px] font-medium">
-          <a href="#architecture" className="text-sc-dim hover:text-sc-accent transition">Architecture</a>
-          <a href="/deck/" target="_blank" rel="noopener noreferrer" className="text-sc-dim hover:text-sc-accent transition">Deck&nbsp;↗</a>
-        </nav>
-
         {/* Era-trend KPI strip (centered) */}
         <div className="hidden md:flex items-stretch gap-1 flex-1 justify-center overflow-hidden">
           <div className="flex items-center px-2.5">
@@ -54,9 +48,12 @@ export default function Header() {
           })}
         </div>
 
-        {/* Right: testnet tag + compact connect */}
-        <div className="flex items-center gap-2 shrink-0 ml-auto md:ml-0">
-          <span className="hidden sm:block text-[9px] font-mono text-sc-muted border border-sc-border rounded px-1 py-px">TESTNET</span>
+        {/* Right: nav + testnet tag + compact connect */}
+        <div className="flex items-center gap-3 shrink-0 ml-auto md:ml-0">
+          <nav className="hidden sm:flex items-center gap-3 text-[12px] font-medium">
+            <a href="#architecture" className="text-sc-dim hover:text-sc-accent transition">Docs</a>
+            <a href="/deck/index.html" target="_blank" rel="noopener noreferrer" className="text-sc-dim hover:text-sc-accent transition">Deck</a>
+          </nav>
           <WalletButton />
         </div>
       </div>

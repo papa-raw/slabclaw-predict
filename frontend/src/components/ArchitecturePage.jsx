@@ -2,12 +2,11 @@
 ///
 /// Two jobs: (1) make the pipeline legible — a memory-backed multi-agent oracle swarm
 /// (source → consensus → self-audit → chain) that settles markets on Sui with verifiable
-/// evidence on Walrus; (2) be the docs hub that links every piece of the work (deck,
-/// swarm explainer, source code, track brief, onchain objects, live Walrus evidence).
+/// evidence on Walrus; (2) be the docs hub that links every piece of the work.
 ///
-/// Layout follows the design brief: pipeline as a numbered tier-flow (UMA pattern), docs as
-/// a resource card grid (Walrus pattern), onchain registry as the "verify it yourself" block.
-/// Aesthetic is the locked sc-* dark Bloomberg terminal — single gold accent, hairline
+/// Every named mechanism (MAD, family, learned calibration, PII-redaction…) is a hoverable
+/// <Term> with a precise definition, so the page reads at a glance but rewards inspection.
+/// Aesthetic: the locked sc-* dark Bloomberg terminal — single gold accent, hairline
 /// borders, tabular-nums. No gradients.
 
 import { PACKAGE_ID, REGISTRY_ID, FAUCET_ID, EXPLORER_URL, DEMO_MARKETS } from '../constants';
@@ -19,46 +18,97 @@ const EVIDENCE_BLOB = 'UxI0mIQDb45JHJyJ1xVY38XPch7NN7Nh02MK3C_MmPM'; // latest p
 const obj = (id) => `${EXPLORER_URL}/object/${id}`;
 const short = (id) => `${id.slice(0, 10)}…${id.slice(-4)}`;
 
+// Hoverable mechanism term — dotted underline + a dark popover with a precise definition.
+function Term({ children, def }) {
+  return (
+    <span className="relative inline-block group/term align-baseline">
+      <span className="border-b border-dotted border-sc-muted/70 text-sc-text cursor-help">{children}</span>
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-60 z-40 opacity-0 group-hover/term:opacity-100 transition-opacity duration-150 rounded-lg border border-sc-border bg-sc-panel px-2.5 py-2 text-[11px] font-normal normal-case tracking-normal leading-relaxed text-sc-dim shadow-xl"
+      >
+        {def}
+      </span>
+    </span>
+  );
+}
+
 // ── The pipeline: source → consensus → self-audit → chain ──────────────────────
 const TIERS = [
   {
     n: 1,
     tag: 'Tier 1',
     title: 'Source agents — nine independent venues',
-    body: 'Nine venue specialists each scrape their OWN marketplace — eBay, PriceCharting, Cardmarket, ALT, Goldin, Fanatics, PSA APR, Yahoo Auctions JP, TCGPlayer. Every observation is tagged realized sale vs live ask and written to MemWal, so the swarm remembers comp history and gets sharper each run.',
-    chips: ['realized vs ask', 'per-venue independence', 'MemWal memory', 'warm-cache fallback'],
+    body: (
+      <>
+        Nine venue specialists each scrape their OWN marketplace — eBay, PriceCharting, Cardmarket, ALT,
+        Goldin, Fanatics, PSA APR, Yahoo Auctions JP, TCGPlayer. Every observation is tagged{' '}
+        <Term def="Realized = a completed sale. Ask = a live listing. Asks sit above the clearing price, so they bound the range but never vote in the settle.">realized sale vs live ask</Term>{' '}
+        and written to MemWal. It gets sharper each run because three memories refine in MemWal:{' '}
+        <Term def="Per-card baselines — the card's typical realized price and its grade-to-grade price ratios — held as exponentially-weighted averages. Cold-start global bands converge to card-specific ones, so false-positive flags fall as the card is learned.">a per-card price calibration</Term>,{' '}
+        <Term def="An EMA of how often each source agreed with the final consensus. A chronically-noisy venue loses weight over time.">a reputation score per source</Term>, and{' '}
+        <Term def="The last good price per venue. A transient scrape miss reuses it (down-weighted by age) instead of dropping the source entirely.">a warm-cache of each venue's last good price</Term>.
+      </>
+    ),
   },
   {
     n: 2,
     tag: 'Tier 2',
     title: 'Coordinator — manipulation-resistant consensus',
-    body: 'Same-origin feeds collapse to one family (eBay + PriceCharting = one vote). Outliers are MAD-rejected, thin wrong-variant grabs are caught by a cross-source plausibility gate, and the market settles on a confidence-weighted median of REALIZED sales only — asks bound the range but never vote.',
-    chips: ['family dedup', 'MAD outlier rejection', 'anchor gate', 'realized-settles · asks-bound'],
+    body: (
+      <>
+        Same-origin feeds collapse to one{' '}
+        <Term def="Feeds that share a data origin count as one. eBay and PriceCharting both derive from eBay-sold data, so they cast a single combined vote — two windows on one market aren't two markets.">family</Term>{' '}
+        (eBay + PriceCharting = one vote). Outliers are{' '}
+        <Term def="Median Absolute Deviation — a robust outlier test. A source is dropped when its price is more than 3.5 modified-z-scores from the median of the others; robust because the median itself isn't pulled by the outlier.">MAD</Term>-rejected,
+        thin wrong-variant grabs are caught by a{' '}
+        <Term def="Anchored on the well-supported (3+ sale) sources, a thin 1–2 sale source is rejected if it lands outside ±50% of that anchor — catching a snippet that grabbed the wrong card, grade, or variant.">cross-source plausibility gate</Term>,
+        and the market settles on a confidence-weighted median of{' '}
+        <Term def="Completed sales only. Live listings (asks) sit above the clearing price, so they bound the range but are never counted in the settle median.">realized sales</Term>{' '}
+        — asks bound the range but never vote.
+      </>
+    ),
   },
   {
     n: '2.5',
     tag: 'Tier 2.5',
     title: 'Self-audit — the swarm checks its own price',
-    body: 'Each round reconciles the settle against the grade-matched PSA-10 oracle and runs grade-inversion + multiplier-divergence checks against the card’s LEARNED calibration in MemWal. A contested price widens the dispute window instead of settling on a shaky number.',
-    chips: ['grade-inversion', 'multiplier-divergence', 'self-calibrating', 'dispute-widening'],
+    body: (
+      <>
+        Each round reconciles the settle against the grade-matched PSA-10 oracle and runs{' '}
+        <Term def="A lower grade listed above a higher grade of the same card — physically backwards in a clean market, so it flags a mis-grade or manipulation.">grade-inversion</Term>{' '}
+        and{' '}
+        <Term def="Grades trade at stable ratios (a PSA 9 is typically 25–48% of a PSA 10). A comp that breaks the expected ratio for that card is flagged as suspect.">multiplier-divergence</Term>{' '}
+        checks against the card's{' '}
+        <Term def="What the swarm has remembered about THIS specific card — its baseline price and grade ratios — refined a little every round and stored in MemWal. 'Learned' means not hard-coded: it converges from the card's own data.">learned calibration</Term>.
+        A contested price widens the dispute window instead of settling on a shaky number.
+      </>
+    ),
   },
   {
     n: 3,
     tag: 'Tier 3',
     title: 'Keeper — onchain settlement with evidence',
-    body: 'A keeper proposes the resolution onchain on Sui with the evidence blob ID. A 24-hour optimistic dispute window (UMA-style) lets anyone challenge with a bond. No market can settle without a verifiable, PII-redacted Walrus evidence blob referenced onchain.',
-    chips: ['Sui Move', 'optimistic 24h dispute', 'evidence-gated settlement', 'PII-redacted'],
+    body: (
+      <>
+        A keeper proposes the resolution onchain on Sui with the evidence blob ID. An{' '}
+        <Term def="UMA-style: the proposed price is accepted unless someone challenges it with a bond inside 24 hours. Undisputed → auto-settles; disputed → escalates to staked community voting.">optimistic 24-hour dispute</Term>{' '}
+        window lets anyone challenge with a bond. No market settles without a verifiable,{' '}
+        <Term def="Walrus blobs are immutable — you can't delete them. So before publishing, seller names and personal data are stripped and replaced with salted-hash tokens (the seller-concentration signal is kept, the identity isn't). GDPR-safe by construction.">PII-redacted</Term>{' '}
+        Walrus evidence blob referenced onchain.
+      </>
+    ),
   },
 ];
 
-// ── Docs hub ──────────────────────────────────────────────────────────────────
+// ── Docs hub (links use explicit index.html so they resolve in dev AND prod) ────
 const DOCS = [
-  { title: 'Pitch deck', desc: 'The 60-second story — credibly-neutral price commons.', href: '/deck/', kind: 'page' },
-  { title: 'Swarm explainer', desc: 'MemWal, shared context, verifiable evidence, observable learning.', href: '/explain/', kind: 'page' },
-  { title: 'Source code', desc: 'Move contracts, oracle bridge, swarm, frontend — all open.', href: REPO, kind: 'ext' },
-  { title: 'Walrus track brief', desc: 'The problem statement this is built against.', href: '/docs/walrus-track-problem-statement.pdf', kind: 'ext' },
-  { title: 'Oracle source research', desc: 'The 10-platform source hierarchy + independence map.', href: '/docs/oracle-source-research.json', kind: 'ext' },
-  { title: 'Live evidence on Walrus', desc: 'The latest published consensus bundle — re-run the math yourself.', href: `${WALRUSCAN}/${EVIDENCE_BLOB}`, kind: 'ext' },
+  { title: 'Pitch deck', desc: 'The 60-second story — a credibly-neutral price commons.', href: '/deck/index.html' },
+  { title: 'Swarm explainer', desc: 'MemWal, shared context, verifiable evidence, observable learning.', href: '/explain/index.html' },
+  { title: 'Source code', desc: 'Move contracts, oracle bridge, swarm, frontend — all open.', href: REPO },
+  { title: 'Walrus track brief', desc: 'The problem statement this is built against.', href: '/docs/walrus-track-problem-statement.pdf' },
+  { title: 'Oracle source research', desc: 'The 10-platform source hierarchy + independence map.', href: '/docs/oracle-source-research.json' },
+  { title: 'Live evidence on Walrus', desc: 'The latest published consensus bundle — re-run the math yourself.', href: `${WALRUSCAN}/${EVIDENCE_BLOB}` },
 ];
 
 export default function ArchitecturePage() {
@@ -74,21 +124,35 @@ export default function ArchitecturePage() {
           <a href="https://sui.io" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">Sui</a> — with
           every settlement published as a verifiable blob on{' '}
           <a href="https://www.walrus.xyz" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">Walrus</a>.
-          The market is the showcase; the agentic oracle is the deliverable.
         </p>
       </div>
 
       {/* Pipeline — source → consensus → self-audit → chain */}
       <SectionTitle>The pipeline · source → consensus → chain</SectionTitle>
-      <div className="relative mb-10">
+      <p className="text-[11px] text-sc-muted mb-3 -mt-1">Hover any underlined term for what it means.</p>
+      <div className="relative mb-8">
         {TIERS.map((t, i) => (
           <TierRow key={t.n} tier={t} last={i === TIERS.length - 1} />
         ))}
       </div>
 
+      {/* Why TinyFish */}
+      <div className="bg-sc-card border border-sc-border rounded-xl p-4 mb-10 border-l-2 border-l-sc-accent">
+        <div className="text-[10px] font-semibold text-sc-accent uppercase tracking-wide mb-1.5">Why TinyFish</div>
+        <p className="text-[12px] leading-relaxed text-sc-dim">
+          The source agents scrape through{' '}
+          <a href="https://www.tinyfish.ai" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">TinyFish</a>{' '}
+          stealth browser agents. The venues that matter most for price truth — Cardmarket, Goldin, live
+          Yahoo auction pages — sit behind Cloudflare and CAPTCHA walls that ordinary HTTP scrapers can’t
+          pass. TinyFish renders the real page in a stealth browser and returns structured data from a
+          plain-language goal, so we get grade-matched comps from sources a normal scraper is simply
+          blocked from. That independence is what lets the swarm reach genuinely uncorrelated sources.
+        </p>
+      </div>
+
       {/* Onchain registry — verify it yourself */}
       <SectionTitle>Verify it yourself · onchain</SectionTitle>
-      <div className="bg-sc-card border border-sc-border rounded-xl overflow-hidden mb-3">
+      <div className="bg-sc-card border border-sc-border rounded-xl overflow-hidden mb-10">
         <div className="px-3 py-2 border-b border-sc-border flex items-center justify-between">
           <span className="text-[10px] font-semibold text-sc-dim uppercase tracking-wide">Sui testnet objects</span>
           <span className="text-[9px] font-mono text-sc-muted border border-sc-border rounded px-1 py-px">TESTNET</span>
@@ -108,19 +172,8 @@ export default function ArchitecturePage() {
 
       {/* Docs & links hub */}
       <SectionTitle>Read more · the full build</SectionTitle>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {DOCS.map((d) => <DocCard key={d.title} doc={d} />)}
-      </div>
-
-      {/* Built-on strip */}
-      <div className="border-t border-sc-border/60 pt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-sc-muted">
-        <span className="text-sc-dim font-semibold">Built on</span>
-        {['Sui Move', 'Walrus', 'MemWal', 'TinyFish agents', '10-platform price oracle'].map((b, i) => (
-          <span key={b} className="flex items-center gap-2">
-            {i > 0 && <span className="text-sc-border">·</span>}
-            <span>{b}</span>
-          </span>
-        ))}
       </div>
     </main>
   );
@@ -145,11 +198,6 @@ function TierRow({ tier, last }) {
           <span className="text-[13px] font-semibold text-white">{tier.title}</span>
         </div>
         <p className="text-[12px] leading-relaxed text-sc-dim">{tier.body}</p>
-        <div className="flex flex-wrap gap-1.5 mt-2.5">
-          {tier.chips.map((c) => (
-            <span key={c} className="text-[10px] font-medium text-sc-dim bg-sc-surface border border-sc-border/60 rounded px-1.5 py-0.5">{c}</span>
-          ))}
-        </div>
       </div>
     </div>
   );
@@ -174,7 +222,6 @@ function RegistryRow({ label, id, href, note, walrus }) {
 }
 
 function DocCard({ doc }) {
-  const external = doc.kind === 'ext';
   return (
     <a href={doc.href} target="_blank" rel="noopener noreferrer"
       className="block bg-sc-card border border-sc-border rounded-xl p-3.5 hover:border-sc-accent/50 hover:bg-white/[0.02] active:scale-[.99] transition group">
