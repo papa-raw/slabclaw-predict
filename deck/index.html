@@ -200,7 +200,7 @@
     <h1 style="margin-top:8px; max-width:58%">A&nbsp;<span class="grad">memory-backed oracle&nbsp;swarm</span> for real-world asset&nbsp;prices.</h1>
     <p class="lead" style="margin-top:20px; max-width:54%">
       9&nbsp;source-specialist agents price graded collectibles across every major&nbsp;venue.
-      They remember, coordinate, and publish verifiable evidence&nbsp;— all on&nbsp;<strong>Walrus</strong>.
+      They remember, coordinate, and publish verifiable evidence on&nbsp;<a href="https://www.walrus.xyz" target="_blank" rel="noopener"><strong>Walrus</strong></a>.
     </p>
     <div class="stats">
       <div class="stat"><span class="n teal">9</span><span class="l">Source agents</span></div>
@@ -212,13 +212,13 @@
   <!-- 2 · PROBLEM -->
   <section class="slide">
     <div class="kicker">The problem</div>
-    <h2>Graded cards trade across a&nbsp;dozen venues. <span class="gold">No&nbsp;two&nbsp;agree.</span></h2>
+    <h2>Graded cards trade across a&nbsp;dozen venues. <span class="gold">No two report the same&nbsp;price.</span></h2>
     <div class="split" style="margin-top:28px">
       <div>
         <ul class="list">
-          <li><b>Thin markets</b>&nbsp;— many cards see 0–2&nbsp;sales a&nbsp;month. A&nbsp;single wash trade can move the&nbsp;"price."</li>
-          <li><b>Fragmented data</b>&nbsp;— eBay, Goldin, ALT, Courtyard, PriceCharting, TCGPlayer. Each has part of the picture, none is&nbsp;neutral.</li>
-          <li><b>No onchain price → no onchain market.</b> Prediction markets, lending, fractionalization&nbsp;— every collectible RWA primitive is&nbsp;blocked.</li>
+          <li><b>Thin markets:</b> many cards see 0–2&nbsp;sales a&nbsp;month, so one wash trade can set the&nbsp;"price."</li>
+          <li><b>No shared method:</b> eBay is sold comps, Goldin is auction hammers, ALT is an index, TCGPlayer is live&nbsp;asks&nbsp;— different methods, grades, and recency, and every venue has a stake in its own&nbsp;number.</li>
+          <li><b>No onchain price → no onchain market:</b> prediction markets, lending, and fractionalization are all blocked without one.</li>
         </ul>
       </div>
       <div class="card" style="border-color:var(--line-s)">
@@ -232,14 +232,31 @@
   <!-- 3 · THESIS -->
   <section class="slide" style="align-items:flex-start">
     <div class="kicker">The thesis</div>
-    <h2 style="max-width:22ch">The market is the <span class="muted">showcase</span>.<br>The <span class="grad">oracle swarm that remembers</span> is the product.</h2>
-    <p class="lead" style="margin-top:22px">
-      Anyone can trade YES/NO on whether a&nbsp;card exceeds a&nbsp;strike price by&nbsp;expiry. To settle, the market needs a&nbsp;real price&nbsp;— not a&nbsp;feed, but a&nbsp;<strong>swarm</strong> of&nbsp;agents that read every major venue, <strong>remember</strong> each card's history, and publish evidence on Walrus so <span class="teal">anyone can&nbsp;verify</span>.
-    </p>
-    <p class="footnote" style="margin-top:28px">
-      <a href="/" target="_blank">Open the dapp →</a> &nbsp;·&nbsp;
-      <a href="/#architecture" target="_blank">Architecture &amp; docs →</a>
-    </p>
+    <h2 style="max-width:none">The market is the <span class="muted">showcase</span>.<br>The <span class="grad">oracle swarm that remembers</span> is the product.</h2>
+    <div class="split" style="margin-top:24px; grid-template-columns:1fr 1.04fr; align-items:start; width:100%; gap:clamp(24px,3vw,48px)">
+      <div>
+        <p class="lead">
+          Anyone trades YES/NO on whether a&nbsp;card beats a&nbsp;strike price by&nbsp;expiry. To settle, the market needs a&nbsp;real price&nbsp;— not a&nbsp;feed, but a&nbsp;<strong>swarm</strong> of&nbsp;9 agents that read every major venue, <strong>remember</strong> each card's history, and publish evidence on Walrus so <span class="teal">anyone can&nbsp;verify</span>.
+        </p>
+        <p class="footnote" style="margin-top:16px; white-space:nowrap">Each agent: fetch → filter → self-score → circuit breakers → MemWal.</p>
+      </div>
+      <div>
+        <div class="ek" style="font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px">9 source agents · 9 perspectives</div>
+        <table class="t">
+          <tbody>
+            <tr><td><b>eBay</b></td><td class="green">realized · primary anchor</td></tr>
+            <tr><td><b>PriceCharting</b></td><td class="green">realized · deep history</td></tr>
+            <tr><td><b>Goldin</b></td><td class="green">realized · auction floor</td></tr>
+            <tr><td><b>Fanatics / PWCC</b></td><td class="green">realized · independent</td></tr>
+            <tr><td><b>PSA APR</b></td><td class="green">realized · grader’s own</td></tr>
+            <tr><td><b>Yahoo Auctions JP</b></td><td class="green">realized · independent JP</td></tr>
+            <tr><td><b>ALT.xyz</b></td><td>index-derived value</td></tr>
+            <tr><td><b>Cardmarket</b></td><td>ask · bounds the range</td></tr>
+            <tr><td><b>TCGPlayer</b></td><td>ask · retail floor</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </section>
 
   <!-- 4 · ARCHITECTURE -->
@@ -305,76 +322,58 @@
         <!-- Tier 2 label -->
         <text x="12" y="145" class="label" fill="#5C6578">TIER 2 · COORDINATOR (SEQUENTIAL)</text>
 
-        <!-- Coordinator box -->
+        <!-- Coordinator box (centered on 430) -->
         <rect x="140" y="155" width="580" height="52" rx="8" fill="#0E1019" stroke="url(#tg)" stroke-width="1.5"/>
         <text x="430" y="178" text-anchor="middle" class="node-text" font-size="13" fill="#E8ECF5">Manipulation-Resistant Coordinator</text>
         <text x="430" y="196" text-anchor="middle" class="sub-text" fill="#5C6578">family dedup · MAD rejection · anchor gate · realized-settles · reputation EMA</text>
 
         <!-- Arrow signals → coordinator -->
-        <line x1="428" y1="116" x2="428" y2="155" stroke="rgba(70,227,190,.4)" stroke-width="1.5"/>
-        <polygon points="424,153 428,160 432,153" fill="var(--teal)" opacity=".5"/>
+        <line x1="430" y1="116" x2="430" y2="155" stroke="rgba(70,227,190,.4)" stroke-width="1.5"/>
+        <polygon points="426,153 430,160 434,153" fill="#46E3BE" opacity=".5"/>
 
-        <!-- Fork arrows -->
-        <line x1="320" y1="207" x2="320" y2="255" stroke="rgba(70,227,190,.3)" stroke-width="1.5"/>
-        <line x1="540" y1="207" x2="540" y2="255" stroke="rgba(77,162,255,.3)" stroke-width="1.5"/>
+        <!-- Symmetric fork: coordinator → Walrus + Sui -->
+        <path d="M430,207 V230 H280 V255" fill="none" stroke="rgba(70,227,190,.3)" stroke-width="1.5"/>
+        <path d="M430,207 V230 H580 V255" fill="none" stroke="rgba(77,162,255,.3)" stroke-width="1.5"/>
+        <polygon points="276,253 280,260 284,253" fill="#46E3BE" opacity=".55"/>
+        <polygon points="576,253 580,260 584,253" fill="#4DA2FF" opacity=".55"/>
 
-        <!-- Tier 3 boxes -->
+        <!-- Tier 3 label -->
         <text x="12" y="248" class="label" fill="#5C6578">TIER 3 · OUTPUT</text>
 
-        <!-- Walrus box -->
-        <rect x="160" y="260" width="320" height="48" rx="8" fill="#0E1019" stroke="rgba(70,227,190,.4)" stroke-width="1.5"/>
-        <text x="200" y="283" class="node-text" font-size="12" fill="#46E3BE">Walrus</text>
-        <text x="200" y="298" class="sub-text" fill="#5C6578">evidence blobs + MemWal snapshots</text>
+        <!-- Walrus + Sui (equal boxes, centered pair, gap 20) -->
+        <rect x="140" y="260" width="280" height="48" rx="8" fill="#0E1019" stroke="rgba(70,227,190,.4)" stroke-width="1.5"/>
+        <text x="280" y="282" text-anchor="middle" class="node-text" font-size="12" fill="#46E3BE">Walrus</text>
+        <text x="280" y="297" text-anchor="middle" class="sub-text" fill="#5C6578">evidence blobs + MemWal snapshots</text>
 
-        <!-- Sui box -->
-        <rect x="380" y="260" width="320" height="48" rx="8" fill="#0E1019" stroke="rgba(77,162,255,.4)" stroke-width="1.5"/>
-        <text x="420" y="283" class="node-text" font-size="12" fill="#4DA2FF">Sui Move</text>
-        <text x="420" y="298" class="sub-text" fill="#5C6578">market · oracle · registry · test_usd</text>
+        <rect x="440" y="260" width="280" height="48" rx="8" fill="#0E1019" stroke="rgba(77,162,255,.4)" stroke-width="1.5"/>
+        <text x="580" y="282" text-anchor="middle" class="node-text" font-size="12" fill="#4DA2FF">Sui Move</text>
+        <text x="580" y="297" text-anchor="middle" class="sub-text" fill="#5C6578">market · oracle · registry · test_usd</text>
 
-        <!-- Bottom: React dapp -->
-        <line x1="540" y1="308" x2="540" y2="335" stroke="rgba(77,162,255,.2)" stroke-width="1"/>
-        <rect x="380" y="335" width="320" height="36" rx="6" fill="rgba(77,162,255,.04)" stroke="rgba(77,162,255,.15)" stroke-width="1"/>
-        <text x="540" y="358" text-anchor="middle" class="node-text" font-size="11" fill="#9AA3B8">React Dapp — browse · trade · dispute · verify evidence</text>
+        <!-- React dapp (centered under both, converged connector) -->
+        <path d="M280,308 V322 H430 M580,308 V322 H430 M430,322 V335" fill="none" stroke="rgba(140,160,200,.22)" stroke-width="1"/>
+        <rect x="290" y="335" width="280" height="34" rx="6" fill="rgba(77,162,255,.04)" stroke="rgba(77,162,255,.15)" stroke-width="1"/>
+        <text x="430" y="356" text-anchor="middle" class="node-text" font-size="11" fill="#9AA3B8">React Dapp · browse · trade · dispute · verify</text>
 
-        <!-- MemWal restore arrow (cold start) -->
-        <line x1="160" y1="284" x2="92" y2="284" stroke="rgba(70,227,190,.2)" stroke-width="1" stroke-dasharray="3,3"/>
-        <text x="6" y="276" text-anchor="start" class="sub-text" fill="#46E3BE" font-size="9">cold-start restore</text>
+        <!-- cold-start restore: memory flows Walrus → swarm (left margin) -->
+        <path d="M140,284 H24 V112" fill="none" stroke="rgba(70,227,190,.22)" stroke-width="1" stroke-dasharray="3,3"/>
+        <polygon points="20,118 24,110 28,118" fill="#46E3BE" opacity=".4"/>
+        <text x="30" y="212" class="sub-text" fill="#46E3BE" font-size="9">cold-start</text>
+        <text x="30" y="223" class="sub-text" fill="#46E3BE" font-size="9">restore</text>
       </svg>
     </div>
   </section>
 
-  <!-- 5 · 9 AGENTS -->
-  <section class="slide">
-    <div class="kicker">The swarm</div>
-    <h2>9 agents. 9 perspectives. One consensus.</h2>
-    <table class="t" style="margin-top:22px">
-      <thead><tr><th>Agent</th><th>Data type</th><th>Signal</th></tr></thead>
-      <tbody>
-        <tr><td><b>eBay</b></td><td>Grade-matched sold comps</td><td class="green">realized — primary anchor</td></tr>
-        <tr><td><b>PriceCharting</b></td><td>Scraped sold history</td><td class="green">realized — deep history</td></tr>
-        <tr><td><b>Goldin</b></td><td>Realized auction hammer prices</td><td class="green">realized — auction floor</td></tr>
-        <tr><td><b>Fanatics / PWCC</b></td><td>Realized marketplace sales</td><td class="green">realized — independent</td></tr>
-        <tr><td><b>PSA APR</b></td><td>PSA CardFacts grade average</td><td class="green">realized — grader’s own</td></tr>
-        <tr><td><b>Yahoo Auctions JP</b></td><td>Closed (落札) auction prices</td><td class="green">realized — independent JP</td></tr>
-        <tr><td><b>ALT.xyz</b></td><td>Sold transactions + listings</td><td>index-derived value</td></tr>
-        <tr><td><b>Cardmarket</b></td><td>EU marketplace asks</td><td>ask — bounds the range</td></tr>
-        <tr><td><b>TCGPlayer</b></td><td>Active graded listings</td><td>ask — retail floor</td></tr>
-      </tbody>
-    </table>
-    <p class="footnote" style="white-space:nowrap">Each agent: fetch → filter → self-score confidence → circuit breakers → write to MemWal.</p>
-  </section>
-
-  <!-- 6 · MEMORY ON WALRUS -->
+  <!-- 5 · MEMORY ON WALRUS -->
   <section class="slide">
     <div class="kicker">MemWal · the memory layer</div>
     <h2>Cold-start once.&nbsp;<span class="teal">Smarter&nbsp;every&nbsp;run.</span></h2>
     <div class="split" style="margin-top:24px">
       <div>
         <ul class="list">
-          <li><b>Per-card price history</b>&nbsp;— last 100&nbsp;observations per source. Today's number judged against the card's own&nbsp;past.</li>
-          <li><b>Reputation weights</b>&nbsp;— EMA reliability per&nbsp;agent. Sources that track consensus earn weight; drifters lose&nbsp;it.</li>
-          <li><b>Anomaly memory</b>&nbsp;— every flagged manipulation (price jumps, seller concentration) remembered per&nbsp;card.</li>
-          <li><b>Walrus persistence</b>&nbsp;— full memory snapshots to Walrus after every&nbsp;run. Kill the process, restore from a&nbsp;blob&nbsp;ID. <span class="teal">The swarm outlives its&nbsp;operator.</span></li>
+          <li><b>Per-card price history:</b> the last 100&nbsp;observations per source, so today's number is judged against the card's own&nbsp;past.</li>
+          <li><b>Reputation weights:</b> a running average of how often each source has agreed with the final&nbsp;consensus. Sources that track it earn weight; drifters lose&nbsp;it.</li>
+          <li><b>Anomaly memory:</b> every flagged manipulation (price jumps, seller concentration) is remembered per&nbsp;card and pre-filtered next&nbsp;run.</li>
+          <li><b>Walrus persistence:</b> the whole learned state snapshots to Walrus each&nbsp;run. A fresh machine restores it from one blob&nbsp;ID&nbsp;— <span class="teal">no warm-up, no central database, and the memory can't be silently&nbsp;altered.</span></li>
         </ul>
       </div>
       <div class="card" style="border-color:var(--line-s)">
@@ -411,7 +410,7 @@
       <div class="card">
         <div class="ek">Confidence narrowing</div>
         <h3 class="blue">Bands tighten with data</h3>
-        <p>Each independent <b>realized</b> source narrows the consensus&nbsp;interval. More memory of a card's comps → a tighter, higher-quality settle&nbsp;price.</p>
+        <p>Each independent <b>realized</b> source narrows the consensus&nbsp;interval&nbsp;— and as a card's comp history, source reputations, and calibration all sharpen together, the band tightens and the settle gets more&nbsp;reliable.</p>
       </div>
       <div class="card">
         <div class="ek">Self-correcting flags</div>
@@ -448,7 +447,7 @@
         <p>Won't settle under 3&nbsp;sources. UMA-style bonded dispute&nbsp;window. Wide disagreement → oracle&nbsp;declines.</p>
       </div>
     </div>
-    <p class="footnote" style="white-space:nowrap">Spoofing one source costs ~$6K in fees and gets MAD-rejected. Coordinating 4+ sources costs $23K+ and is still caught by reputation + drift detection.</p>
+    <p class="footnote" style="white-space:nowrap">One wash source is 1 of 9 — MAD drops it. Moving the median means faking enough independent real marketplaces at once, and a fresh source starts at low reputation weight, so it barely counts.</p>
   </section>
 
   <!-- 8 · EVIDENCE -->
@@ -461,7 +460,7 @@
           Each consensus round emits an <strong>evidence bundle</strong> — price, every comp, per-source weights, rejected outliers, the aggregation method — stored on Walrus with the blob ID referenced onchain. <strong>A market cannot settle without it</strong>; anyone pulls the blob and re-runs the math. Auditable by construction.
         </p>
         <ul class="list" style="margin-top:18px">
-          <li><b>Live on Sui testnet</b>&nbsp;— 4 PSA-10 markets, faucet tUSD, trade · dispute · claim.</li>
+          <li><b>Live on Sui testnet:</b> 4 PSA-10 markets with faucet&nbsp;tUSD.</li>
           <li><b>Every resolution</b> carries a verifiable <span class="mono">evidence_blob_id</span>&nbsp;onchain.</li>
         </ul>
         <p class="footnote" style="margin-top:16px; white-space:nowrap">Package <a href="https://suiscan.xyz/testnet/object/0x66debb86ea160e10334a3fba2d5afd07660d15e307037f7b1665535e4d9a802a" target="_blank">0x66debb86…</a> · <a href="https://suiscan.xyz/testnet/object/0xa6aebeead1c6741a8740b3d3f3e333432404dd468b093de3559f448eac85a38a" target="_blank">market object ↗</a> carries <a href="https://walruscan.com/testnet/blob/Ox7jh0IZgheigqJBql81AduPIEhSzzuVoqd5XL8lZco" target="_blank">evidence blob ↗</a></p>
@@ -487,25 +486,11 @@
     </div>
   </section>
 
-  <!-- 9 · DEMO -->
-  <section class="slide">
-    <div class="kicker">End to end</div>
-    <h2>Market → trade → swarm → settle → verify</h2>
-    <div class="stepper" style="margin-top:26px">
-      <div class="step"><div class="num">01</div><div class="h">Market</div><div class="d">Binary on an exact product&nbsp;— set · number · grader · grade · strike ·&nbsp;expiry.</div></div>
-      <div class="step"><div class="num">02</div><div class="h">Trade</div><div class="d">Faucet tUSD, take a&nbsp;YES or&nbsp;NO position. Parimutuel pool, fully&nbsp;onchain.</div></div>
-      <div class="step"><div class="num">03</div><div class="h">Price</div><div class="d">Swarm prices the card → consensus + evidence to Walrus + memory snapshot.</div></div>
-      <div class="step"><div class="num">04</div><div class="h">Settle</div><div class="d">Bridge proposes with evidence. 24h UMA-style dispute window.</div></div>
-      <div class="step"><div class="num">05</div><div class="h">Verify</div><div class="d">Winners claim. Evidence blob on Walrus — re-run the math yourself.</div></div>
-    </div>
-    <p class="footnote" style="margin-top:18px; white-space:nowrap">Flareon market ships in a <b>disputed</b> state so judges can walk the full resolution path live. · <a href="/" target="_blank">Open the dapp →</a></p>
-  </section>
-
-  <!-- 11 · CLOSE -->
+  <!-- 9 · CLOSE -->
   <section class="slide" style="align-items:flex-start">
     <div class="kicker">The vision</div>
     <h2 style="max-width:none; font-size:clamp(26px,3.6vw,46px)">Every collectible has a price opinion.<br><span class="grad">We make it verifiable, neutral, and onchain.</span></h2>
-    <p style="margin-top:22px; max-width:54ch">
+    <p style="margin-top:22px; max-width:82%">
       The prediction market proves the oracle works. The oracle is the lasting thing: a memory-backed agent swarm that turns scattered, gameable price signals into a <strong>public valuation commons</strong> on Walrus. It starts with cards. It extends to watches, sneakers, wine — any graded or authenticated real-world asset.
     </p>
     <p class="footnote" style="margin-top:32px">Don't trust the oracle — verify the blob.</p>
@@ -520,7 +505,7 @@
   <button class="nav-btn" id="prev" aria-label="previous">‹</button>
   <div id="dots"></div>
   <button class="nav-btn" id="next" aria-label="next">›</button>
-  <span id="count"><b>1</b> / 11</span>
+  <span id="count"><b>1</b> / 9</span>
 </div>
 
 <script>
