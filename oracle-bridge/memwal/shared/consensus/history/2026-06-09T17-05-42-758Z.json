@@ -1,0 +1,271 @@
+{
+  "neo1-1st-18": {
+    "cardId": "neo1-1st-18",
+    "consensusPriceCents": 535000,
+    "confidenceLower": 337500,
+    "confidenceUpper": 535000,
+    "contributingSources": [
+      {
+        "platform": "pricecharting",
+        "family": "ebay-sold",
+        "kind": "realized",
+        "priceCents": 535000,
+        "confidence": 0.8,
+        "reliability": 0.8656834977006302,
+        "weight": 1.1995260069986133,
+        "source": "pc_sold",
+        "compCount": 3
+      },
+      {
+        "platform": "psa-apr",
+        "family": "psa-apr",
+        "kind": "realized",
+        "priceCents": 337500,
+        "confidence": 0.85,
+        "reliability": 0.33752202988431174,
+        "weight": 0.4952463038146468,
+        "source": "psa-apr",
+        "compCount": 3
+      },
+      {
+        "platform": "ebay",
+        "family": "ebay-sold",
+        "kind": "ask",
+        "priceCents": 600000,
+        "confidence": 0.5,
+        "reliability": 0.8167461574534177,
+        "weight": 0,
+        "source": "ebay_active",
+        "compCount": 4
+      },
+      {
+        "platform": "alt",
+        "family": "alt",
+        "kind": "ask",
+        "priceCents": 531360,
+        "confidence": 0.3333333333333333,
+        "reliability": 0.29505248736788486,
+        "weight": 0,
+        "source": "alt_sold",
+        "compCount": 1
+      }
+    ],
+    "rejectedSources": [
+      {
+        "platform": "fanatics",
+        "priceCents": 1332500,
+        "reason": "implausible vs anchor (2.49x of $5350, thin source)"
+      }
+    ],
+    "flags": [
+      "insufficient_sources",
+      "consensus_above_lowest_ask"
+    ],
+    "sourceCount": 2,
+    "roundId": "neo1-1st-18_1781024742757",
+    "timestamp": "2026-06-09T17:05:42.757Z",
+    "rawSourceCount": 2,
+    "sourceFamilies": [
+      "ebay-sold",
+      "psa-apr"
+    ],
+    "askCount": 2,
+    "lowestAskCents": 531360
+  },
+  "jp-vs-091": {
+    "cardId": "jp-vs-091",
+    "consensusPriceCents": 1588230,
+    "confidenceLower": 1588230,
+    "confidenceUpper": 1588230,
+    "contributingSources": [
+      {
+        "platform": "pricecharting",
+        "family": "ebay-sold",
+        "kind": "realized",
+        "priceCents": 1588230,
+        "confidence": 0.9,
+        "reliability": 0.8679017706216645,
+        "weight": 1.7466184566003586,
+        "source": "pc_sold",
+        "compCount": 5
+      },
+      {
+        "platform": "ebay",
+        "family": "ebay-sold",
+        "kind": "ask",
+        "priceCents": 1850000,
+        "confidence": 0.6,
+        "reliability": 0.8177511199632981,
+        "weight": 0,
+        "source": "ebay_active",
+        "compCount": 5
+      },
+      {
+        "platform": "cardmarket",
+        "family": "cardmarket",
+        "kind": "ask",
+        "priceCents": 2047500,
+        "confidence": 0.2,
+        "reliability": 0.6873803497549993,
+        "weight": 0,
+        "source": "cardmarket_active",
+        "compCount": 1
+      }
+    ],
+    "rejectedSources": [
+      {
+        "platform": "fanatics",
+        "priceCents": 2700000,
+        "reason": "implausible vs anchor (1.70x of $15882, thin source)"
+      }
+    ],
+    "flags": [
+      "insufficient_sources"
+    ],
+    "sourceCount": 1,
+    "roundId": "jp-vs-091_1781024742757",
+    "timestamp": "2026-06-09T17:05:42.757Z",
+    "rawSourceCount": 1,
+    "sourceFamilies": [
+      "ebay-sold"
+    ],
+    "askCount": 2,
+    "lowestAskCents": 1850000
+  },
+  "base5-1st-83": {
+    "cardId": "base5-1st-83",
+    "consensusPriceCents": 798656,
+    "confidenceLower": 798656,
+    "confidenceUpper": 798656,
+    "contributingSources": [
+      {
+        "platform": "pricecharting",
+        "family": "ebay-sold",
+        "kind": "realized",
+        "priceCents": 798656,
+        "confidence": 0.9,
+        "reliability": 0.870047950541338,
+        "weight": 1.7509376410283273,
+        "source": "pc_sold",
+        "compCount": 5
+      },
+      {
+        "platform": "fanatics",
+        "family": "fanatics-pwcc",
+        "kind": "realized",
+        "priceCents": 470000,
+        "confidence": 0.7,
+        "reliability": 0.2634039454359133,
+        "weight": 0.18376376733969227,
+        "source": "fanatics-pwcc",
+        "compCount": 1
+      },
+      {
+        "platform": "ebay",
+        "family": "ebay-sold",
+        "kind": "ask",
+        "priceCents": 1499995,
+        "confidence": 0.125,
+        "reliability": 0.8123253359889894,
+        "weight": 0,
+        "source": "ebay_active",
+        "compCount": 1
+      },
+      {
+        "platform": "alt",
+        "family": "alt",
+        "kind": "ask",
+        "priceCents": 760560,
+        "confidence": 0.6666666666666666,
+        "reliability": 0.30035785147352334,
+        "weight": 0,
+        "source": "alt_sold",
+        "compCount": 2
+      }
+    ],
+    "rejectedSources": [
+      {
+        "platform": "psa-apr",
+        "priceCents": 397000,
+        "reason": "implausible vs anchor (0.50x of $7987)"
+      }
+    ],
+    "flags": [
+      "insufficient_sources",
+      "consensus_above_lowest_ask"
+    ],
+    "sourceCount": 2,
+    "roundId": "base5-1st-83_1781024742757",
+    "timestamp": "2026-06-09T17:05:42.757Z",
+    "rawSourceCount": 2,
+    "sourceFamilies": [
+      "ebay-sold",
+      "fanatics-pwcc"
+    ],
+    "askCount": 2,
+    "lowestAskCents": 760560
+  },
+  "base2-1st-3": {
+    "cardId": "base2-1st-3",
+    "consensusPriceCents": 300100,
+    "confidenceLower": 300100,
+    "confidenceUpper": 338000,
+    "contributingSources": [
+      {
+        "platform": "fanatics",
+        "family": "fanatics-pwcc",
+        "kind": "realized",
+        "priceCents": 338000,
+        "confidence": 0.7,
+        "reliability": 0.2577445878860931,
+        "weight": 0.2542975420771074,
+        "source": "fanatics-pwcc",
+        "compCount": 2
+      },
+      {
+        "platform": "psa-apr",
+        "family": "psa-apr",
+        "kind": "realized",
+        "priceCents": 300100,
+        "confidence": 0.85,
+        "reliability": 0.31953772237664346,
+        "weight": 0.4688592412786445,
+        "source": "psa-apr",
+        "compCount": 3
+      },
+      {
+        "platform": "ebay",
+        "family": "ebay-sold",
+        "kind": "ask",
+        "priceCents": 795000,
+        "confidence": 0.6,
+        "reliability": 0.8050837394105581,
+        "weight": 0,
+        "source": "ebay_active",
+        "compCount": 6
+      }
+    ],
+    "rejectedSources": [
+      {
+        "platform": "pricecharting",
+        "priceCents": 730000,
+        "reason": "MAD outlier (z=6.98)",
+        "zScore": 6.976358839050132
+      }
+    ],
+    "flags": [
+      "insufficient_sources",
+      "asks_above_consensus"
+    ],
+    "sourceCount": 2,
+    "roundId": "base2-1st-3_1781024742757",
+    "timestamp": "2026-06-09T17:05:42.757Z",
+    "rawSourceCount": 2,
+    "sourceFamilies": [
+      "fanatics-pwcc",
+      "psa-apr"
+    ],
+    "askCount": 1,
+    "lowestAskCents": 795000
+  }
+}

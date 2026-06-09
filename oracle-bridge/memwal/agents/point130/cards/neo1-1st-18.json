@@ -1,0 +1,20 @@
+{
+  "cardId": "neo1-1st-18",
+  "observations": [
+    {
+      "date": "2026-06-09T21:50:00.214Z",
+      "priceCents": 362500,
+      "confidence": 0.5,
+      "comps": 2,
+      "source": "point130-sold"
+    },
+    {
+      "date": "2026-06-09T21:51:08.085Z",
+      "priceCents": 362500,
+      "confidence": 0.5,
+      "comps": 2,
+      "source": "point130-sold"
+    }
+  ],
+  "anomalies": []
+}

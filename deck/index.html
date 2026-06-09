@@ -463,7 +463,7 @@
           <li><b>Live on Sui testnet:</b> 4 PSA-10 markets with faucet&nbsp;tUSD.</li>
           <li><b>Every resolution</b> carries a verifiable <span class="mono">evidence_blob_id</span>&nbsp;onchain.</li>
         </ul>
-        <p class="footnote" style="margin-top:16px; white-space:nowrap">Package <a href="https://suiscan.xyz/testnet/object/0x66debb86ea160e10334a3fba2d5afd07660d15e307037f7b1665535e4d9a802a" target="_blank">0x66debb86…</a> · <a href="https://suiscan.xyz/testnet/object/0xa6aebeead1c6741a8740b3d3f3e333432404dd468b093de3559f448eac85a38a" target="_blank">market object ↗</a> carries <a href="https://walruscan.com/testnet/blob/Ox7jh0IZgheigqJBql81AduPIEhSzzuVoqd5XL8lZco" target="_blank">evidence blob ↗</a></p>
+        <p class="footnote" style="margin-top:16px; white-space:nowrap">Package <a href="https://suiscan.xyz/testnet/object/0x9807050b60400d30c848dcf035a2038b615ffdb7d6d2ed46332959d39b14f115" target="_blank">0x9807050b…</a> · <a href="https://suiscan.xyz/testnet/object/0xd77d634059460679568e4370fe570b758a47841ebf35a479d88f5b05f617879c" target="_blank">market object ↗</a> carries <a href="https://walruscan.com/testnet/blob/Q2dlXakO8CMH3vL9BKJn60jL0Ac7uWN-jx8cSWosGRE" target="_blank">evidence blob ↗</a></p>
       </div>
       <div class="card" style="border-color:var(--line-s)">
         <div class="ek">evidence bundle · stored on Walrus</div>
@@ -486,7 +486,36 @@
     </div>
   </section>
 
-  <!-- 9 · CLOSE -->
+  <!-- 9 · FORMAL VERIFICATION -->
+  <section class="slide">
+    <div class="kicker">Provably solvent · Sui Prover</div>
+    <h2>Most teams <span class="muted">test</span> the money&nbsp;path.<br>We <span class="grad">proved</span>&nbsp;it.</h2>
+    <div class="split" style="margin-top:24px">
+      <div>
+        <p class="lead" style="font-size:clamp(14px,1.4vw,17.5px)">
+          The two functions that move money are machine-checked by the <strong>Sui Prover</strong> (Z3&nbsp;+&nbsp;Boogie) — they hold for <span class="teal">every</span> input, not just the cases a unit test happens to&nbsp;try.
+        </p>
+        <ul class="list" style="margin-top:18px">
+          <li><b>Solvency:</b> a payout is always <span class="mono">≤</span> the&nbsp;pool. No claim can ever overdraw the&nbsp;market.</li>
+          <li><b>No silent truncation:</b> the <span class="mono">u128→u64</span> payout narrowing is proven&nbsp;lossless.</li>
+          <li><b>Bounded probability:</b> the YES price is always a valid <span class="mono">[0–10000]</span>&nbsp;bps, and provably&nbsp;overflow-safe.</li>
+        </ul>
+        <p class="footnote" style="margin-top:16px;white-space:nowrap">28/28 Move tests green · 40-check security review · root-caused, not patched.</p>
+      </div>
+      <div class="card" style="border-color:var(--line-s)">
+        <div class="ek" style="display:flex;align-items:center;gap:8px"><span class="pulse"></span> sui-prover · Z3&nbsp;+&nbsp;Boogie</div>
+        <pre class="mono" style="font-size:12.5px;line-height:1.75;margin-top:12px;white-space:pre-wrap"><span class="muted">$ sui-prover</span>
+<span class="green">✅</span> compute_payout_spec · Check
+<span class="green">✅</span> compute_payout_spec · NoAbort
+<span class="green">✅</span> yes_price_bps_spec · Check
+<span class="green">✅</span> yes_price_bps_spec · NoAbort
+<span class="teal">Verification successful</span></pre>
+        <p class="footnote" style="margin-top:12px">Solvency is a <b>theorem</b> here — reproducible in one&nbsp;command.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · CLOSE -->
   <section class="slide" style="align-items:flex-start">
     <div class="kicker">The vision</div>
     <h2 style="max-width:none; font-size:clamp(26px,3.6vw,46px)">Every collectible has a price opinion.<br><span class="grad">We make it verifiable, neutral, and onchain.</span></h2>
@@ -505,7 +534,7 @@
   <button class="nav-btn" id="prev" aria-label="previous">‹</button>
   <div id="dots"></div>
   <button class="nav-btn" id="next" aria-label="next">›</button>
-  <span id="count"><b>1</b> / 9</span>
+  <span id="count"><b>1</b> / 10</span>
 </div>
 
 <script>

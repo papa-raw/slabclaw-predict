@@ -78,3 +78,15 @@
 **Root cause:** The deck is embedded as an iframe; its `keydown` listener lives in the iframe's window. After clicking "Deck", focus stayed on the navbar link in the PARENT document, so key events fired on the parent (outlining the link), never reaching the iframe.
 **Fix:** In App.jsx, when `view === 'deck'`, a parent `keydown` listener forwards the nav keys (arrows/space/PageDown/PageUp/Home/End) to the iframe's `contentWindow` via a synthetic KeyboardEvent; the iframe also `.focus()`es on load.
 **Mechanism:** Two browsing contexts don't share keyboard focus or events — the parent must explicitly forward them (or move focus into the iframe). Verified slide 1→4 with the parent link focused.
+
+### 2026-06-09 — 130point realized source priced PSA-10 cards too low ($1,187 Typhlosion)
+**Symptom:** The new `Point130Agent` returned $1,187 for Typhlosion (registry $5,350) and a low median for Dark Raichu, well below grade-matched truth.
+**Root cause:** Two compounding bugs. (1) The grade filter allowed ANY grader's 10 (`(psa|cgc|bgs|sgc)\s*10`) — but 130point mixes **CGC 10 / BGS 10** sales, which trade at a steep discount to PSA 10; mixing them into the median corrupted it (Typhlosion CGC-10 comps were $720–$2,880 vs PSA-10 $3,600–$3,650). (2) No recency filter — the cheap cluster was actually 2020–2023 sales when the card was worth far less.
+**Fix:** Grade-match to **PSA 10 only** — require `psa 10` (or GEM MT/MINT 10 with no rival grader named), reject any CGC/BGS/SGC/ACE/TAG and any sub-10 PSA. Add a freshness window (prefer ≤180d, fall back to 365d). Strip non-single-card lots (pack/sealed/lot/bundle).
+**Mechanism:** A grader's "10" is not grade-equivalent across graders — CGC/BGS 10 ≈ a discount to PSA 10 (different populations). The project's core gotcha ("never compare across graders / grades") applies to scraped comps too. After the fix Typhlosion = $3,625 (PSA-10 only), corroborating PSA-APR's $3,375.
+
+### 2026-06-09 — Filter fix didn't take effect (warm cache served stale price)
+**Symptom:** After tightening the point130 grade filter, the agent STILL returned the old $1,187 — the code change appeared to do nothing.
+**Root cause:** `TinyfishAgent.run()` checks MemWal warm cache FIRST and short-circuits `fetchSignal()` when a cached observation is within `CACHE_TTL`. The previous (buggy) run had cached $1,187, so the new filter never executed.
+**Fix:** `rm memwal/agents/point130/cards/*.json` to clear the stale cache, then re-run — $3,625 (correct). 
+**Mechanism:** Warm-cache short-circuits exist so repeat swarm runs are fast / memory "warms" — but they also mask logic changes during development. When iterating on an agent's `fetchSignal`, clear that agent's card cache or the old value persists.

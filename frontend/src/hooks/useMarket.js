@@ -2,6 +2,15 @@
 
 import { useSuiClientQuery } from '@mysten/dapp-kit';
 
+// Map the Move 2024 `MarketState` enum to the numeric 0/1/2/3 wire contract the
+// UI uses. Over JSON-RPC the enum serializes as { variant: 'Proposed', ... };
+// the legacy u8 came through as a number/string. Handle both shapes.
+const STATE_CODE = { Active: 0, Proposed: 1, Disputed: 2, Settled: 3 };
+function parseState(s) {
+  if (s && typeof s === 'object' && s.variant) return STATE_CODE[s.variant] ?? 0;
+  return Number(s);
+}
+
 function parseMarketFields(fields) {
   const toStr = (bcsBytes) => {
     if (!bcsBytes) return '';
@@ -15,17 +24,20 @@ function parseMarketFields(fields) {
     assetId: toStr(fields.asset_id),
     strikeUsdCents: Number(fields.strike_usd_cents),
     expiryMs: Number(fields.expiry_ms),
-    state: Number(fields.state),
+    state: parseState(fields.state),
     totalYes: Number(fields.total_yes),
     totalNo: Number(fields.total_no),
     poolBalance: Number(fields.pool?.fields?.value ?? fields.pool ?? 0),
     proposedPrice: fields.proposed_price ? Number(fields.proposed_price) : null,
     proposedAt: fields.proposed_at_ms ? Number(fields.proposed_at_ms) : null,
+    disputeDeadlineMs: fields.dispute_deadline_ms ? Number(fields.dispute_deadline_ms) : null,
+    requiredDisputeBond: fields.required_dispute_bond ? Number(fields.required_dispute_bond) : null,
     disputeBond: Number(fields.dispute_bond?.fields?.value ?? fields.dispute_bond ?? 0),
     disputer: fields.disputer ?? null,
     outcome: fields.outcome === null || fields.outcome === undefined ? null : fields.outcome,
     description: toStr(fields.description),
     proposedSources: fields.proposed_sources ? Number(fields.proposed_sources) : null,
+    evidenceBlobId: toStr(fields.evidence_blob_id) || null,
   };
 }
 

@@ -28,7 +28,7 @@ import { getClient, proposeResolution } from './sui-client.mjs';
 import { uploadEvidence } from './walrus-evidence.mjs';
 import { snapshotToWalrus, restoreFromWalrus, memwalIsEmpty } from './memwal-sync.mjs';
 import { writeFrontendConsensus } from './export-consensus.mjs';
-import { CONFIG } from './config.mjs';
+import { CONFIG, marketStateCode } from './config.mjs';
 import { DEMO_MARKETS } from '../frontend/src/constants.js';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
@@ -76,7 +76,7 @@ async function readMarket(client, id) {
     const o = await client.getObject({ id, options: { showContent: true } });
     const f = o?.data?.content?.fields;
     if (!f) return null;
-    return { id, state: Number(f.state), strikeCents: Number(f.strike_usd_cents), expiryMs: Number(f.expiry_ms) };
+    return { id, state: marketStateCode(f.state), strikeCents: Number(f.strike_usd_cents), expiryMs: Number(f.expiry_ms) };
   } catch { return null; }
 }
 

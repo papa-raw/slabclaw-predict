@@ -161,6 +161,27 @@
       "confidence": 0.6,
       "comps": 6,
       "source": "ebay_active"
+    },
+    {
+      "date": "2026-06-09T17:05:42.755Z",
+      "priceCents": 795000,
+      "confidence": 0.6,
+      "comps": 6,
+      "source": "ebay_active"
+    },
+    {
+      "date": "2026-06-09T17:09:10.463Z",
+      "priceCents": 795000,
+      "confidence": 0.6,
+      "comps": 6,
+      "source": "ebay_active"
+    },
+    {
+      "date": "2026-06-09T17:33:22.408Z",
+      "priceCents": 795000,
+      "confidence": 0.6,
+      "comps": 6,
+      "source": "ebay_active"
     }
   ],
   "anomalies": []

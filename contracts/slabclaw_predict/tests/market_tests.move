@@ -23,11 +23,13 @@ module slabclaw_predict::market_tests {
     fun setup_market_prereqs(scenario: &mut ts::Scenario): (
         registry::AdminCap,
         registry::AssetRegistry,
+        registry::ProtocolConfig,
         oracle::OracleCap,
     ) {
         let ctx = ts::ctx(scenario);
         let admin_cap = registry::create_admin_cap_for_testing(ctx);
         let mut registry = registry::create_registry_for_testing(ctx);
+        let config = registry::create_config_for_testing(ctx);
         let oracle_cap = oracle::create_oracle_cap_for_testing(ctx);
 
         registry::register_asset(
@@ -41,7 +43,7 @@ module slabclaw_predict::market_tests {
             5,
         );
 
-        (admin_cap, registry, oracle_cap)
+        (admin_cap, registry, config, oracle_cap)
     }
 
     // ── Market creation tests ───────────────────────────────────────────
@@ -50,7 +52,7 @@ module slabclaw_predict::market_tests {
     fun test_create_market() {
         let mut scenario = ts::begin(ADMIN);
 
-        let (admin_cap, registry, oracle_cap) = setup_market_prereqs(&mut scenario);
+        let (admin_cap, registry, config, oracle_cap) = setup_market_prereqs(&mut scenario);
 
         {
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
@@ -84,6 +86,7 @@ module slabclaw_predict::market_tests {
         };
 
         oracle::destroy_oracle_cap_for_testing(oracle_cap);
+        registry::destroy_config_for_testing(config);
         registry::destroy_registry_for_testing(registry);
         registry::destroy_admin_cap_for_testing(admin_cap);
         ts::end(scenario);
@@ -93,7 +96,7 @@ module slabclaw_predict::market_tests {
     #[expected_failure(abort_code = market::EExpiryInPast)]
     fun test_create_market_expired_fails() {
         let mut scenario = ts::begin(ADMIN);
-        let (admin_cap, registry, oracle_cap) = setup_market_prereqs(&mut scenario);
+        let (admin_cap, registry, config, oracle_cap) = setup_market_prereqs(&mut scenario);
 
         {
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
@@ -115,6 +118,7 @@ module slabclaw_predict::market_tests {
         };
 
         oracle::destroy_oracle_cap_for_testing(oracle_cap);
+        registry::destroy_config_for_testing(config);
         registry::destroy_registry_for_testing(registry);
         registry::destroy_admin_cap_for_testing(admin_cap);
         ts::end(scenario);
@@ -125,7 +129,7 @@ module slabclaw_predict::market_tests {
     #[test]
     fun test_buy_yes_and_no() {
         let mut scenario = ts::begin(ADMIN);
-        let (admin_cap, registry, oracle_cap) = setup_market_prereqs(&mut scenario);
+        let (admin_cap, registry, config, oracle_cap) = setup_market_prereqs(&mut scenario);
 
         // Create market
         {
@@ -181,6 +185,7 @@ module slabclaw_predict::market_tests {
         };
 
         oracle::destroy_oracle_cap_for_testing(oracle_cap);
+        registry::destroy_config_for_testing(config);
         registry::destroy_registry_for_testing(registry);
         registry::destroy_admin_cap_for_testing(admin_cap);
         ts::end(scenario);
@@ -191,7 +196,7 @@ module slabclaw_predict::market_tests {
     #[test]
     fun test_full_lifecycle_yes_wins() {
         let mut scenario = ts::begin(ADMIN);
-        let (admin_cap, registry, oracle_cap) = setup_market_prereqs(&mut scenario);
+        let (admin_cap, registry, config, oracle_cap) = setup_market_prereqs(&mut scenario);
 
         // 1. Create market: "Will Charizard exceed $15,000?"
         {
@@ -238,7 +243,7 @@ module slabclaw_predict::market_tests {
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
             clock::set_for_testing(&mut clock, 1_100_000_000_001); // just past expiry
             market::propose_resolution(
-                &oracle_cap, &mut market, &registry,
+                &oracle_cap, &mut market, &registry, &config,
                 1600000, // $16,000 > $15,000 strike
                 5,       // 5 sources
                 b"dHWTDxbxXzGV_qwh9qeb52RH31SWssvST40GWj1mtS4", // Walrus evidence
@@ -294,6 +299,7 @@ module slabclaw_predict::market_tests {
         };
 
         oracle::destroy_oracle_cap_for_testing(oracle_cap);
+        registry::destroy_config_for_testing(config);
         registry::destroy_registry_for_testing(registry);
         registry::destroy_admin_cap_for_testing(admin_cap);
         ts::end(scenario);
@@ -303,7 +309,7 @@ module slabclaw_predict::market_tests {
     #[expected_failure(abort_code = market::ENoWinningPosition)]
     fun test_claim_loser_fails() {
         let mut scenario = ts::begin(ADMIN);
-        let (admin_cap, registry, oracle_cap) = setup_market_prereqs(&mut scenario);
+        let (admin_cap, registry, config, oracle_cap) = setup_market_prereqs(&mut scenario);
 
         // Create + trade + resolve (YES wins)
         {
@@ -350,7 +356,7 @@ module slabclaw_predict::market_tests {
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
             clock::set_for_testing(&mut clock, 1_100_000_000_001);
             market::propose_resolution(
-                &oracle_cap, &mut market, &registry,
+                &oracle_cap, &mut market, &registry, &config,
                 1600000, 5, b"evidence_blob_loser", &clock,
             );
             clock::set_for_testing(&mut clock, 1_100_000_000_001 + 86_400_001);
@@ -368,6 +374,7 @@ module slabclaw_predict::market_tests {
         };
 
         oracle::destroy_oracle_cap_for_testing(oracle_cap);
+        registry::destroy_config_for_testing(config);
         registry::destroy_registry_for_testing(registry);
         registry::destroy_admin_cap_for_testing(admin_cap);
         ts::end(scenario);
@@ -378,7 +385,7 @@ module slabclaw_predict::market_tests {
     #[test]
     fun test_dispute_and_admin_resolve() {
         let mut scenario = ts::begin(ADMIN);
-        let (admin_cap, registry, oracle_cap) = setup_market_prereqs(&mut scenario);
+        let (admin_cap, registry, config, oracle_cap) = setup_market_prereqs(&mut scenario);
 
         // Create market
         {
@@ -422,7 +429,7 @@ module slabclaw_predict::market_tests {
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
             clock::set_for_testing(&mut clock, 1_100_000_000_001);
             market::propose_resolution(
-                &oracle_cap, &mut market, &registry,
+                &oracle_cap, &mut market, &registry, &config,
                 1600000, 5, b"evidence_blob_dispute", &clock,
             );
             clock::destroy_for_testing(clock);
@@ -467,6 +474,7 @@ module slabclaw_predict::market_tests {
         };
 
         oracle::destroy_oracle_cap_for_testing(oracle_cap);
+        registry::destroy_config_for_testing(config);
         registry::destroy_registry_for_testing(registry);
         registry::destroy_admin_cap_for_testing(admin_cap);
         ts::end(scenario);
@@ -478,7 +486,7 @@ module slabclaw_predict::market_tests {
     #[expected_failure(abort_code = market::EDisputeWindowOpen)]
     fun test_finalize_too_early_fails() {
         let mut scenario = ts::begin(ADMIN);
-        let (admin_cap, registry, oracle_cap) = setup_market_prereqs(&mut scenario);
+        let (admin_cap, registry, config, oracle_cap) = setup_market_prereqs(&mut scenario);
 
         {
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
@@ -499,7 +507,7 @@ module slabclaw_predict::market_tests {
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
             clock::set_for_testing(&mut clock, 1_100_000_000_001);
             market::propose_resolution(
-                &oracle_cap, &mut market, &registry,
+                &oracle_cap, &mut market, &registry, &config,
                 1600000, 5, b"evidence_blob_early", &clock,
             );
             clock::destroy_for_testing(clock);
@@ -519,6 +527,7 @@ module slabclaw_predict::market_tests {
         };
 
         oracle::destroy_oracle_cap_for_testing(oracle_cap);
+        registry::destroy_config_for_testing(config);
         registry::destroy_registry_for_testing(registry);
         registry::destroy_admin_cap_for_testing(admin_cap);
         ts::end(scenario);
@@ -531,7 +540,7 @@ module slabclaw_predict::market_tests {
     #[test]
     fun test_propose_resolution_stores_evidence() {
         let mut scenario = ts::begin(ADMIN);
-        let (admin_cap, registry, oracle_cap) = setup_market_prereqs(&mut scenario);
+        let (admin_cap, registry, config, oracle_cap) = setup_market_prereqs(&mut scenario);
 
         {
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
@@ -560,7 +569,7 @@ module slabclaw_predict::market_tests {
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
             clock::set_for_testing(&mut clock, 1_100_000_000_001);
             market::propose_resolution(
-                &oracle_cap, &mut market, &registry,
+                &oracle_cap, &mut market, &registry, &config,
                 1600000, 5,
                 b"dHWTDxbxXzGV_qwh9qeb52RH31SWssvST40GWj1mtS4",
                 &clock,
@@ -575,6 +584,7 @@ module slabclaw_predict::market_tests {
         };
 
         oracle::destroy_oracle_cap_for_testing(oracle_cap);
+        registry::destroy_config_for_testing(config);
         registry::destroy_registry_for_testing(registry);
         registry::destroy_admin_cap_for_testing(admin_cap);
         ts::end(scenario);
@@ -585,7 +595,7 @@ module slabclaw_predict::market_tests {
     #[expected_failure(abort_code = market::EMissingEvidence)]
     fun test_propose_resolution_empty_evidence_fails() {
         let mut scenario = ts::begin(ADMIN);
-        let (admin_cap, registry, oracle_cap) = setup_market_prereqs(&mut scenario);
+        let (admin_cap, registry, config, oracle_cap) = setup_market_prereqs(&mut scenario);
 
         {
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
@@ -606,7 +616,7 @@ module slabclaw_predict::market_tests {
             let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
             clock::set_for_testing(&mut clock, 1_100_000_000_001);
             market::propose_resolution(
-                &oracle_cap, &mut market, &registry,
+                &oracle_cap, &mut market, &registry, &config,
                 1600000, 5,
                 b"", // empty — cannot settle without verifiable Walrus evidence
                 &clock,
@@ -616,8 +626,235 @@ module slabclaw_predict::market_tests {
         };
 
         oracle::destroy_oracle_cap_for_testing(oracle_cap);
+        registry::destroy_config_for_testing(config);
         registry::destroy_registry_for_testing(registry);
         registry::destroy_admin_cap_for_testing(admin_cap);
+        ts::end(scenario);
+    }
+
+    // ── Emergency refund scope (admin escape hatch) ─────────────────────
+
+    /// Allowed: market Settled with NO winning side (all shares on the losing
+    /// outcome, so `claim` can never succeed). Admin refunds the stranded pool.
+    #[test]
+    fun test_emergency_refund_no_winning_side() {
+        let mut scenario = ts::begin(ADMIN);
+        let (admin_cap, registry, config, oracle_cap) = setup_market_prereqs(&mut scenario);
+
+        {
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_000_000_000_000);
+            market::create_market(
+                &admin_cap, &registry,
+                b"BASE_CHARIZARD_4_PSA_10", 1500000,
+                1_100_000_000_000, b"No winner",
+                &clock, ts::ctx(&mut scenario),
+            );
+            clock::destroy_for_testing(clock);
+        };
+
+        // Only NO buyers — nobody is on YES
+        ts::next_tx(&mut scenario, TRADER_B);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_050_000_000_000);
+            let payment = coin::mint_for_testing<TEST_USD>(5 * ONE_SUI, ts::ctx(&mut scenario));
+            market::buy_no(&mut market, payment, &clock, ts::ctx(&mut scenario));
+            clock::destroy_for_testing(clock);
+            ts::return_shared(market);
+        };
+
+        // Propose YES-winning price, finalize → Settled, outcome YES, total_yes == 0
+        ts::next_tx(&mut scenario, ORACLE_OP);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_100_000_000_001);
+            market::propose_resolution(
+                &oracle_cap, &mut market, &registry, &config,
+                1600000, 5, b"evidence_no_winner", &clock,
+            );
+            clock::set_for_testing(&mut clock, 1_100_000_000_001 + 86_400_001);
+            market::finalize(&mut market, &clock);
+            clock::destroy_for_testing(clock);
+            ts::return_shared(market);
+        };
+
+        // No YES holder can claim → admin refunds the stranded pool
+        ts::next_tx(&mut scenario, ADMIN);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            assert!(market::is_settled(&market), 0);
+            assert!(market::total_yes(&market) == 0, 1);
+            assert!(market::pool_value(&market) == 5 * ONE_SUI, 2);
+            market::emergency_refund(&admin_cap, &mut market, TRADER_B, ts::ctx(&mut scenario));
+            assert!(market::pool_value(&market) == 0, 3);
+            ts::return_shared(market);
+        };
+
+        oracle::destroy_oracle_cap_for_testing(oracle_cap);
+        registry::destroy_config_for_testing(config);
+        registry::destroy_registry_for_testing(registry);
+        registry::destroy_admin_cap_for_testing(admin_cap);
+        ts::end(scenario);
+    }
+
+    /// Forbidden: a Settled market WITH a winning side. The scope guard must stop
+    /// admin from refunding a loser out of the pool that winners are owed.
+    #[test]
+    #[expected_failure(abort_code = market::ERefundNotAllowed)]
+    fun test_emergency_refund_with_winners_fails() {
+        let mut scenario = ts::begin(ADMIN);
+        let (admin_cap, registry, config, oracle_cap) = setup_market_prereqs(&mut scenario);
+
+        {
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_000_000_000_000);
+            market::create_market(
+                &admin_cap, &registry,
+                b"BASE_CHARIZARD_4_PSA_10", 1500000,
+                1_100_000_000_000, b"Has winner",
+                &clock, ts::ctx(&mut scenario),
+            );
+            clock::destroy_for_testing(clock);
+        };
+
+        ts::next_tx(&mut scenario, TRADER_A);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_050_000_000_000);
+            let payment = coin::mint_for_testing<TEST_USD>(10 * ONE_SUI, ts::ctx(&mut scenario));
+            market::buy_yes(&mut market, payment, &clock, ts::ctx(&mut scenario));
+            clock::destroy_for_testing(clock);
+            ts::return_shared(market);
+        };
+        ts::next_tx(&mut scenario, TRADER_B);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_050_000_000_000);
+            let payment = coin::mint_for_testing<TEST_USD>(5 * ONE_SUI, ts::ctx(&mut scenario));
+            market::buy_no(&mut market, payment, &clock, ts::ctx(&mut scenario));
+            clock::destroy_for_testing(clock);
+            ts::return_shared(market);
+        };
+
+        ts::next_tx(&mut scenario, ORACLE_OP);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_100_000_000_001);
+            market::propose_resolution(
+                &oracle_cap, &mut market, &registry, &config,
+                1600000, 5, b"evidence_has_winner", &clock,
+            );
+            clock::set_for_testing(&mut clock, 1_100_000_000_001 + 86_400_001);
+            market::finalize(&mut market, &clock);
+            clock::destroy_for_testing(clock);
+            ts::return_shared(market);
+        };
+
+        // YES won and has shares → refunding the NO loser must abort
+        ts::next_tx(&mut scenario, ADMIN);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            market::emergency_refund(&admin_cap, &mut market, TRADER_B, ts::ctx(&mut scenario));
+            ts::return_shared(market);
+        };
+
+        oracle::destroy_oracle_cap_for_testing(oracle_cap);
+        registry::destroy_config_for_testing(config);
+        registry::destroy_registry_for_testing(registry);
+        registry::destroy_admin_cap_for_testing(admin_cap);
+        ts::end(scenario);
+    }
+
+    /// Allowed: a still-Active market can be cancelled and refunded by admin.
+    #[test]
+    fun test_emergency_refund_active_cancellation() {
+        let mut scenario = ts::begin(ADMIN);
+        let (admin_cap, registry, config, oracle_cap) = setup_market_prereqs(&mut scenario);
+
+        {
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_000_000_000_000);
+            market::create_market(
+                &admin_cap, &registry,
+                b"BASE_CHARIZARD_4_PSA_10", 1500000,
+                1_100_000_000_000, b"Cancel me",
+                &clock, ts::ctx(&mut scenario),
+            );
+            clock::destroy_for_testing(clock);
+        };
+
+        ts::next_tx(&mut scenario, TRADER_A);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_050_000_000_000);
+            let payment = coin::mint_for_testing<TEST_USD>(10 * ONE_SUI, ts::ctx(&mut scenario));
+            market::buy_yes(&mut market, payment, &clock, ts::ctx(&mut scenario));
+            clock::destroy_for_testing(clock);
+            ts::return_shared(market);
+        };
+
+        ts::next_tx(&mut scenario, ADMIN);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            assert!(market::state(&market) == market::state_active(), 0);
+            market::emergency_refund(&admin_cap, &mut market, TRADER_A, ts::ctx(&mut scenario));
+            assert!(market::pool_value(&market) == 0, 1);
+            ts::return_shared(market);
+        };
+
+        oracle::destroy_oracle_cap_for_testing(oracle_cap);
+        registry::destroy_config_for_testing(config);
+        registry::destroy_registry_for_testing(registry);
+        registry::destroy_admin_cap_for_testing(admin_cap);
+        ts::end(scenario);
+    }
+
+    // ── Upgrade safety ───────────────────────────────────────────────────
+
+    #[test]
+    fun test_migrate_market() {
+        let mut scenario = ts::begin(ADMIN);
+        {
+            let ctx = ts::ctx(&mut scenario);
+            let admin_cap = registry::create_admin_cap_for_testing(ctx);
+            let mut market = market::create_market_for_testing(
+                b"BASE_CHARIZARD_4_PSA_10", 1500000, 9_999_999_999_999, ctx,
+            );
+            market::set_market_version_for_testing(&mut market, 0);
+            assert!(market::market_version(&market) == 0, 0);
+            market::migrate_market(&admin_cap, &mut market);
+            assert!(market::market_version(&market) == registry::version(), 1);
+            market::destroy_market_for_testing(market);
+            registry::destroy_admin_cap_for_testing(admin_cap);
+        };
+        ts::end(scenario);
+    }
+
+    /// A stale (un-migrated) market must reject trades.
+    #[test]
+    #[expected_failure(abort_code = market::EWrongVersion)]
+    fun test_buy_wrong_version_fails() {
+        let mut scenario = ts::begin(ADMIN);
+        {
+            let ctx = ts::ctx(&mut scenario);
+            let mut market = market::create_market_for_testing(
+                b"BASE_CHARIZARD_4_PSA_10", 1500000, 9_999_999_999_999, ctx,
+            );
+            market::set_market_version_for_testing(&mut market, 0);
+            let mut clock = clock::create_for_testing(ctx);
+            clock::set_for_testing(&mut clock, 1_000_000_000_000);
+            let payment = coin::mint_for_testing<TEST_USD>(10 * ONE_SUI, ctx);
+            market::buy_yes(&mut market, payment, &clock, ctx); // aborts EWrongVersion
+            clock::destroy_for_testing(clock);
+            market::destroy_market_for_testing(market);
+        };
         ts::end(scenario);
     }
 }

@@ -2,16 +2,25 @@
 /// Creates parimutuel prediction markets on collectible card prices.
 ///
 /// Market question: "Will [asset] exceed [strike] by [expiry]?"
-/// Users buy YES or NO shares at 1:1 with SUI. Pool distributes to winners.
+/// Users buy YES or NO shares 1:1 with tUSD. The pool distributes to winners.
 ///
-/// Resolution uses UMA-style optimistic oracle:
-/// 1. After expiry, oracle proposes settlement price
-/// 2. 24h dispute window — anyone can dispute with SUI bond
-/// 3. Undisputed → auto-finalize → winners claim
-/// 4. Disputed → admin resolves (MVP) / SUI-staked voting (v2)
+/// Resolution uses a UMA-style optimistic oracle:
+/// 1. After expiry, the oracle proposes a settlement price + Walrus evidence.
+/// 2. A dispute window opens — anyone can dispute with a tUSD bond.
+/// 3. Undisputed → anyone finalizes → winners claim.
+/// 4. Disputed → admin resolves (MVP) / tUSD-staked voting (v2).
 ///
-/// Note: resolution.move from the original spec is combined here to avoid
-/// circular dependencies. Market owns its full lifecycle.
+/// Economic terms (the dispute deadline and the required bond) are *snapshotted into
+/// the market at proposal time* from the governance `ProtocolConfig`. Freezing them at
+/// proposal makes the deal a disputer sees immutable for the life of that resolution —
+/// a later admin config change cannot move the goalposts on an in-flight dispute.
+///
+/// Every state-mutating entry function asserts `version == VERSION`; after a package
+/// upgrade a stale market aborts instead of corrupting its pool. `migrate_market`
+/// (AdminCap) bumps a stale market forward.
+///
+/// Note: resolution logic lives here rather than a separate module to avoid a
+/// circular dependency — a market owns its full lifecycle.
 #[allow(lint(public_entry))]
 module slabclaw_predict::market {
     use sui::object::{Self, UID};
@@ -23,36 +32,44 @@ module slabclaw_predict::market {
     use sui::coin::{Self, Coin};
     use sui::table::{Self, Table};
     use std::option::{Self, Option};
-    use slabclaw_predict::registry::{Self, AdminCap, AssetRegistry};
+    use slabclaw_predict::registry::{Self, AdminCap, AssetRegistry, ProtocolConfig};
     use slabclaw_predict::oracle::OracleCap;
     // Settlement currency: faucet-minted test USD (9 decimals, mirrors MIST so
-    // all share-math constants below are unchanged from the SUI version).
+    // all share-math constants below are unchanged from a native-coin version).
     use slabclaw_predict::test_usd::TEST_USD;
 
-    // ── Constants ───────────────────────────────────────────────────────
+    // ── Versioning ──────────────────────────────────────────────────────────
 
-    /// 24 hours in milliseconds
-    const DISPUTE_WINDOW_MS: u64 = 86_400_000;
-    /// Minimum dispute bond: 10 SUI (in MIST)
-    const MIN_DISPUTE_BOND: u64 = 10_000_000_000;
-    /// Minimum position size: 0.001 SUI (in MIST)
+    /// Current market state version. Bump on every state-shape-changing upgrade.
+    const VERSION: u64 = 1;
+
+    // ── Constants ───────────────────────────────────────────────────────────
+
+    /// Minimum position size: 0.001 tUSD (in MIST, 9 decimals). A dust floor that
+    /// must never be loosened by governance, so it stays a compile-time constant
+    /// rather than a `ProtocolConfig` knob.
     const MIN_POSITION: u64 = 1_000_000;
-    /// Minimum oracle sources for settlement proposal
-    const MIN_SOURCES: u64 = 3;
 
-    // ── Market states ───────────────────────────────────────────────────
+    // ── Market states ───────────────────────────────────────────────────────
 
-    const STATE_ACTIVE: u8 = 0;
-    const STATE_PROPOSED: u8 = 1;
-    const STATE_DISPUTED: u8 = 2;
-    const STATE_SETTLED: u8 = 3;
+    /// Lifecycle of a market. A Move 2024 enum gives exhaustive, type-checked
+    /// transitions; the numeric `state()` accessor below preserves the 0/1/2/3
+    /// wire contract that the off-chain bridge and frontend already read.
+    public enum MarketState has store, copy, drop {
+        Active,
+        Proposed,
+        Disputed,
+        Settled,
+    }
 
-    // ── Objects ─────────────────────────────────────────────────────────
+    // ── Objects ─────────────────────────────────────────────────────────────
 
     /// A binary prediction market. Shared object.
     /// "Will PSA 10 Base Set Charizard exceed $15,000 by December 2026?"
     public struct Market has key {
         id: UID,
+        /// On-chain state version (see module docs).
+        version: u64,
         /// Asset class ID (from registry)
         asset_id: vector<u8>,
         /// Strike price in USD cents (e.g., 1500000 = $15,000.00)
@@ -62,8 +79,8 @@ module slabclaw_predict::market {
         /// Human-readable market description
         description: vector<u8>,
         /// Current market state
-        state: u8,
-        /// SUI pool backing all positions
+        state: MarketState,
+        /// tUSD pool backing all positions
         pool: Balance<TEST_USD>,
         /// Position tracking: address → Position
         positions: Table<address, Position>,
@@ -80,13 +97,17 @@ module slabclaw_predict::market {
         proposed_sources: u64,
         /// Walrus blob id of the resolution evidence (empty until proposed)
         evidence_blob_id: vector<u8>,
+        /// Dispute deadline (ms), snapshotted from config at proposal time
+        dispute_deadline_ms: u64,
+        /// Required dispute bond (tUSD MIST), snapshotted from config at proposal time
+        required_dispute_bond: u64,
         /// Dispute bond balance (held during dispute)
         dispute_bond: Balance<TEST_USD>,
         /// Disputer address
         disputer: Option<address>,
         /// Final outcome: true = YES wins (price > strike), false = NO wins
         outcome: Option<bool>,
-        /// Total SUI claimed by winners (for accounting)
+        /// Total tUSD claimed by winners (for accounting)
         total_claimed: u64,
         /// Market creator
         creator: address,
@@ -94,7 +115,7 @@ module slabclaw_predict::market {
 
     /// A user's position in a market.
     public struct Position has store, drop {
-        /// YES shares held (in MIST, 1:1 with SUI deposited)
+        /// YES shares held (in MIST, 1:1 with tUSD deposited)
         yes_shares: u64,
         /// NO shares held (in MIST)
         no_shares: u64,
@@ -102,7 +123,7 @@ module slabclaw_predict::market {
         claimed: bool,
     }
 
-    // ── Events ──────────────────────────────────────────────────────────
+    // ── Events ──────────────────────────────────────────────────────────────
 
     public struct MarketCreated has copy, drop {
         market_id: address,
@@ -146,7 +167,7 @@ module slabclaw_predict::market {
         payout: u64,
     }
 
-    // ── Admin functions ─────────────────────────────────────────────────
+    // ── Admin functions ─────────────────────────────────────────────────────
 
     /// Create a new binary prediction market. Requires AdminCap.
     /// Asset must be registered and active in the registry.
@@ -169,11 +190,12 @@ module slabclaw_predict::market {
 
         let market = Market {
             id: market_uid,
+            version: VERSION,
             asset_id,
             strike_usd_cents,
             expiry_ms,
             description,
-            state: STATE_ACTIVE,
+            state: MarketState::Active,
             pool: balance::zero(),
             positions: table::new(ctx),
             total_yes: 0,
@@ -182,6 +204,8 @@ module slabclaw_predict::market {
             proposed_at_ms: 0,
             proposed_sources: 0,
             evidence_blob_id: b"",
+            dispute_deadline_ms: 0,
+            required_dispute_bond: 0,
             dispute_bond: balance::zero(),
             disputer: option::none(),
             outcome: option::none(),
@@ -199,9 +223,15 @@ module slabclaw_predict::market {
         transfer::share_object(market);
     }
 
-    // ── Trading functions ───────────────────────────────────────────────
+    /// Bump a stale market to the current version after a package upgrade.
+    public entry fun migrate_market(_admin: &AdminCap, market: &mut Market) {
+        assert!(market.version < VERSION, ENotStale);
+        market.version = VERSION;
+    }
 
-    /// Buy YES shares. 1 SUI = 1 YES share (parimutuel).
+    // ── Trading functions ───────────────────────────────────────────────────
+
+    /// Buy YES shares. 1 tUSD = 1 YES share (parimutuel).
     /// Prediction: asset price WILL exceed strike at expiry.
     public entry fun buy_yes(
         market: &mut Market,
@@ -209,13 +239,14 @@ module slabclaw_predict::market {
         clock: &Clock,
         ctx: &mut TxContext,
     ) {
-        assert!(market.state == STATE_ACTIVE, EMarketNotActive);
+        assert!(market.version == VERSION, EWrongVersion);
+        assert!(market.state == MarketState::Active, EMarketNotActive);
         assert!(clock::timestamp_ms(clock) < market.expiry_ms, EMarketExpired);
 
         let amount = coin::value(&payment);
         assert!(amount >= MIN_POSITION, EPositionTooSmall);
 
-        // Add SUI to pool
+        // Add tUSD to pool
         balance::join(&mut market.pool, coin::into_balance(payment));
 
         // Update or create position
@@ -241,7 +272,7 @@ module slabclaw_predict::market {
         });
     }
 
-    /// Buy NO shares. 1 SUI = 1 NO share (parimutuel).
+    /// Buy NO shares. 1 tUSD = 1 NO share (parimutuel).
     /// Prediction: asset price will NOT exceed strike at expiry.
     public entry fun buy_no(
         market: &mut Market,
@@ -249,7 +280,8 @@ module slabclaw_predict::market {
         clock: &Clock,
         ctx: &mut TxContext,
     ) {
-        assert!(market.state == STATE_ACTIVE, EMarketNotActive);
+        assert!(market.version == VERSION, EWrongVersion);
+        assert!(market.state == MarketState::Active, EMarketNotActive);
         assert!(clock::timestamp_ms(clock) < market.expiry_ms, EMarketExpired);
 
         let amount = coin::value(&payment);
@@ -281,67 +313,76 @@ module slabclaw_predict::market {
 
     // ── Resolution functions (UMA-style optimistic oracle) ──────────────
 
-    /// Oracle proposes a settlement price. Starts 24h dispute window.
-    /// Can only be called after market expiry by an authorized oracle operator.
+    /// Oracle proposes a settlement price. Snapshots the dispute deadline and
+    /// required bond from the live `ProtocolConfig`, then opens the dispute window.
+    /// Callable only after market expiry by an authorized oracle operator.
     public entry fun propose_resolution(
         _oracle_cap: &OracleCap,
         market: &mut Market,
         registry: &AssetRegistry,
+        config: &ProtocolConfig,
         price_usd_cents: u64,
         sources_count: u64,
         evidence_blob_id: vector<u8>,
         clock: &Clock,
     ) {
+        assert!(market.version == VERSION, EWrongVersion);
+
         let now = clock::timestamp_ms(clock);
 
         // Market must be past expiry
         assert!(now >= market.expiry_ms, EMarketNotExpired);
-        // Must be in ACTIVE state (not already proposed/settled)
-        assert!(market.state == STATE_ACTIVE, EMarketNotActive);
+        // Must be in Active state (not already proposed/settled)
+        assert!(market.state == MarketState::Active, EMarketNotActive);
         // Asset must still be valid
         assert!(registry::is_active(registry, market.asset_id), EAssetNotActive);
-        // Minimum oracle sources
-        assert!(sources_count >= MIN_SOURCES, EInsufficientSources);
+        // Minimum oracle sources (governance-tunable floor)
+        assert!(sources_count >= registry::min_sources(config), EInsufficientSources);
         // Price must be positive
         assert!(price_usd_cents > 0, EInvalidPrice);
         // A market cannot settle without verifiable Walrus evidence.
         assert!(std::vector::length(&evidence_blob_id) > 0, EMissingEvidence);
 
-        market.state = STATE_PROPOSED;
+        let dispute_deadline_ms = now + registry::dispute_window_ms(config);
+
+        market.state = MarketState::Proposed;
         market.proposed_price = price_usd_cents;
         market.proposed_at_ms = now;
         market.proposed_sources = sources_count;
         market.evidence_blob_id = evidence_blob_id;
+        market.dispute_deadline_ms = dispute_deadline_ms;
+        market.required_dispute_bond = registry::min_dispute_bond(config);
 
         event::emit(ResolutionProposed {
             market_id: object::uid_to_address(&market.id),
             proposed_price: price_usd_cents,
             sources_count,
-            dispute_deadline_ms: now + DISPUTE_WINDOW_MS,
+            dispute_deadline_ms,
             evidence_blob_id,
         });
     }
 
-    /// Dispute a proposed resolution. Requires SUI bond (min 10 SUI).
-    /// Only one dispute per market (first valid disputer wins).
+    /// Dispute a proposed resolution. Requires a bond ≥ the amount snapshotted at
+    /// proposal time. Only one dispute per market (first valid disputer wins).
     public entry fun dispute(
         market: &mut Market,
         bond: Coin<TEST_USD>,
         clock: &Clock,
         ctx: &mut TxContext,
     ) {
-        assert!(market.state == STATE_PROPOSED, ENotProposed);
+        assert!(market.version == VERSION, EWrongVersion);
+        assert!(market.state == MarketState::Proposed, ENotProposed);
 
         let now = clock::timestamp_ms(clock);
-        assert!(now < market.proposed_at_ms + DISPUTE_WINDOW_MS, EDisputeWindowClosed);
+        assert!(now < market.dispute_deadline_ms, EDisputeWindowClosed);
 
         let bond_amount = coin::value(&bond);
-        assert!(bond_amount >= MIN_DISPUTE_BOND, EBondTooSmall);
+        assert!(bond_amount >= market.required_dispute_bond, EBondTooSmall);
 
         balance::join(&mut market.dispute_bond, coin::into_balance(bond));
 
         let sender = tx_context::sender(ctx);
-        market.state = STATE_DISPUTED;
+        market.state = MarketState::Disputed;
         market.disputer = option::some(sender);
 
         event::emit(MarketDisputed {
@@ -351,21 +392,22 @@ module slabclaw_predict::market {
         });
     }
 
-    /// Finalize an undisputed resolution. Anyone can call after dispute window closes.
+    /// Finalize an undisputed resolution. Anyone can call after the dispute window closes.
     /// Determines outcome based on proposed price vs strike price.
     public entry fun finalize(
         market: &mut Market,
         clock: &Clock,
     ) {
-        assert!(market.state == STATE_PROPOSED, ENotProposed);
+        assert!(market.version == VERSION, EWrongVersion);
+        assert!(market.state == MarketState::Proposed, ENotProposed);
 
         let now = clock::timestamp_ms(clock);
-        assert!(now >= market.proposed_at_ms + DISPUTE_WINDOW_MS, EDisputeWindowOpen);
+        assert!(now >= market.dispute_deadline_ms, EDisputeWindowOpen);
 
         // YES wins if settlement price exceeds strike
         let outcome_yes = market.proposed_price > market.strike_usd_cents;
         market.outcome = option::some(outcome_yes);
-        market.state = STATE_SETTLED;
+        market.state = MarketState::Settled;
 
         event::emit(MarketSettled {
             market_id: object::uid_to_address(&market.id),
@@ -377,9 +419,9 @@ module slabclaw_predict::market {
     }
 
     /// Admin resolves a disputed market. Sets the correct price and settles.
-    /// If return_bond is true, the dispute was valid and bond goes back to disputer.
-    /// If false, bond is added to the pool (rewards winners).
-    /// In v2, this will be replaced by SUI-staked voting.
+    /// If return_bond is true, the dispute was valid and the bond goes back to the disputer.
+    /// If false, the bond is added to the pool (rewards winners).
+    /// In v2, this will be replaced by tUSD-staked voting.
     public entry fun admin_resolve(
         _admin: &AdminCap,
         market: &mut Market,
@@ -387,13 +429,14 @@ module slabclaw_predict::market {
         return_bond: bool,
         ctx: &mut TxContext,
     ) {
-        assert!(market.state == STATE_DISPUTED, ENotDisputed);
+        assert!(market.version == VERSION, EWrongVersion);
+        assert!(market.state == MarketState::Disputed, ENotDisputed);
 
         // Settle with admin-determined price
         let outcome_yes = correct_price > market.strike_usd_cents;
         market.outcome = option::some(outcome_yes);
         market.proposed_price = correct_price;
-        market.state = STATE_SETTLED;
+        market.state = MarketState::Settled;
 
         // Handle dispute bond
         let bond_value = balance::value(&market.dispute_bond);
@@ -424,16 +467,31 @@ module slabclaw_predict::market {
         });
     }
 
-    // ── Claim functions ─────────────────────────────────────────────────
+    // ── Settlement math (formally verified) ─────────────────────────────────
+
+    /// Parimutuel payout: a winner's pro-rata share of the pool.
+    /// `payout = winning_shares * pool / total_winning`, computed in u128 to avoid
+    /// overflow on large pools, then narrowed to u64.
+    ///
+    /// Precondition (enforced by every caller): `total_winning > 0` and
+    /// `winning_shares <= total_winning`. Under that precondition this function is
+    /// machine-checked by the Sui Prover to be **solvent** (`payout <= pool`) and
+    /// **truncation-free** (the u128→u64 narrowing never loses value) —
+    /// see `slabclaw_predict_proofs::settlement`.
+    public fun compute_payout(winning_shares: u64, total_winning: u64, pool: u64): u64 {
+        (((winning_shares as u128) * (pool as u128) / (total_winning as u128)) as u64)
+    }
+
+    // ── Claim functions ─────────────────────────────────────────────────────
 
     /// Claim winnings from a settled market.
-    /// Payout = (your winning shares / total winning shares) × total pool
-    /// Uses u128 arithmetic to prevent overflow on large pools.
+    /// Payout = (your winning shares / total winning shares) × total pool.
     public entry fun claim(
         market: &mut Market,
         ctx: &mut TxContext,
     ) {
-        assert!(market.state == STATE_SETTLED, ENotSettled);
+        assert!(market.version == VERSION, EWrongVersion);
+        assert!(market.state == MarketState::Settled, ENotSettled);
 
         let outcome_yes = *option::borrow(&market.outcome);
         let sender = tx_context::sender(ctx);
@@ -450,9 +508,8 @@ module slabclaw_predict::market {
 
         let total_pool = balance::value(&market.pool);
 
-        // Payout = (winning_shares / total_winning) × total_pool
-        let payout_128 = (winning_shares as u128) * (total_pool as u128) / (total_winning as u128);
-        let payout = (payout_128 as u64);
+        // Solvent + truncation-free by construction (see compute_payout's proof).
+        let payout = compute_payout(winning_shares, total_winning, total_pool);
 
         pos.claimed = true;
 
@@ -471,20 +528,30 @@ module slabclaw_predict::market {
         });
     }
 
-    /// Emergency refund — admin can refund all positions if no winning side exists
-    /// or if a market needs to be cancelled.
+    /// Emergency refund. Admin-gated escape hatch, deliberately narrow in scope:
+    /// allowed ONLY when the market is still Active (cancellation before resolution)
+    /// or when it has Settled with **no winning side** (every share is on the losing
+    /// outcome, so nobody can `claim` and the pool would otherwise be stranded).
+    /// It can never be used to refund a loser out of a pool that winners are owed.
     public entry fun emergency_refund(
         _admin: &AdminCap,
         market: &mut Market,
         recipient: address,
         ctx: &mut TxContext,
     ) {
-        // Only callable on settled markets where one side has 0 shares,
-        // or by admin on any non-settled market for cancellation
-        assert!(
-            market.state == STATE_SETTLED || market.state == STATE_ACTIVE,
-            EMarketNotActive,
-        );
+        assert!(market.version == VERSION, EWrongVersion);
+
+        let allowed = if (market.state == MarketState::Active) {
+            // Pre-resolution cancellation.
+            true
+        } else if (market.state == MarketState::Settled) {
+            // Only when the winning side has zero shares — i.e. no `claim` can succeed.
+            let outcome_yes = *option::borrow(&market.outcome);
+            (outcome_yes && market.total_yes == 0) || (!outcome_yes && market.total_no == 0)
+        } else {
+            false
+        };
+        assert!(allowed, ERefundNotAllowed);
 
         assert!(table::contains(&market.positions, recipient), ENoPosition);
         let pos = table::borrow_mut(&mut market.positions, recipient);
@@ -509,28 +576,41 @@ module slabclaw_predict::market {
         };
     }
 
-    // ── Read accessors ──────────────────────────────────────────────────
+    // ── Read accessors ──────────────────────────────────────────────────────
 
     public fun asset_id(market: &Market): vector<u8> { market.asset_id }
     public fun strike_usd_cents(market: &Market): u64 { market.strike_usd_cents }
     public fun expiry_ms(market: &Market): u64 { market.expiry_ms }
     public fun description(market: &Market): vector<u8> { market.description }
-    public fun state(market: &Market): u8 { market.state }
     public fun total_yes(market: &Market): u64 { market.total_yes }
     public fun total_no(market: &Market): u64 { market.total_no }
     public fun pool_value(market: &Market): u64 { balance::value(&market.pool) }
     public fun proposed_price(market: &Market): u64 { market.proposed_price }
     public fun proposed_at_ms(market: &Market): u64 { market.proposed_at_ms }
+    public fun dispute_deadline_ms(market: &Market): u64 { market.dispute_deadline_ms }
+    public fun required_dispute_bond(market: &Market): u64 { market.required_dispute_bond }
     public fun evidence_blob_id(market: &Market): vector<u8> { market.evidence_blob_id }
-    public fun is_settled(market: &Market): bool { market.state == STATE_SETTLED }
+    public fun is_settled(market: &Market): bool { market.state == MarketState::Settled }
     public fun outcome(market: &Market): Option<bool> { market.outcome }
     public fun total_claimed(market: &Market): u64 { market.total_claimed }
+    public fun market_version(market: &Market): u64 { market.version }
+
+    /// Numeric state for the off-chain bridge/frontend (stable 0/1/2/3 wire contract).
+    public fun state(market: &Market): u8 {
+        match (&market.state) {
+            MarketState::Active => 0,
+            MarketState::Proposed => 1,
+            MarketState::Disputed => 2,
+            MarketState::Settled => 3,
+        }
+    }
 
     /// YES probability as basis points (0-10000). 5000 = 50% when no positions.
+    /// Widens to u128 before scaling so a large pool can never overflow the read.
     public fun yes_price_bps(market: &Market): u64 {
         let total = market.total_yes + market.total_no;
         if (total == 0) { return 5000 };
-        (market.total_yes * 10000) / total
+        ((((market.total_yes as u128) * 10000) / (total as u128)) as u64)
     }
 
     /// NO probability as basis points (0-10000).
@@ -538,13 +618,13 @@ module slabclaw_predict::market {
         10000 - yes_price_bps(market)
     }
 
-    /// State constant accessors (for client-side state checking)
-    public fun state_active(): u8 { STATE_ACTIVE }
-    public fun state_proposed(): u8 { STATE_PROPOSED }
-    public fun state_disputed(): u8 { STATE_DISPUTED }
-    public fun state_settled(): u8 { STATE_SETTLED }
+    /// State constant accessors (for client-side state checking — stable wire values).
+    public fun state_active(): u8 { 0 }
+    public fun state_proposed(): u8 { 1 }
+    public fun state_disputed(): u8 { 2 }
+    public fun state_settled(): u8 { 3 }
 
-    // ── Error codes ─────────────────────────────────────────────────────
+    // ── Error codes ─────────────────────────────────────────────────────────
 
     const EMarketNotActive: u64 = 0;
     const EMarketExpired: u64 = 1;
@@ -566,8 +646,11 @@ module slabclaw_predict::market {
     const EInvalidPrice: u64 = 17;
     const ENoWinningSide: u64 = 18;
     const EMissingEvidence: u64 = 19;
+    const EWrongVersion: u64 = 20;
+    const ERefundNotAllowed: u64 = 21;
+    const ENotStale: u64 = 22;
 
-    // ── Test helpers ────────────────────────────────────────────────────
+    // ── Test helpers ────────────────────────────────────────────────────────
 
     #[test_only]
     public fun create_market_for_testing(
@@ -578,11 +661,12 @@ module slabclaw_predict::market {
     ): Market {
         Market {
             id: object::new(ctx),
+            version: VERSION,
             asset_id,
             strike_usd_cents,
             expiry_ms,
             description: b"Test market",
-            state: STATE_ACTIVE,
+            state: MarketState::Active,
             pool: balance::zero(),
             positions: table::new(ctx),
             total_yes: 0,
@@ -591,6 +675,8 @@ module slabclaw_predict::market {
             proposed_at_ms: 0,
             proposed_sources: 0,
             evidence_blob_id: b"",
+            dispute_deadline_ms: 0,
+            required_dispute_bond: 0,
             dispute_bond: balance::zero(),
             disputer: option::none(),
             outcome: option::none(),
@@ -603,6 +689,7 @@ module slabclaw_predict::market {
     public fun destroy_market_for_testing(market: Market) {
         let Market {
             id,
+            version: _,
             asset_id: _,
             strike_usd_cents: _,
             expiry_ms: _,
@@ -616,6 +703,8 @@ module slabclaw_predict::market {
             proposed_at_ms: _,
             proposed_sources: _,
             evidence_blob_id: _,
+            dispute_deadline_ms: _,
+            required_dispute_bond: _,
             dispute_bond,
             disputer: _,
             outcome: _,
@@ -629,8 +718,17 @@ module slabclaw_predict::market {
     }
 
     #[test_only]
+    /// Default genesis terms used by `set_proposed_for_testing` (mirror registry defaults).
+    const TEST_DEFAULT_WINDOW_MS: u64 = 86_400_000;
+    #[test_only]
+    const TEST_DEFAULT_BOND: u64 = 10_000_000_000;
+
+    #[test_only]
     public fun set_state_for_testing(market: &mut Market, new_state: u8) {
-        market.state = new_state;
+        market.state = if (new_state == 0) { MarketState::Active }
+            else if (new_state == 1) { MarketState::Proposed }
+            else if (new_state == 2) { MarketState::Disputed }
+            else { MarketState::Settled };
     }
 
     #[test_only]
@@ -643,6 +741,13 @@ module slabclaw_predict::market {
         market.proposed_price = price;
         market.proposed_at_ms = at_ms;
         market.proposed_sources = sources;
-        market.state = STATE_PROPOSED;
+        market.dispute_deadline_ms = at_ms + TEST_DEFAULT_WINDOW_MS;
+        market.required_dispute_bond = TEST_DEFAULT_BOND;
+        market.state = MarketState::Proposed;
+    }
+
+    #[test_only]
+    public fun set_market_version_for_testing(market: &mut Market, v: u64) {
+        market.version = v;
     }
 }

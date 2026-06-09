@@ -1,0 +1,180 @@
+2026-06-09T16:49:29.191388Z DEBUG sui_prover: Sui-Prover CLI version: 1.5.3
+2026-06-09T16:55:22.379459Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:55:22.481787Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:55:22.564615Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T16:55:22.581232Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 82 verification conditions
+2026-06-09T16:55:22.592400Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:55:22.664926Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T16:55:22.680010Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 82 verification conditions
+2026-06-09T16:55:22.691198Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:55:22.763028Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T16:55:22.780737Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 82 verification conditions
+2026-06-09T16:55:22.780799Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::add_one_spec_Check.bpl`
+2026-06-09T16:55:22.781431Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T16:55:22.781435Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -enhancedErrorMessages:1 -proverOpt:O:model_validate=true -printModel:1 -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -vcsCores:4 -inferModifies -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -infer:j output/settlement::add_one_spec_Check.bpl -printVerifiedProceduresCount:0
+2026-06-09T16:55:23.298998Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T16:55:23.299657Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::add_one_spec_Check.bpl.log
+2026-06-09T16:55:23.300081Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::add_one_spec_Assume.bpl`
+2026-06-09T16:55:23.300195Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T16:55:23.300198Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie output/settlement::add_one_spec_Assume.bpl -enhancedErrorMessages:1 -printModel:1 -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -vcsCores:4 -proverOpt:O:model_validate=true -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -printVerifiedProceduresCount:0 -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -inferModifies -infer:j
+2026-06-09T16:55:23.662956Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T16:55:23.662990Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::add_one_spec_Assume.bpl.log
+2026-06-09T16:55:23.663346Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::add_one_spec_SpecNoAbortCheck.bpl`
+2026-06-09T16:55:23.663469Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T16:55:23.663472Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -infer:j -enhancedErrorMessages:1 -printVerifiedProceduresCount:0 -proverOpt:O:model_validate=true -inferModifies -vcsCores:4 output/settlement::add_one_spec_SpecNoAbortCheck.bpl -printModel:1
+2026-06-09T16:55:24.174744Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T16:55:24.174775Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::add_one_spec_SpecNoAbortCheck.bpl.log
+2026-06-09T16:55:24.175164Z  INFO move_prover_boogie_backend::generator: 0.000s building, 1.823s verification
+2026-06-09T16:56:55.731925Z DEBUG sui_prover: Sui-Prover CLI version: 1.5.3
+2026-06-09T16:56:58.695166Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:56:58.787253Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:56:58.876884Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T16:56:58.894360Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T16:56:58.906028Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:56:58.984835Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T16:56:59.002535Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T16:56:59.014271Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:56:59.089361Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T16:56:59.107960Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T16:56:59.120096Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:56:59.196552Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T16:56:59.216722Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T16:56:59.229026Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:56:59.308680Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T16:56:59.326569Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T16:56:59.339522Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:56:59.418919Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T16:56:59.437878Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T16:56:59.437919Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::compute_payout_spec_Check.bpl`
+2026-06-09T16:56:59.438935Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T16:56:59.438939Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -infer:j -vcsCores:4 output/settlement::compute_payout_spec_Check.bpl -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -inferModifies -enhancedErrorMessages:1 -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -printVerifiedProceduresCount:0 -proverOpt:O:model_validate=true -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -printModel:1
+2026-06-09T16:57:00.095128Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T16:57:00.095492Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::compute_payout_spec_Check.bpl.log
+2026-06-09T16:57:00.096466Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::yes_price_bps_spec_Check.bpl`
+2026-06-09T16:57:00.096661Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T16:57:00.096665Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -enhancedErrorMessages:1 -printModel:1 -printVerifiedProceduresCount:0 output/settlement::yes_price_bps_spec_Check.bpl -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -inferModifies -proverOpt:O:model_validate=true -infer:j -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -vcsCores:4
+2026-06-09T16:57:00.668971Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T16:57:00.669001Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::yes_price_bps_spec_Check.bpl.log
+2026-06-09T16:57:00.669431Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::compute_payout_spec_Assume.bpl`
+2026-06-09T16:57:00.669565Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T16:57:00.669568Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -infer:j -inferModifies output/settlement::compute_payout_spec_Assume.bpl -printVerifiedProceduresCount:0 -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -printModel:1 -proverOpt:O:model_validate=true -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -enhancedErrorMessages:1 -vcsCores:4 -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3
+2026-06-09T16:57:01.194424Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T16:57:01.194459Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::compute_payout_spec_Assume.bpl.log
+2026-06-09T16:57:01.195008Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::yes_price_bps_spec_Assume.bpl`
+2026-06-09T16:57:01.195133Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T16:57:01.195137Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -proverOpt:O:model_validate=true -inferModifies -infer:j -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -printModel:1 -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -vcsCores:4 -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 output/settlement::yes_price_bps_spec_Assume.bpl -enhancedErrorMessages:1 -printVerifiedProceduresCount:0
+2026-06-09T16:57:01.718175Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T16:57:01.718207Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::yes_price_bps_spec_Assume.bpl.log
+2026-06-09T16:57:01.718763Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::compute_payout_spec_SpecNoAbortCheck.bpl`
+2026-06-09T16:57:01.718909Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T16:57:01.718912Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -printModel:1 -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -vcsCores:4 -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -proverOpt:O:model_validate=true -printVerifiedProceduresCount:0 -infer:j -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -inferModifies -enhancedErrorMessages:1 output/settlement::compute_payout_spec_SpecNoAbortCheck.bpl
+2026-06-09T16:57:02.258562Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T16:57:02.258596Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::compute_payout_spec_SpecNoAbortCheck.bpl.log
+2026-06-09T16:57:02.259275Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::yes_price_bps_spec_SpecNoAbortCheck.bpl`
+2026-06-09T16:57:02.259436Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T16:57:02.259440Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -inferModifies -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -infer:j output/settlement::yes_price_bps_spec_SpecNoAbortCheck.bpl -printVerifiedProceduresCount:0 -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -printModel:1 -proverOpt:O:model_validate=true -vcsCores:4 -enhancedErrorMessages:1
+2026-06-09T16:57:02.774781Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T16:57:02.774813Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::yes_price_bps_spec_SpecNoAbortCheck.bpl.log
+2026-06-09T16:57:02.775164Z  INFO move_prover_boogie_backend::generator: 0.000s building, 4.095s verification
+2026-06-09T16:57:30.687780Z DEBUG sui_prover: Sui-Prover CLI version: 1.5.3
+2026-06-09T16:57:33.024082Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:57:33.107183Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:57:33.191126Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T16:57:33.208242Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T16:57:33.220789Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:57:33.299347Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T16:57:33.317190Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T16:57:33.328847Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:57:33.400511Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T16:57:33.418048Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T16:57:33.429752Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:57:33.502000Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T16:57:33.521619Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T16:57:33.533403Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:57:33.605182Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T16:57:33.622277Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T16:57:33.634106Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T16:57:33.708845Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T16:57:33.727090Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T16:57:33.727126Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::compute_payout_spec_Check.bpl`
+2026-06-09T16:57:33.727399Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T16:57:33.727402Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -proverOpt:O:model_validate=true -vcsCores:4 output/settlement::compute_payout_spec_Check.bpl -inferModifies -printVerifiedProceduresCount:0 -printModel:1 -enhancedErrorMessages:1 -infer:j -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -proverOpt:O:smt.QI.LAZY_THRESHOLD=100
+2026-06-09T16:57:34.255670Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T16:57:34.255956Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::compute_payout_spec_Check.bpl.log
+2026-06-09T16:57:34.256340Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::yes_price_bps_spec_Check.bpl`
+2026-06-09T16:57:34.256466Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T16:57:34.256469Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -enhancedErrorMessages:1 -vcsCores:4 -printModel:1 -inferModifies -printVerifiedProceduresCount:0 -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -proverOpt:O:model_validate=true output/settlement::yes_price_bps_spec_Check.bpl -infer:j -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3
+2026-06-09T16:57:34.789950Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T16:57:34.789982Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::yes_price_bps_spec_Check.bpl.log
+2026-06-09T16:57:34.790435Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::compute_payout_spec_Assume.bpl`
+2026-06-09T16:57:34.790577Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T16:57:34.790581Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -infer:j -printVerifiedProceduresCount:0 -inferModifies -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -vcsCores:4 -printModel:1 -enhancedErrorMessages:1 -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -proverOpt:O:model_validate=true output/settlement::compute_payout_spec_Assume.bpl
+2026-06-09T16:57:35.370913Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T16:57:35.370948Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::compute_payout_spec_Assume.bpl.log
+2026-06-09T16:57:35.371455Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::yes_price_bps_spec_Assume.bpl`
+2026-06-09T16:57:35.371594Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T16:57:35.371597Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -proverOpt:O:model_validate=true -inferModifies -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -enhancedErrorMessages:1 -printVerifiedProceduresCount:0 -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -vcsCores:4 output/settlement::yes_price_bps_spec_Assume.bpl -printModel:1 -infer:j
+2026-06-09T16:57:35.880758Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T16:57:35.880799Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::yes_price_bps_spec_Assume.bpl.log
+2026-06-09T16:57:35.881320Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::compute_payout_spec_SpecNoAbortCheck.bpl`
+2026-06-09T16:57:35.881437Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T16:57:35.881441Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -vcsCores:4 output/settlement::compute_payout_spec_SpecNoAbortCheck.bpl -proverOpt:O:model_validate=true -printModel:1 -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -infer:j -printVerifiedProceduresCount:0 -inferModifies -enhancedErrorMessages:1 -proverOpt:O:smt.QI.LAZY_THRESHOLD=100
+2026-06-09T16:57:36.475057Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T16:57:36.475090Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::compute_payout_spec_SpecNoAbortCheck.bpl.log
+2026-06-09T16:57:36.475819Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::yes_price_bps_spec_SpecNoAbortCheck.bpl`
+2026-06-09T16:57:36.475966Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T16:57:36.475970Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -inferModifies -infer:j output/settlement::yes_price_bps_spec_SpecNoAbortCheck.bpl -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -printModel:1 -printVerifiedProceduresCount:0 -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -vcsCores:4 -enhancedErrorMessages:1 -proverOpt:O:model_validate=true
+2026-06-09T16:57:36.983084Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T16:57:36.983116Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::yes_price_bps_spec_SpecNoAbortCheck.bpl.log
+2026-06-09T16:57:36.983643Z  INFO move_prover_boogie_backend::generator: 0.000s building, 3.971s verification
+2026-06-09T21:54:16.069161Z DEBUG sui_prover: Sui-Prover CLI version: 1.5.3
+2026-06-09T21:54:18.522022Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T21:54:18.610738Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T21:54:18.696845Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T21:54:18.714548Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T21:54:18.726603Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T21:54:18.806547Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T21:54:18.825146Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T21:54:18.837216Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T21:54:18.911843Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T21:54:18.930335Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T21:54:18.942228Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T21:54:19.016575Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T21:54:19.037751Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T21:54:19.049759Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T21:54:19.126120Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T21:54:19.145426Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T21:54:19.158572Z  INFO move_prover_boogie_backend::generator: preparing module 0x0::settlement
+2026-06-09T21:54:19.233048Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: generating verification conditions for 254 module(s)
+2026-06-09T21:54:19.252047Z  INFO move_prover_boogie_backend::boogie_backend::bytecode_translator: 83 verification conditions
+2026-06-09T21:54:19.252087Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::compute_payout_spec_Check.bpl`
+2026-06-09T21:54:19.252373Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T21:54:19.252377Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -inferModifies -proverOpt:O:model_validate=true -enhancedErrorMessages:1 output/settlement::compute_payout_spec_Check.bpl -printModel:1 -printVerifiedProceduresCount:0 -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -vcsCores:4 -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -infer:j
+2026-06-09T21:54:19.857552Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T21:54:19.857943Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::compute_payout_spec_Check.bpl.log
+2026-06-09T21:54:19.858595Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::yes_price_bps_spec_Check.bpl`
+2026-06-09T21:54:19.858761Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T21:54:19.858764Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -printModel:1 -printVerifiedProceduresCount:0 -inferModifies -proverOpt:O:model_validate=true -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -infer:j output/settlement::yes_price_bps_spec_Check.bpl -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -vcsCores:4 -enhancedErrorMessages:1
+2026-06-09T21:54:20.557701Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T21:54:20.557746Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::yes_price_bps_spec_Check.bpl.log
+2026-06-09T21:54:20.558450Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::compute_payout_spec_Assume.bpl`
+2026-06-09T21:54:20.559066Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T21:54:20.559074Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -inferModifies -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -printVerifiedProceduresCount:0 -printModel:1 -proverOpt:O:model_validate=true -infer:j -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -enhancedErrorMessages:1 -vcsCores:4 output/settlement::compute_payout_spec_Assume.bpl -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3
+2026-06-09T21:54:21.243169Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T21:54:21.243237Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::compute_payout_spec_Assume.bpl.log
+2026-06-09T21:54:21.243960Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::yes_price_bps_spec_Assume.bpl`
+2026-06-09T21:54:21.244140Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T21:54:21.244144Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -enhancedErrorMessages:1 -proverOpt:O:model_validate=true -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -printModel:1 -printVerifiedProceduresCount:0 -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -vcsCores:4 -infer:j output/settlement::yes_price_bps_spec_Assume.bpl -inferModifies
+2026-06-09T21:54:22.052979Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T21:54:22.053039Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::yes_price_bps_spec_Assume.bpl.log
+2026-06-09T21:54:22.053638Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::compute_payout_spec_SpecNoAbortCheck.bpl`
+2026-06-09T21:54:22.053794Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T21:54:22.053797Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -printVerifiedProceduresCount:0 -enhancedErrorMessages:1 -proverOpt:O:model_validate=true -infer:j output/settlement::compute_payout_spec_SpecNoAbortCheck.bpl -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 -inferModifies -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -vcsCores:4 -printModel:1
+2026-06-09T21:54:22.842934Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T21:54:22.842978Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::compute_payout_spec_SpecNoAbortCheck.bpl.log
+2026-06-09T21:54:22.843819Z DEBUG move_prover_boogie_backend::generator: writing boogie to `output/settlement::yes_price_bps_spec_SpecNoAbortCheck.bpl`
+2026-06-09T21:54:22.844426Z  INFO move_prover_boogie_backend::boogie_backend::boogie_wrapper: running solver
+2026-06-09T21:54:22.844433Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: command line: /opt/homebrew/Cellar/sui-prover/2.8.6/bin/boogie -inferModifies -infer:j -proverOpt:O:model_validate=true -printModel:1 -proverOpt:O:smt.QI.EAGER_THRESHOLD=10 -enhancedErrorMessages:1 -printVerifiedProceduresCount:0 -proverOpt:PROVER_PATH=/opt/homebrew/opt/z3/bin/z3 -proverOpt:O:smt.QI.LAZY_THRESHOLD=100 output/settlement::yes_price_bps_spec_SpecNoAbortCheck.bpl -vcsCores:4
+2026-06-09T21:54:23.589555Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: analyzing boogie output
+2026-06-09T21:54:23.589602Z DEBUG move_prover_boogie_backend::boogie_backend::boogie_wrapper: writing boogie log to output/settlement::yes_price_bps_spec_SpecNoAbortCheck.bpl.log
+2026-06-09T21:54:23.590048Z  INFO move_prover_boogie_backend::generator: 0.000s building, 5.082s verification
