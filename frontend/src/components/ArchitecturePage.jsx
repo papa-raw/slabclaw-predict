@@ -137,7 +137,7 @@ export default function ArchitecturePage() {
       </div>
 
       {/* Why TinyFish */}
-      <div className="bg-sc-card border border-sc-border rounded-xl p-4 mb-10 border-l-2 border-l-sc-accent">
+      <div className="bg-sc-card border border-sc-border rounded-xl p-4 mb-10">
         <div className="text-[10px] font-semibold text-sc-accent uppercase tracking-wide mb-1.5">Why TinyFish</div>
         <p className="text-[12px] leading-relaxed text-sc-dim">
           The source agents scrape through{' '}
