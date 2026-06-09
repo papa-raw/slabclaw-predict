@@ -57,8 +57,8 @@ async function backendListings(cardId) {
 const eur = (m) => (m ? parseFloat(m[1].replace(/\./g, '').replace(',', '.')) : null);
 
 async function cardmarketViaTinyfish(cm) {
-  // Cardmarket individual listings are CAPTCHA-gated; the public snippet carries the
-  // market aggregate (From / Price Trend). Record it as one 'aggregate' entry so
+  // Cardmarket individual listings render client-side; the public search snippet carries
+  // the market aggregate (From / Price Trend). Record it as one 'aggregate' entry so
   // Cardmarket is represented and trackable over time.
   const res = await tfSearch(`cardmarket ${cm} PSA 10 price from trend`);
   const hit = res.find((r) => /cardmarket\.com/i.test(r.url || ''));

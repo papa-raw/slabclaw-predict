@@ -52,7 +52,7 @@ export default function Header() {
         <div className="flex items-center gap-3 shrink-0 ml-auto md:ml-0">
           <nav className="hidden sm:flex items-center gap-3 text-[12px] font-medium">
             <a href="#architecture" className="text-sc-dim hover:text-sc-accent transition">Docs</a>
-            <a href="/deck/index.html" target="_blank" rel="noopener noreferrer" className="text-sc-dim hover:text-sc-accent transition">Deck</a>
+            <a href="#deck" className="text-sc-dim hover:text-sc-accent transition">Deck</a>
           </nav>
           <WalletButton />
         </div>
