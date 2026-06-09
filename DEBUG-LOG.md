@@ -72,3 +72,9 @@
 **Root cause:** `カリンのブラッキー` (Karen's Umbreon) names SEVERAL prints; the broad query caught a cheaper one. The valuable card is the Pokémon Card VS series (VS-091).
 **Fix:** Query is card-specific (`ポケモンカードVS カリンのブラッキー PSA10`) and the agent must confirm BOTH isPsa10 AND isVsSeries. With the strict filter the scrape returns null — VS-091 PSA-10 has no clean JP closed sales right now (and the thin-source anchor band would reject a wrong-variant grab anyway). Honest null > contaminated comp.
 **Mechanism:** Grade-matching isn't enough for shared-name cards — you must also card-match the specific print/set.
+
+### 2026-06-09 — Deck keyboard nav dead in the in-app #deck view
+**Symptom:** Opening the deck inside the app (#deck), arrow keys / spacebar didn't advance slides — instead the "Deck" navbar link got a yellow focus ring.
+**Root cause:** The deck is embedded as an iframe; its `keydown` listener lives in the iframe's window. After clicking "Deck", focus stayed on the navbar link in the PARENT document, so key events fired on the parent (outlining the link), never reaching the iframe.
+**Fix:** In App.jsx, when `view === 'deck'`, a parent `keydown` listener forwards the nav keys (arrows/space/PageDown/PageUp/Home/End) to the iframe's `contentWindow` via a synthetic KeyboardEvent; the iframe also `.focus()`es on load.
+**Mechanism:** Two browsing contexts don't share keyboard focus or events — the parent must explicitly forward them (or move focus into the iframe). Verified slide 1→4 with the parent link focused.
