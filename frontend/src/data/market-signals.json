@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-09T09:16:58.220Z",
+  "generatedAt": "2026-06-09T09:25:52.617Z",
   "cards": {
     "neo1-1st-18": {
       "name": "Typhlosion",
@@ -46,14 +46,14 @@
     },
     "base2-1st-3": {
       "name": "Flareon",
-      "settledPriceUsd": 3380,
+      "settledPriceUsd": 5616,
       "confidence": 0.8,
       "wideDispute": true,
       "flags": [
         {
           "code": "same_grade_disagreement",
           "severity": "high",
-          "message": "The swarm settle ($3,380) and the grade-matched PSA 10 oracle ($7,300) disagree by 54% — the PSA-10 anchor itself is contested. Dispute window widened."
+          "message": "The swarm settle ($5,616) and the grade-matched PSA 10 oracle ($7,300) disagree by 23% — the PSA-10 anchor itself is contested. Dispute window widened."
         }
       ]
     }
