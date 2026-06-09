@@ -35,6 +35,13 @@
       "confidence": 0.95,
       "comps": 11,
       "source": "cardmarket_seeded"
+    },
+    {
+      "date": "2026-06-09T08:52:24.086Z",
+      "priceCents": 1674000,
+      "confidence": 0.5,
+      "comps": 2,
+      "source": "cardmarket-eu-ask"
     }
   ],
   "anomalies": []

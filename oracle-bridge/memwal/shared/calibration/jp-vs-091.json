@@ -1,20 +1,20 @@
 {
   "cardId": "jp-vs-091",
-  "rounds": 7,
+  "rounds": 8,
   "gradeRatios": {
     "PSA9/PSA10": {
       "ema": 0.328,
-      "n": 7
+      "n": 8
     },
     "PSA8/PSA10": {
       "ema": 0.249,
-      "n": 7
+      "n": 8
     }
   },
   "anchorGap": {
-    "ema": 0.11558973188003528,
-    "n": 7
+    "ema": 0.07237458912802117,
+    "n": 8
   },
   "sourceStaleness": {},
-  "updatedAt": "2026-06-09T08:45:47.655Z"
+  "updatedAt": "2026-06-09T08:52:25.997Z"
 }
