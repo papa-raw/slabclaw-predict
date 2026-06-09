@@ -2029,5 +2029,109 @@
     "size": 21749,
     "epochs": 5,
     "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/UxI0mIQDb45JHJyJ1xVY38XPch7NN7Nh02MK3C_MmPM"
+  },
+  {
+    "blobId": "BLOB_NEW",
+    "objectId": "0xobj42",
+    "verified": true,
+    "timestamp": "2026-06-09T09:34:56.985Z",
+    "cardIds": [
+      "test-card-1"
+    ],
+    "roundId": "test-card-1_1780997696978",
+    "size": 1794,
+    "epochs": 5,
+    "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/BLOB_NEW"
+  },
+  {
+    "blobId": "BLOB_CERT",
+    "objectId": "0xtxdig",
+    "verified": true,
+    "timestamp": "2026-06-09T09:34:56.989Z",
+    "cardIds": [
+      "test-card-1"
+    ],
+    "roundId": "test-card-1_1780997696988",
+    "size": 1795,
+    "epochs": 5,
+    "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/BLOB_CERT"
+  },
+  {
+    "blobId": "BLOB_RETRY",
+    "objectId": "0xobj",
+    "verified": true,
+    "timestamp": "2026-06-09T09:34:57.492Z",
+    "cardIds": [
+      "test-card-1"
+    ],
+    "roundId": "test-card-1_1780997696989",
+    "size": 1795,
+    "epochs": 5,
+    "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/BLOB_RETRY"
+  },
+  {
+    "blobId": "BLOB_NET",
+    "objectId": "0xobj",
+    "verified": true,
+    "timestamp": "2026-06-09T09:34:57.994Z",
+    "cardIds": [
+      "test-card-1"
+    ],
+    "roundId": "test-card-1_1780997697493",
+    "size": 1795,
+    "epochs": 5,
+    "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/BLOB_NET"
+  },
+  {
+    "blobId": "BLOB_OK",
+    "objectId": "0xobj",
+    "verified": true,
+    "timestamp": "2026-06-09T09:34:59.578Z",
+    "cardIds": [
+      "match-card"
+    ],
+    "roundId": "match-card_1780997699577",
+    "size": 1791,
+    "epochs": 5,
+    "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/BLOB_OK"
+  },
+  {
+    "blobId": "BLOB_BAD",
+    "objectId": "0xobj",
+    "verified": false,
+    "timestamp": "2026-06-09T09:34:59.579Z",
+    "cardIds": [
+      "tamper-card"
+    ],
+    "roundId": "tamper-card_1780997699579",
+    "size": 1798,
+    "epochs": 5,
+    "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/BLOB_BAD"
+  },
+  {
+    "blobId": "BLOB_LAG",
+    "objectId": "0xobj",
+    "verified": true,
+    "timestamp": "2026-06-09T09:35:00.082Z",
+    "cardIds": [
+      "lag-card"
+    ],
+    "roundId": "lag-card_1780997699580",
+    "size": 1776,
+    "epochs": 5,
+    "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/BLOB_LAG"
+  },
+  {
+    "blobId": "BLOB_RF",
+    "objectId": "0xobj",
+    "verified": false,
+    "timestamp": "2026-06-09T09:35:01.585Z",
+    "cardIds": [
+      "readfail-card"
+    ],
+    "roundId": "readfail-card_1780997700084",
+    "size": 1811,
+    "epochs": 5,
+    "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/BLOB_RF"
   }
 ]

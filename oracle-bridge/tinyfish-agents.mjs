@@ -9,6 +9,7 @@
 
 import { BaseAgent } from './agents/base-agent.mjs';
 import { tfSearch, tfFetch, tfResolve, grade10Prices, psaCardfactsGem10, median } from './tinyfish.mjs';
+import { scrapeYahooJp } from './yahoo-jp-tinyfish.mjs';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
@@ -152,8 +153,8 @@ class AltTfAgent extends TinyfishAgent {
 
 /// Cardmarket (EU) — genuinely independent of eBay. Reads the live graded ladder
 /// scraped by scan-cardmarket.mjs (TinyFish stealth agent) and feeds the LOWEST PSA-10
-/// ask (the floor) into the consensus as a lower-confidence source. This is what gives
-/// the JP Umbreon a real independent 3rd source.
+/// ask (the floor). It's an ASK source, so the coordinator BOUNDS the consensus with it
+/// (weight 0) rather than letting it vote in the settlement median.
 class CardmarketLiveAgent extends TinyfishAgent {
   constructor(c) { super('cardmarket', c); }
   async fetchSignal(_meta, cardId) {
@@ -169,10 +170,25 @@ class CardmarketLiveAgent extends TinyfishAgent {
   }
 }
 
+/// Yahoo Auctions JAPAN — closed (落札 / realized) auction prices. The ONLY genuinely-
+/// independent REALIZED source for the JP Umbreon market: every other realized feed it had
+/// is eBay-origin. Scrapes the closed-search page via the stealth agent (see
+/// yahoo-jp-tinyfish.mjs); only JP cards have a query, others return null. Thin and
+/// auction-by-auction, so mid confidence — the coordinator's thin-source anchor band guards
+/// against the wrong-variant grabs this rare card is prone to.
+class YahooJpAgent extends TinyfishAgent {
+  constructor(c) { super('yahoo-jp', c); }
+  async fetchSignal(_meta, cardId) {
+    const r = await scrapeYahooJp(cardId);
+    if (!r || !(r.priceUsd > 0)) return null;
+    return { priceCents: Math.round(r.priceUsd * 100), source: 'yahoo-jp-sold', confidence: 0.6, compCount: r.compCount };
+  }
+}
+
 /// Build the independent TinyFish source agents for a swarm config.
 export function createTinyfishAgents(cfg) {
   const c = { ...cfg, cardMetas: cfg.cardMetas || CARD_META };
-  return [new PsaAprAgent(c), new GoldinTfAgent(c), new FanaticsTfAgent(c), new AltTfAgent(c), new CardmarketLiveAgent(c)];
+  return [new PsaAprAgent(c), new GoldinTfAgent(c), new FanaticsTfAgent(c), new AltTfAgent(c), new CardmarketLiveAgent(c), new YahooJpAgent(c)];
 }
 
-export { TinyfishAgent, PsaAprAgent, GoldinTfAgent, FanaticsTfAgent, AltTfAgent, CardmarketLiveAgent };
+export { TinyfishAgent, PsaAprAgent, GoldinTfAgent, FanaticsTfAgent, AltTfAgent, CardmarketLiveAgent, YahooJpAgent };
