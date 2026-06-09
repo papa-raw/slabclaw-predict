@@ -56,6 +56,13 @@
       "confidence": 0.95,
       "comps": 30,
       "source": "pc_sold_all"
+    },
+    {
+      "date": "2026-06-09T13:24:54.988Z",
+      "priceCents": 259999,
+      "confidence": 0.95,
+      "comps": 30,
+      "source": "pc_sold_all"
     }
   ],
   "anomalies": []

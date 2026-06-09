@@ -48,6 +48,13 @@
       "fileCount": 109,
       "sizeBytes": 416685,
       "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/fvUKkNz5uTFLqrZ5lWyAeECYKllrmb7yGRs0S3C2IOQ"
+    },
+    {
+      "blobId": "3IQ45SeewkQGuvE2DCSIjT4VB4gvsjuXL5eBQxWRvvk",
+      "timestamp": "2026-06-09T13:25:07.664Z",
+      "fileCount": 112,
+      "sizeBytes": 455721,
+      "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/3IQ45SeewkQGuvE2DCSIjT4VB4gvsjuXL5eBQxWRvvk"
     }
   ]
 }
