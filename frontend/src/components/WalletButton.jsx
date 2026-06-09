@@ -8,6 +8,16 @@ import { shortAddr } from '../lib/format';
 
 const PILL = 'inline-flex items-center gap-1.5 rounded-[5px] bg-sc-accent text-black font-bold text-[12px] leading-none px-3 py-[7px] hover:bg-sc-accentHover active:scale-[.97] transition';
 
+// Network badge folded INTO the amber pill (replaces the separate TESTNET tag).
+function TestnetTag() {
+  return (
+    <>
+      <span className="text-[8px] font-bold uppercase tracking-wider text-black/55">Testnet</span>
+      <span className="w-px h-3 bg-black/25" aria-hidden />
+    </>
+  );
+}
+
 function CopyIcon({ done }) {
   if (done) {
     return (
@@ -35,7 +45,7 @@ export default function WalletButton() {
 
   if (!account) {
     return (
-      <ConnectModal trigger={<button className={PILL}>Connect</button>} />
+      <ConnectModal trigger={<button className={PILL}><TestnetTag />Connect</button>} />
     );
   }
 
@@ -46,6 +56,7 @@ export default function WalletButton() {
   return (
     <div className="relative" ref={ref}>
       <button onClick={() => setOpen((o) => !o)} className={PILL} aria-haspopup="menu" aria-expanded={open} aria-label="Wallet account menu">
+        <TestnetTag />
         <span className="font-mono">{shortAddr(account.address)}</span>
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${open ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9" /></svg>
       </button>
