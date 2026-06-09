@@ -43,7 +43,7 @@ export const ERAS = [
 ];
 
 // Testnet markets. `productId` MUST match a SlabClaw registry id so the
-// off-chain oracle/evidence layer can hydrate each market (live + snapshot).
+// offchain oracle/evidence layer can hydrate each market (live + snapshot).
 export const DEMO_MARKETS = [
   {
     id: '0xf63f37a07f61a38c78b3ea6d650315e903a6192b767c34cfc5a8a2266c1144ea',
