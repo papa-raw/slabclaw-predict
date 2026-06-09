@@ -4,14 +4,26 @@ import { DEMO_MARKETS } from './constants';
 import Header from './components/Header';
 import MarketCard from './components/MarketCard';
 import MarketDetail from './components/MarketDetail';
+import ArchitecturePage from './components/ArchitecturePage';
 import Footer from './components/Footer';
+
+const hashView = () =>
+  typeof window !== 'undefined' && window.location.hash === '#architecture' ? 'architecture' : 'markets';
 
 export default function App() {
   const [selectedId, setSelectedId] = useState(() =>
     typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('market') : null,
   );
+  const [view, setView] = useState(hashView);
   const marketIds = DEMO_MARKETS.map((m) => m.id);
   const { markets, isLoading, error, refetch } = useMultipleMarkets(marketIds);
+
+  // #architecture toggles the docs/architecture page; the navbar links drive the hash.
+  useEffect(() => {
+    const onHash = () => { setView(hashView()); window.scrollTo({ top: 0 }); };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
 
   // Deep-link the open market to ?market=<id> so the browser Back button closes
   // it and a specific market (e.g. the disputed Flareon) is shareable.
@@ -43,18 +55,23 @@ export default function App() {
     <div className="min-h-screen bg-sc-bg">
       <Header />
 
+      {view === 'architecture' ? (
+        <ArchitecturePage />
+      ) : (
       <main className="max-w-6xl mx-auto px-4 lg:px-6 py-7 pb-24">
         {/* Hero */}
         <div className="mb-6">
           <h2 className="text-xl lg:text-2xl font-bold text-white">Prediction markets for graded collectibles</h2>
           <p className="text-sc-dim mt-1.5 text-sm max-w-2xl">
-            Trade YES/NO on whether a graded card exceeds a strike price by expiry — priced against a
-            real 10-platform oracle and a live history of sold comps. Settled on{' '}
-            <a href="https://sui.io" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">Sui</a> via{' '}
-            <a href="https://www.deepbook.tech" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">DeepBook</a> Predict.
+            Trade YES/NO on whether a graded card exceeds a strike price by expiry — priced by a
+            memory-backed multi-agent oracle swarm across real card marketplaces and a live history of sold comps.
+            Settled on{' '}
+            <a href="https://sui.io" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">Sui</a>,
+            with every settlement published as a verifiable blob on{' '}
+            <a href="https://www.walrus.xyz" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">Walrus</a>.
             Each market shows the oracle value over time, the strike line, and every recent sold comp — so you trade with data, not vibes.
             Mint test USD from the faucet below, buy YES or NO, and at expiry the oracle proposes the price.
-            After a 24h dispute window, winners claim.
+            After a 24h dispute window, winners claim. <a href="#architecture" className="text-sc-accent hover:underline">See how it works ↗</a>
           </p>
         </div>
 
@@ -79,10 +96,11 @@ export default function App() {
           <MarketSections markets={enriched} onSelect={(mk) => openMarket(mk.id)} />
         )}
       </main>
+      )}
 
       <Footer onFunded={refetch} />
 
-      {selected && (
+      {view === 'markets' && selected && (
         <MarketDetail
           market={selected}
           meta={selected.meta}
