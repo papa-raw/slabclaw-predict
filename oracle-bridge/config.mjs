@@ -28,8 +28,9 @@ export const CONFIG = {
   // UpgradeCap for the hardened package (used by migrate_* after future upgrades)
   upgradeCapId: '0x8d918a08746ac1bd1cc25813e00ab6b369cc6b242995ce5a06ccd3ace54fdc06',
 
-  // SlabClaw backend API
-  slabclawApi: 'http://localhost:3456',
+  // SlabClaw backend API (override with SLABCLAW_API when the registry
+  // serves on a different port, e.g. on the production VPS)
+  slabclawApi: process.env.SLABCLAW_API || 'http://localhost:3456',
 
   // Module names
   modules: {

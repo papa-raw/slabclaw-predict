@@ -46,7 +46,7 @@ export const ERAS = [
 // off-chain oracle/evidence layer can hydrate each market (live + snapshot).
 export const DEMO_MARKETS = [
   {
-    id: '0x2756a52ba2f0837f19fb30c8ea7ef90486972c5e7fa8944cb977042c3f7db480',
+    id: '0xf63f37a07f61a38c78b3ea6d650315e903a6192b767c34cfc5a8a2266c1144ea',
     assetId: 'NEO1_1ST_18_PSA_1000',
     name: 'Typhlosion',
     set: 'Neo Genesis — 1st Edition',
@@ -61,7 +61,7 @@ export const DEMO_MARKETS = [
     productId: 'neo1-1st-18',
   },
   {
-    id: '0x56ae16ad0aa385d68a809e9fa6f1e9f0973dc97c4ea6df07df73c70656243e15',
+    id: '0x2da84029427ff70dfafadb8643d4f3a83f76f5344bd1de05c1902cff102c9720',
     assetId: 'JP_VS_091_PSA_1000',
     name: "Karen's Umbreon",
     set: 'Pokémon Card VS — 1st Edition',
@@ -92,7 +92,7 @@ export const DEMO_MARKETS = [
     productId: 'base5-1st-83',
   },
   {
-    id: '0xc977441b9b51d77c619cff43af997f15696d2102110e18871c919a6874b34231',
+    id: '0x9700623a1e977a179b011908da25e7800d682e4bc8dd38929ac7bc121c459b71',
     assetId: 'BASE2_1ST_3_PSA_1000',
     name: 'Flareon',
     set: 'Jungle — 1st Edition',

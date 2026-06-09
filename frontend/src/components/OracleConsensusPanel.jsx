@@ -10,9 +10,9 @@
 ///
 /// Seed data (consensusData._seed === true) renders before the live swarm runs.
 
-import consensusData from '../data/oracle-consensus.json';
 import marketSignals from '../data/market-signals.json';
 import { DEMO_MARKETS, EXPLORER_URL } from '../constants';
+import { useLiveConsensus } from '../hooks/useLiveConsensus';
 import { usdFull } from '../lib/format';
 
 const AGGREGATOR = 'https://aggregator.walrus-testnet.walrus.space';
@@ -28,6 +28,7 @@ const PLAT_COLOR = {
 };
 
 export default function OracleConsensusPanel({ productId }) {
+  const { data: consensusData, source: consensusSource } = useLiveConsensus();
   const card = consensusData?.consensus?.[productId];
   const isSeed = consensusData?._seed === true;
   const signals = marketSignals?.cards?.[productId] || null;
@@ -67,6 +68,7 @@ export default function OracleConsensusPanel({ productId }) {
           {isSeed && (
             <span className="text-[8px] font-bold uppercase tracking-wide text-sc-amber border border-sc-amber/40 rounded px-1 py-px">seed</span>
           )}
+          <FreshnessChip source={consensusSource} timestamp={consensusData?.timestamp} />
           <span className="text-[10px] tnum text-sc-muted">
             <span className="text-sc-text font-semibold">{agree}</span> independent {agree === 1 ? 'source' : 'sources'}
             {manipRejected.length > 0 && <span className="text-sc-no/70"> · {manipRejected.length} manipulated cut</span>}
@@ -334,6 +336,27 @@ function FlagNote({ flag, agree }) {
     <div className={`flex items-start gap-2 text-[11px] leading-relaxed rounded-lg border px-2.5 py-1.5 ${cls}`}>
       <span className="mt-px shrink-0">⚠</span><span>{m.text}</span>
     </div>
+  );
+}
+
+// Honest data-provenance chip: green "live · 2h" when the production feed answered,
+// neutral "snapshot · date" when rendering the build-time data. Never fakes liveness.
+function FreshnessChip({ source, timestamp }) {
+  if (!timestamp) return null;
+  const ageMs = Date.now() - timestamp;
+  const age = ageMs < 3_600_000 ? `${Math.max(1, Math.round(ageMs / 60_000))}m`
+    : ageMs < 86_400_000 ? `${Math.round(ageMs / 3_600_000)}h`
+    : `${Math.round(ageMs / 86_400_000)}d`;
+  const live = source === 'live';
+  return (
+    <span
+      className={`text-[8px] font-bold uppercase tracking-wide rounded px-1 py-px border ${
+        live ? 'text-sc-yes border-sc-yes/40' : 'text-sc-muted border-sc-border'
+      }`}
+      title={live ? 'Served by the production oracle feed' : 'Build-time snapshot — production feed unreachable'}
+    >
+      {live ? 'live' : 'snapshot'} · {age}
+    </span>
   );
 }
 

@@ -8,10 +8,23 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { getAddress, getClient, executeTransaction } from './sui-client.mjs';
 import { CONFIG, toAssetId, gradeToBps } from './config.mjs';
-import { writeFileSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync } from 'fs';
 
 const DAY = 86_400_000;
-const FUTURE = Date.now() + 30 * DAY;
+
+// --expiry <ISO date|ms> sets the market expiry (default: now + 30 days).
+// --cards a,b,c restricts to a subset of productIds; the others keep their
+// existing deployed-markets.json entries (merge, don't clobber).
+const argv = process.argv.slice(2);
+const argVal = (flag) => { const i = argv.indexOf(flag); return i >= 0 ? argv[i + 1] : null; };
+const expiryArg = argVal('--expiry');
+const FUTURE = expiryArg
+  ? (/^\d+$/.test(expiryArg) ? Number(expiryArg) : new Date(expiryArg).getTime())
+  : Date.now() + 30 * DAY;
+const ONLY = argVal('--cards')?.split(',').map((s) => s.trim()).filter(Boolean) ?? null;
+if (Number.isNaN(FUTURE) || FUTURE < Date.now()) {
+  console.error(`--expiry must be a future date (got ${expiryArg})`); process.exit(1);
+}
 const tUSD = (n) => Math.round(n * 1e9);
 const usd = (c) => '$' + (c / 100).toLocaleString('en-US', { maximumFractionDigits: 0 });
 const pureVec = (tx, s) => tx.pure.vector('u8', Array.from(Buffer.from(s)));
@@ -27,11 +40,14 @@ const CARDS = [
 async function main() {
   const me = getAddress();
   const client = getClient();
+  const cards = ONLY ? CARDS.filter((c) => ONLY.includes(c.productId)) : CARDS;
   console.log(`Deployer: ${me}`);
-  console.log(`Package:  ${CONFIG.packageId}\n`);
+  console.log(`Package:  ${CONFIG.packageId}`);
+  console.log(`Expiry:   ${new Date(FUTURE).toISOString()}`);
+  console.log(`Cards:    ${cards.map((c) => c.productId).join(', ')}\n`);
 
   console.log('── Register assets + create markets ──');
-  for (const c of CARDS) {
+  for (const c of cards) {
     const assetId = toAssetId(c.productId, c.grader, c.grade);
     c.assetId = assetId;
     try {
@@ -59,7 +75,7 @@ async function main() {
   }
 
   console.log('\n── Mint tUSD + seed positions ──');
-  const need = CARDS.reduce((s, c) => s + c.seedYes + c.seedNo, 0) + 100;
+  const need = cards.reduce((s, c) => s + c.seedYes + c.seedNo, 0) + 100;
   const txMint = new Transaction();
   txMint.moveCall({ target: `${CONFIG.packageId}::test_usd::mint`, arguments: [txMint.object(CONFIG.faucetId), txMint.pure.u64(tUSD(need))] });
   await executeTransaction(txMint);
@@ -68,21 +84,28 @@ async function main() {
   const coinId = coins.data.sort((a, b) => Number(b.balance) - Number(a.balance))[0].coinObjectId;
   const tx3 = new Transaction();
   if (coins.data.length > 1) tx3.mergeCoins(tx3.object(coinId), coins.data.slice(1).map((c) => tx3.object(c.coinObjectId)));
-  const amts = CARDS.flatMap((c) => [tUSD(c.seedYes), tUSD(c.seedNo)]);
+  const amts = cards.flatMap((c) => [tUSD(c.seedYes), tUSD(c.seedNo)]);
   const parts = tx3.splitCoins(tx3.object(coinId), amts);
-  CARDS.forEach((c, i) => {
+  cards.forEach((c, i) => {
     tx3.moveCall({ target: `${CONFIG.packageId}::market::buy_yes`, arguments: [tx3.object(c.marketId), parts[i * 2], tx3.object(CONFIG.clockId)] });
     tx3.moveCall({ target: `${CONFIG.packageId}::market::buy_no`, arguments: [tx3.object(c.marketId), parts[i * 2 + 1], tx3.object(CONFIG.clockId)] });
   });
   await executeTransaction(tx3);
-  console.log('   seeded YES/NO on all 4 markets');
+  console.log(`   seeded YES/NO on ${cards.length} market(s)`);
 
-  const out = CARDS.map((c) => ({
+  // Merge: cards not processed this run keep their existing manifest entries
+  // (e.g. the staged PROPOSED-with-evidence market the deck links to).
+  const manifestPath = new URL('./deployed-markets.json', import.meta.url);
+  const prev = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : [];
+  const fresh = cards.map((c) => ({
     productId: c.productId, name: c.name, set: c.set, number: c.number,
     grader: c.grader, grade: c.grade, strikeUsdCents: c.strikeCents,
     expiryMs: c.expiryMs, assetId: c.assetId, marketId: c.marketId,
   }));
-  writeFileSync(new URL('./deployed-markets.json', import.meta.url), JSON.stringify(out, null, 2));
+  const out = CARDS
+    .map((c) => fresh.find((f) => f.productId === c.productId) || prev.find((p) => p.productId === c.productId))
+    .filter(Boolean);
+  writeFileSync(manifestPath, JSON.stringify(out, null, 2));
 
   console.log('\n========== SUMMARY ==========');
   console.log(`Package: ${CONFIG.packageId}`);
