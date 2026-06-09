@@ -105,6 +105,13 @@
       "confidence": 1,
       "comps": 30,
       "source": "ebay_sold"
+    },
+    {
+      "date": "2026-06-09T08:52:24.113Z",
+      "priceCents": 259999,
+      "confidence": 1,
+      "comps": 30,
+      "source": "ebay_sold"
     }
   ],
   "anomalies": []

@@ -16,6 +16,15 @@ const MEMWAL_ROOT = join(new URL('.', import.meta.url).pathname, '..', 'memwal')
 const SHARED = join(MEMWAL_ROOT, 'shared');
 
 const MIN_SOURCES = 3;
+
+// Source families — sources drawing on the SAME underlying data count once toward the
+// independence gate. eBay + PriceCharting are both eBay-sold (PriceCharting scrapes eBay
+// sold; the eBay agent falls back to PriceCharting comps). Fanatics + PWCC are one venue.
+const SOURCE_FAMILY = {
+  ebay: 'ebay-sold', pricecharting: 'ebay-sold', ebay_sold: 'ebay-sold', 'ebay-api': 'ebay-sold',
+  fanatics: 'fanatics-pwcc', pwcc: 'fanatics-pwcc', 'fanatics-pwcc': 'fanatics-pwcc',
+};
+const familyOf = (p) => SOURCE_FAMILY[String(p || '').toLowerCase()] || String(p || '').toLowerCase();
 const MAD_THRESHOLD = 3.5;
 const DISAGREEMENT_THRESHOLD = 0.4; // 40% interval width triggers circuit breaker
 
@@ -128,14 +137,9 @@ export function aggregate(cardId, allSignals, reputationWeights) {
     }
   }
 
-  // Step 1: Source-count gate
-  if (signals.length < MIN_SOURCES) {
-    result.flags.push('insufficient_sources');
-    result.sourceCount = signals.length;
-    // Still compute if we have any signals, just flag it
-    if (signals.length === 0) return result;
-  }
-  result.sourceCount = signals.length;
+  // Step 1: bail only if there is nothing at all; the INDEPENDENCE gate is applied
+  // after outlier rejection, counting distinct source families (not platforms).
+  if (signals.length === 0) return result;
 
   // Step 2: MAD outlier rejection
   const prices = signals.map((s) => s.priceCents);
@@ -162,6 +166,16 @@ export function aggregate(cardId, allSignals, reputationWeights) {
     return result;
   }
 
+  // Independence gate: count distinct SOURCE FAMILIES among survivors. Two views of one
+  // feed (eBay + PriceCharting) don't make a market, so they count once.
+  const familyCounts = {};
+  for (const s of surviving) familyCounts[familyOf(s.platform)] = (familyCounts[familyOf(s.platform)] || 0) + 1;
+  const independentSources = Object.keys(familyCounts).length;
+  result.sourceCount = independentSources;
+  result.rawSourceCount = surviving.length;
+  result.sourceFamilies = Object.keys(familyCounts);
+  if (independentSources < MIN_SOURCES) result.flags.push('insufficient_sources');
+
   // Step 3: Confidence-weighted median
   const rep = reputationWeights || {};
   const recencyHalfLife = 7 * 24 * 3600 * 1000; // 1 week
@@ -172,12 +186,14 @@ export function aggregate(cardId, allSignals, reputationWeights) {
     const reliability = rep[s.platform]?.reliability || 1.0;
     const ageMs = s.observedAt ? Date.now() - new Date(s.observedAt).getTime() : 0;
     const recency = Math.exp(-ageMs / recencyHalfLife);
-    const weight = (s.confidence || 0.5) * reliability * recency;
+    // Divide by family size so same-origin sources (eBay+PriceCharting) cast ONE vote total.
+    const weight = ((s.confidence || 0.5) * reliability * recency) / familyCounts[familyOf(s.platform)];
     values.push(s.priceCents);
     weights.push(weight);
 
     result.contributingSources.push({
       platform: s.platform,
+      family: familyOf(s.platform),
       priceCents: s.priceCents,
       confidence: s.confidence,
       reliability,

@@ -9,6 +9,11 @@
 
 import { BaseAgent } from './agents/base-agent.mjs';
 import { tfSearch, tfFetch, tfResolve, grade10Prices, psaCardfactsGem10, median } from './tinyfish.mjs';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
+
+const MEMWAL = join(new URL('.', import.meta.url).pathname, 'memwal');
+const EUR_USD = 1.08; // approximate FX for EUR-denominated Cardmarket asks
 
 const CACHE_TTL = 6 * 3600 * 1000; // 6h — realized prices move slowly
 
@@ -47,7 +52,7 @@ class TinyfishAgent extends BaseAgent {
           ({ priceCents, confidence } = last);
           source = last.source; compCount = last.comps; cached = true;
         } else {
-          const r = await this.fetchSignal(meta);
+          const r = await this.fetchSignal(meta, cardId);
           if (!r || r.priceCents == null) { log.cards[cardId] = { error: 'no data from venue' }; continue; }
           ({ priceCents, source, confidence, compCount } = r);
         }
@@ -145,10 +150,29 @@ class AltTfAgent extends TinyfishAgent {
   }
 }
 
+/// Cardmarket (EU) — genuinely independent of eBay. Reads the live graded ladder
+/// scraped by scan-cardmarket.mjs (TinyFish stealth agent) and feeds the LOWEST PSA-10
+/// ask (the floor) into the consensus as a lower-confidence source. This is what gives
+/// the JP Umbreon a real independent 3rd source.
+class CardmarketLiveAgent extends TinyfishAgent {
+  constructor(c) { super('cardmarket', c); }
+  async fetchSignal(_meta, cardId) {
+    const p = join(MEMWAL, 'shared', 'listings', 'cardmarket-live.json');
+    if (!existsSync(p)) return null;
+    let cm;
+    try { cm = JSON.parse(readFileSync(p, 'utf8')); } catch { return null; }
+    const psa10 = (cm.cards?.[cardId]?.listings || []).filter(
+      (l) => String(l.grader).toUpperCase() === 'PSA' && Number(l.grade) === 10 && l.priceEur > 0);
+    if (!psa10.length) return null;
+    const lowEur = Math.min(...psa10.map((l) => l.priceEur)); // lowest ask = the floor
+    return { priceCents: Math.round(lowEur * EUR_USD * 100), source: 'cardmarket-eu-ask', confidence: 0.5, compCount: psa10.length };
+  }
+}
+
 /// Build the independent TinyFish source agents for a swarm config.
 export function createTinyfishAgents(cfg) {
   const c = { ...cfg, cardMetas: cfg.cardMetas || CARD_META };
-  return [new PsaAprAgent(c), new GoldinTfAgent(c), new FanaticsTfAgent(c), new AltTfAgent(c)];
+  return [new PsaAprAgent(c), new GoldinTfAgent(c), new FanaticsTfAgent(c), new AltTfAgent(c), new CardmarketLiveAgent(c)];
 }
 
-export { TinyfishAgent, PsaAprAgent, GoldinTfAgent, FanaticsTfAgent, AltTfAgent };
+export { TinyfishAgent, PsaAprAgent, GoldinTfAgent, FanaticsTfAgent, AltTfAgent, CardmarketLiveAgent };

@@ -56,7 +56,6 @@ function createAgents() {
     new EbayAgent(cfg),
     new CourtyardAgent(cfg),
     new TcgplayerAgent(cfg),
-    new CardmarketAgent(cfg),
     new BeezieAgent(cfg),
     new CollectorCryptAgent(cfg),
     new PricechartingAgent(cfg),
