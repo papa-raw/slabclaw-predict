@@ -1,486 +1,135 @@
 {
   "ebay": {
-    "timestamp": "2026-06-09T13:24:55.097Z",
+    "timestamp": "2026-06-09T14:46:08.713Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
         "platform": "ebay",
-        "priceCents": 259999,
-        "priceUsd": 2599.99,
-        "confidence": 1,
-        "source": "ebay_sold",
-        "compCount": 30,
+        "priceCents": 600000,
+        "priceUsd": 6000,
+        "confidence": 0.5,
+        "source": "ebay_active",
+        "compCount": 4,
         "comps": [
           {
-            "price": 5100
+            "price": 6000,
+            "url": "https://www.ebay.com/itm/287232988396?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item42e06b94ec:g:oogAAeSwdylpxG~E"
           },
           {
-            "price": 5100
+            "price": 6671,
+            "url": "https://www.ebay.com/itm/147267648727?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item2249d5fcd7:g:PuEAAeSwBb1p5V8l"
           },
           {
-            "price": 5850
+            "price": 6800,
+            "url": "https://www.ebay.com/itm/306934866447?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item4776be620f:g:~TQAAeSwaERqA3vb"
           },
           {
-            "price": 4474.6
-          },
-          {
-            "price": 4351
-          },
-          {
-            "price": 4649.97
-          },
-          {
-            "price": 4500
-          },
-          {
-            "price": 4569
-          },
-          {
-            "price": 4050.67
-          },
-          {
-            "price": 3350
-          },
-          {
-            "price": 3650
-          },
-          {
-            "price": 3600
-          },
-          {
-            "price": 2700
-          },
-          {
-            "price": 3285
-          },
-          {
-            "price": 2325
-          },
-          {
-            "price": 2599.99
-          },
-          {
-            "price": 2050
-          },
-          {
-            "price": 2500
-          },
-          {
-            "price": 1050
-          },
-          {
-            "price": 1250
-          },
-          {
-            "price": 1500
-          },
-          {
-            "price": 1250
-          },
-          {
-            "price": 1175
-          },
-          {
-            "price": 1929.89
-          },
-          {
-            "price": 1050
-          },
-          {
-            "price": 1000
-          },
-          {
-            "price": 1300
-          },
-          {
-            "price": 1500
-          },
-          {
-            "price": 1250
-          },
-          {
-            "price": 1349.06
+            "price": 6999.99,
+            "url": "https://www.ebay.com/itm/318122855037?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item4a11998a7d:g:4G4AAeSwPZBp1pgY"
           }
         ],
-        "observedAt": "2026-06-09T13:24:54.960Z",
+        "observedAt": "2026-06-09T14:46:08.580Z",
         "flags": []
       },
       {
         "cardId": "jp-vs-091",
         "platform": "ebay",
-        "priceCents": 1290000,
-        "priceUsd": 12900,
-        "confidence": 1,
-        "source": "ebay_sold",
-        "compCount": 31,
+        "priceCents": 1850000,
+        "priceUsd": 18500,
+        "confidence": 0.6,
+        "source": "ebay_active",
+        "compCount": 5,
         "comps": [
           {
-            "price": 14200
+            "price": 18500,
+            "url": "https://www.ebay.com/itm/397027380270?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item5c70ad0c2e:g:xWQAAeSwM01ogcEB"
           },
           {
-            "price": 16000
+            "price": 19000,
+            "url": "https://www.ebay.com/itm/178193959567?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item297d300a8f:g:PMUAAeSwpl1qIi4a"
           },
           {
-            "price": 17437.5
+            "price": 19606.65,
+            "url": "https://www.ebay.com/itm/206212089106?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item300332c512:g:xaIAAeSwB9Zp35Re"
           },
           {
-            "price": 14800
+            "price": 24000,
+            "url": "https://www.ebay.com/itm/298192880047?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item456dae41af:g:mKgAAeSwC~Rp0QeI"
           },
           {
-            "price": 15000
-          },
-          {
-            "price": 16174
-          },
-          {
-            "price": 17777
-          },
-          {
-            "price": 15000
-          },
-          {
-            "price": 16242
-          },
-          {
-            "price": 13700
-          },
-          {
-            "price": 13999.99
-          },
-          {
-            "price": 15000
-          },
-          {
-            "price": 16100
-          },
-          {
-            "price": 19800
-          },
-          {
-            "price": 15900
-          },
-          {
-            "price": 12900
-          },
-          {
-            "price": 8088.3
-          },
-          {
-            "price": 11000
-          },
-          {
-            "price": 9000
-          },
-          {
-            "price": 7500
-          },
-          {
-            "price": 7989
-          },
-          {
-            "price": 6899
-          },
-          {
-            "price": 6000
-          },
-          {
-            "price": 6999.99
-          },
-          {
-            "price": 7074.78
-          },
-          {
-            "price": 6166.65
-          },
-          {
-            "price": 5650
-          },
-          {
-            "price": 5800
-          },
-          {
-            "price": 5585.76
-          },
-          {
-            "price": 6500
-          },
-          {
-            "price": 6000
+            "price": 24500,
+            "url": "https://www.ebay.com/itm/157907348885?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item24c402ed95:g:O2YAAeSwMdJplShd"
           }
         ],
-        "observedAt": "2026-06-09T13:24:55.049Z",
+        "observedAt": "2026-06-09T14:46:08.669Z",
         "flags": []
       },
       {
         "cardId": "base5-1st-83",
         "platform": "ebay",
-        "priceCents": 416100,
-        "priceUsd": 4161,
-        "confidence": 1,
-        "source": "ebay_sold",
-        "compCount": 30,
+        "priceCents": 1499995,
+        "priceUsd": 14999.95,
+        "confidence": 0.125,
+        "source": "ebay_active",
+        "compCount": 1,
         "comps": [
           {
-            "price": 7930
-          },
-          {
-            "price": 7758
-          },
-          {
-            "price": 8300
-          },
-          {
-            "price": 6808.81
-          },
-          {
-            "price": 9136
-          },
-          {
-            "price": 5890
-          },
-          {
-            "price": 6000
-          },
-          {
-            "price": 4500
-          },
-          {
-            "price": 4900
-          },
-          {
-            "price": 5206.81
-          },
-          {
-            "price": 4700
-          },
-          {
-            "price": 5000
-          },
-          {
-            "price": 4000
-          },
-          {
-            "price": 3150
-          },
-          {
-            "price": 4161
-          },
-          {
-            "price": 3700
-          },
-          {
-            "price": 3686
-          },
-          {
-            "price": 4200
-          },
-          {
-            "price": 5678.69
-          },
-          {
-            "price": 2250
-          },
-          {
-            "price": 1799
-          },
-          {
-            "price": 1599.95
-          },
-          {
-            "price": 1250
-          },
-          {
-            "price": 1450
-          },
-          {
-            "price": 1619.94
-          },
-          {
-            "price": 1549.95
-          },
-          {
-            "price": 1349.99
-          },
-          {
-            "price": 1699.99
-          },
-          {
-            "price": 1267.84
-          },
-          {
-            "price": 1579.13
+            "price": 14999.95,
+            "url": "https://www.ebay.com/itm/188060533997?_skw=%22Dark+Raichu%22+team+rocket+pokemon&hash=item2bc94804ed:g:oO8AAeSwaaVpkMUZ"
           }
         ],
-        "observedAt": "2026-06-09T13:24:55.089Z",
+        "observedAt": "2026-06-09T14:46:08.708Z",
         "flags": []
       },
       {
         "cardId": "base2-1st-3",
         "platform": "ebay",
-        "priceCents": 561600,
-        "priceUsd": 5616,
-        "confidence": 1,
-        "source": "ebay_sold",
-        "compCount": 12,
+        "priceCents": 795000,
+        "priceUsd": 7950,
+        "confidence": 0.6,
+        "source": "ebay_active",
+        "compCount": 6,
         "comps": [
           {
-            "price": 5551
+            "price": 7950,
+            "url": "https://www.ebay.com/itm/168307349198?_skw=%22Flareon%22+jungle+pokemon&hash=item272fe656ce:g:cwoAAeSw6z9p3a-b"
           },
           {
-            "price": 7800
+            "price": 8000,
+            "url": "https://www.ebay.com/itm/306951538433?_skw=%22Flareon%22+jungle+pokemon&hash=item4777bcc701:g:rwgAAeSwYudqDjyk"
           },
           {
-            "price": 7850
+            "price": 8800,
+            "url": "https://www.ebay.com/itm/127798214353?_skw=%22Flareon%22+jungle+pokemon&hash=item1dc15dfed1:g:I9sAAeSwOYVp1deJ"
           },
           {
-            "price": 7999
+            "price": 8999.99,
+            "url": "https://www.ebay.com/itm/277854447336?_skw=%22Flareon%22+jungle+pokemon&hash=item40b16a66e8:g:~dgAAeSwaeRpzP7P"
           },
           {
-            "price": 5616
+            "price": 10499,
+            "url": "https://www.ebay.com/itm/406936113168?_skw=%22Flareon%22+jungle+pokemon&hash=item5ebf485010:g:pn4AAeSwQAFqC~HB"
           },
           {
-            "price": 5499
-          },
-          {
-            "price": 6000
-          },
-          {
-            "price": 5200
-          },
-          {
-            "price": 4699.99
-          },
-          {
-            "price": 4051
-          },
-          {
-            "price": 4650
-          },
-          {
-            "price": 6350.4
+            "price": 45000,
+            "url": "https://www.ebay.com/itm/287168706835?_skw=%22Flareon%22+jungle+pokemon&hash=item42dc96b913:g:XGoAAeSw~~1pod~W"
           }
         ],
-        "observedAt": "2026-06-09T13:24:55.096Z",
+        "observedAt": "2026-06-09T14:46:08.712Z",
         "flags": []
       }
     ]
   },
   "courtyard": {
-    "timestamp": "2026-06-09T13:24:55.085Z",
-    "signals": [
-      {
-        "cardId": "neo1-1st-18",
-        "priceCents": 351046,
-        "confidence": 0.95,
-        "compCount": 10,
-        "source": "courtyard_seeded",
-        "platform": "courtyard",
-        "observedAt": "2026-06-07T23:09:27.473Z",
-        "flags": [
-          "warm_cache"
-        ],
-        "warmCache": true
-      },
-      {
-        "cardId": "jp-vs-091",
-        "priceCents": 1242596,
-        "confidence": 0.95,
-        "compCount": 11,
-        "source": "courtyard_seeded",
-        "platform": "courtyard",
-        "observedAt": "2026-06-07T17:09:27.472Z",
-        "flags": [
-          "warm_cache"
-        ],
-        "warmCache": true
-      },
-      {
-        "cardId": "base5-1st-83",
-        "priceCents": 532468,
-        "confidence": 0.95,
-        "compCount": 10,
-        "source": "courtyard_seeded",
-        "platform": "courtyard",
-        "observedAt": "2026-06-07T23:09:27.473Z",
-        "flags": [
-          "warm_cache"
-        ],
-        "warmCache": true
-      },
-      {
-        "cardId": "base2-1st-3",
-        "priceCents": 212888,
-        "confidence": 0.95,
-        "compCount": 10,
-        "source": "courtyard_seeded",
-        "platform": "courtyard",
-        "observedAt": "2026-06-07T23:09:27.473Z",
-        "flags": [
-          "warm_cache"
-        ],
-        "warmCache": true
-      }
-    ]
+    "timestamp": "2026-06-09T14:46:08.704Z",
+    "signals": []
   },
   "tcgplayer": {
-    "timestamp": "2026-06-09T13:24:55.065Z",
-    "signals": [
-      {
-        "cardId": "neo1-1st-18",
-        "priceCents": 356644,
-        "confidence": 0.95,
-        "compCount": 12,
-        "source": "tcgplayer_seeded",
-        "platform": "tcgplayer",
-        "observedAt": "2026-06-07T23:09:27.473Z",
-        "flags": [
-          "warm_cache"
-        ],
-        "warmCache": true
-      },
-      {
-        "cardId": "jp-vs-091",
-        "priceCents": 1180221,
-        "confidence": 0.95,
-        "compCount": 12,
-        "source": "tcgplayer_seeded",
-        "platform": "tcgplayer",
-        "observedAt": "2026-06-07T23:09:27.473Z",
-        "flags": [
-          "warm_cache"
-        ],
-        "warmCache": true
-      },
-      {
-        "cardId": "base5-1st-83",
-        "priceCents": 527955,
-        "confidence": 0.95,
-        "compCount": 10,
-        "source": "tcgplayer_seeded",
-        "platform": "tcgplayer",
-        "observedAt": "2026-06-07T23:09:27.473Z",
-        "flags": [
-          "warm_cache"
-        ],
-        "warmCache": true
-      },
-      {
-        "cardId": "base2-1st-3",
-        "priceCents": 208860,
-        "confidence": 0.95,
-        "compCount": 9,
-        "source": "tcgplayer_seeded",
-        "platform": "tcgplayer",
-        "observedAt": "2026-06-07T17:09:27.472Z",
-        "flags": [
-          "warm_cache"
-        ],
-        "warmCache": true
-      }
-    ]
+    "timestamp": "2026-06-09T14:46:08.684Z",
+    "signals": []
   },
   "alt": {
-    "timestamp": "2026-06-09T13:24:56.685Z",
+    "timestamp": "2026-06-09T14:46:08.563Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
@@ -489,7 +138,7 @@
         "compCount": 1,
         "source": "alt-ask",
         "platform": "alt",
-        "observedAt": "2026-06-09T13:24:54.938Z"
+        "observedAt": "2026-06-09T14:46:08.562Z"
       },
       {
         "cardId": "jp-vs-091",
@@ -498,7 +147,7 @@
         "compCount": 1,
         "source": "alt-ask",
         "platform": "alt",
-        "observedAt": "2026-06-09T13:24:56.684Z"
+        "observedAt": "2026-06-09T14:46:08.562Z"
       },
       {
         "cardId": "base5-1st-83",
@@ -507,7 +156,7 @@
         "compCount": 1,
         "source": "alt-ask",
         "platform": "alt",
-        "observedAt": "2026-06-09T13:24:56.684Z"
+        "observedAt": "2026-06-09T14:46:08.562Z"
       },
       {
         "cardId": "base2-1st-3",
@@ -516,12 +165,12 @@
         "compCount": 1,
         "source": "alt-ask",
         "platform": "alt",
-        "observedAt": "2026-06-09T13:24:56.685Z"
+        "observedAt": "2026-06-09T14:46:08.562Z"
       }
     ]
   },
   "cardmarket": {
-    "timestamp": "2026-06-09T13:24:54.941Z",
+    "timestamp": "2026-06-09T14:46:08.565Z",
     "signals": [
       {
         "cardId": "jp-vs-091",
@@ -530,114 +179,30 @@
         "compCount": 2,
         "source": "cardmarket-eu-ask",
         "platform": "cardmarket",
-        "observedAt": "2026-06-09T13:24:54.939Z"
+        "observedAt": "2026-06-09T14:46:08.564Z"
       }
     ]
   },
   "beezie": {
-    "timestamp": "2026-06-09T13:24:55.075Z",
-    "signals": [
-      {
-        "cardId": "neo1-1st-18",
-        "priceCents": 307731,
-        "confidence": 0.95,
-        "compCount": 10,
-        "source": "beezie_seeded",
-        "platform": "beezie",
-        "observedAt": "2026-06-07T23:09:27.473Z",
-        "flags": [
-          "warm_cache"
-        ],
-        "warmCache": true
-      },
-      {
-        "cardId": "jp-vs-091",
-        "priceCents": 1176208,
-        "confidence": 0.95,
-        "compCount": 8,
-        "source": "beezie_seeded",
-        "platform": "beezie",
-        "observedAt": "2026-06-07T11:09:27.472Z",
-        "flags": [
-          "warm_cache"
-        ],
-        "warmCache": true
-      },
-      {
-        "cardId": "base5-1st-83",
-        "priceCents": 655139,
-        "confidence": 0.95,
-        "compCount": 11,
-        "source": "beezie_seeded",
-        "platform": "beezie",
-        "observedAt": "2026-06-07T11:09:27.472Z",
-        "flags": [
-          "warm_cache"
-        ],
-        "warmCache": true
-      },
-      {
-        "cardId": "base2-1st-3",
-        "priceCents": 237967,
-        "confidence": 0.95,
-        "compCount": 9,
-        "source": "beezie_seeded",
-        "platform": "beezie",
-        "observedAt": "2026-06-07T17:09:27.472Z",
-        "flags": [
-          "warm_cache"
-        ],
-        "warmCache": true
-      }
-    ]
+    "timestamp": "2026-06-09T14:46:08.693Z",
+    "signals": []
   },
   "collector-crypt": {
-    "timestamp": "2026-06-09T13:24:55.055Z",
-    "signals": [
-      {
-        "cardId": "neo1-1st-18",
-        "priceCents": 274210,
-        "confidence": 0.95,
-        "compCount": 10,
-        "source": "collector-crypt_seeded",
-        "platform": "collector-crypt",
-        "observedAt": "2026-06-07T23:09:27.473Z",
-        "flags": [
-          "warm_cache"
-        ],
-        "warmCache": true
-      },
-      {
-        "cardId": "jp-vs-091",
-        "priceCents": 1256174,
-        "confidence": 0.95,
-        "compCount": 10,
-        "source": "collector-crypt_seeded",
-        "platform": "collector-crypt",
-        "observedAt": "2026-06-07T11:09:27.472Z",
-        "flags": [
-          "warm_cache"
-        ],
-        "warmCache": true
-      },
-      {
-        "cardId": "base2-1st-3",
-        "priceCents": 232370,
-        "confidence": 0.95,
-        "compCount": 11,
-        "source": "collector-crypt_seeded",
-        "platform": "collector-crypt",
-        "observedAt": "2026-06-07T23:09:27.473Z",
-        "flags": [
-          "warm_cache"
-        ],
-        "warmCache": true
-      }
-    ]
+    "timestamp": "2026-06-09T14:46:08.675Z",
+    "signals": []
   },
   "goldin": {
-    "timestamp": "2026-06-09T13:24:58.337Z",
+    "timestamp": "2026-06-09T14:46:09.438Z",
     "signals": [
+      {
+        "cardId": "jp-vs-091",
+        "priceCents": 68265000,
+        "confidence": 0.3,
+        "compCount": 1,
+        "source": "goldin-auctions",
+        "platform": "goldin",
+        "observedAt": "2026-06-09T14:46:09.438Z"
+      },
       {
         "cardId": "base5-1st-83",
         "priceCents": 793000,
@@ -645,7 +210,7 @@
         "compCount": 1,
         "source": "goldin-auctions",
         "platform": "goldin",
-        "observedAt": "2026-06-09T13:24:58.337Z"
+        "observedAt": "2026-06-09T14:46:09.438Z"
       },
       {
         "cardId": "base2-1st-3",
@@ -654,173 +219,61 @@
         "compCount": 1,
         "source": "goldin-auctions",
         "platform": "goldin",
-        "observedAt": "2026-06-09T13:24:58.337Z"
+        "observedAt": "2026-06-09T14:46:09.438Z"
       }
     ]
   },
   "pricecharting": {
-    "timestamp": "2026-06-09T13:24:55.081Z",
+    "timestamp": "2026-06-09T14:46:08.699Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
         "platform": "pricecharting",
-        "priceCents": 259999,
-        "priceUsd": 2599.99,
-        "confidence": 0.95,
-        "source": "pc_sold_all",
-        "compCount": 30,
-        "recentCount": 0,
-        "comps": [
-          {
-            "price": 1000,
-            "date": "2024-08-29",
-            "url": "https://www.pricecharting.com/game/pokemon-neo-genesis/typhlosion-1st-edition-18"
-          },
-          {
-            "price": 1300,
-            "date": "2024-07-30",
-            "url": "https://www.pricecharting.com/game/pokemon-neo-genesis/typhlosion-1st-edition-18"
-          },
-          {
-            "price": 1500,
-            "date": "2024-07-11",
-            "url": "https://www.pricecharting.com/game/pokemon-neo-genesis/typhlosion-1st-edition-18"
-          },
-          {
-            "price": 1250,
-            "date": "2024-07-01",
-            "url": "https://www.pricecharting.com/game/pokemon-neo-genesis/typhlosion-1st-edition-18"
-          },
-          {
-            "price": 1349.06,
-            "date": "2024-06-22",
-            "url": "https://www.pricecharting.com/game/pokemon-neo-genesis/typhlosion-1st-edition-18"
-          }
-        ],
-        "observedAt": "2026-06-09T13:24:54.988Z",
+        "priceCents": 497512,
+        "priceUsd": 4975.12,
+        "confidence": 0.9,
+        "source": "pc_sold",
+        "compCount": 5,
+        "observedAt": "2026-06-09T14:46:08.607Z",
         "flags": []
       },
       {
         "cardId": "jp-vs-091",
         "platform": "pricecharting",
-        "priceCents": 1600000,
-        "priceUsd": 16000,
-        "confidence": 0.95,
-        "source": "pc_sold_recent",
-        "compCount": 31,
-        "recentCount": 3,
-        "comps": [
-          {
-            "price": 5650,
-            "date": "2025-12-28",
-            "url": "https://www.pricecharting.com/game/pokemon-japanese-vs/karen's-umbreon-91"
-          },
-          {
-            "price": 5800,
-            "date": "2025-12-10",
-            "url": "https://www.pricecharting.com/game/pokemon-japanese-vs/karen's-umbreon-91"
-          },
-          {
-            "price": 5585.76,
-            "date": "2025-12-08",
-            "url": "https://www.pricecharting.com/game/pokemon-japanese-vs/karen's-umbreon-91"
-          },
-          {
-            "price": 6500,
-            "date": "2025-12-02",
-            "url": "https://www.pricecharting.com/game/pokemon-japanese-vs/karen's-umbreon-91"
-          },
-          {
-            "price": 6000,
-            "date": "2025-12-02",
-            "url": "https://www.pricecharting.com/game/pokemon-japanese-vs/karen's-umbreon-91"
-          }
-        ],
-        "observedAt": "2026-06-09T13:24:55.041Z",
+        "priceCents": 1588230,
+        "priceUsd": 15882.3,
+        "confidence": 0.9,
+        "source": "pc_sold",
+        "compCount": 5,
+        "observedAt": "2026-06-09T14:46:08.657Z",
         "flags": []
       },
       {
         "cardId": "base5-1st-83",
         "platform": "pricecharting",
-        "priceCents": 416100,
-        "priceUsd": 4161,
-        "confidence": 0.95,
-        "source": "pc_sold_all",
-        "compCount": 30,
-        "recentCount": 0,
-        "comps": [
-          {
-            "price": 1549.95,
-            "date": "2024-07-03",
-            "url": "https://www.pricecharting.com/game/pokemon-team-rocket/dark-raichu-1st-edition-83"
-          },
-          {
-            "price": 1349.99,
-            "date": "2024-05-23",
-            "url": "https://www.pricecharting.com/game/pokemon-team-rocket/dark-raichu-1st-edition-83"
-          },
-          {
-            "price": 1699.99,
-            "date": "2024-03-03",
-            "url": "https://www.pricecharting.com/game/pokemon-team-rocket/dark-raichu-1st-edition-83"
-          },
-          {
-            "price": 1267.84,
-            "date": "2024-02-13",
-            "url": "https://www.pricecharting.com/game/pokemon-team-rocket/dark-raichu-1st-edition-83"
-          },
-          {
-            "price": 1579.13,
-            "date": "2023-11-21",
-            "url": "https://www.pricecharting.com/game/pokemon-team-rocket/dark-raichu-1st-edition-83"
-          }
-        ],
-        "observedAt": "2026-06-09T13:24:55.062Z",
+        "priceCents": 798656,
+        "priceUsd": 7986.56,
+        "confidence": 0.9,
+        "source": "pc_sold",
+        "compCount": 5,
+        "observedAt": "2026-06-09T14:46:08.680Z",
         "flags": []
       },
       {
         "cardId": "base2-1st-3",
         "platform": "pricecharting",
-        "priceCents": 561600,
-        "priceUsd": 5616,
-        "confidence": 0.95,
-        "source": "pc_sold_all",
-        "compCount": 12,
-        "recentCount": 1,
-        "comps": [
-          {
-            "price": 5200,
-            "date": "2026-01-13",
-            "url": "https://www.pricecharting.com/game/pokemon-jungle/flareon-1st-edition-3"
-          },
-          {
-            "price": 4699.99,
-            "date": "2026-01-06",
-            "url": "https://www.pricecharting.com/game/pokemon-jungle/flareon-1st-edition-3"
-          },
-          {
-            "price": 4051,
-            "date": "2025-12-22",
-            "url": "https://www.pricecharting.com/game/pokemon-jungle/flareon-1st-edition-3"
-          },
-          {
-            "price": 4650,
-            "date": "2025-12-22",
-            "url": "https://www.pricecharting.com/game/pokemon-jungle/flareon-1st-edition-3"
-          },
-          {
-            "price": 6350.4,
-            "date": "2025-12-14",
-            "url": "https://www.pricecharting.com/game/pokemon-jungle/flareon-1st-edition-3"
-          }
-        ],
-        "observedAt": "2026-06-09T13:24:55.080Z",
+        "priceCents": 730000,
+        "priceUsd": 7300,
+        "confidence": 0.8500000000000001,
+        "source": "pc_sold",
+        "compCount": 4,
+        "observedAt": "2026-06-09T14:46:08.699Z",
         "flags": []
       }
     ]
   },
   "fanatics": {
-    "timestamp": "2026-06-09T13:24:54.937Z",
+    "timestamp": "2026-06-09T14:46:08.561Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
@@ -829,7 +282,7 @@
         "compCount": 2,
         "source": "fanatics-pwcc",
         "platform": "fanatics",
-        "observedAt": "2026-06-09T13:24:54.935Z"
+        "observedAt": "2026-06-09T14:46:08.560Z"
       },
       {
         "cardId": "jp-vs-091",
@@ -838,7 +291,7 @@
         "compCount": 1,
         "source": "fanatics-pwcc",
         "platform": "fanatics",
-        "observedAt": "2026-06-09T13:24:54.935Z"
+        "observedAt": "2026-06-09T14:46:08.561Z"
       },
       {
         "cardId": "base5-1st-83",
@@ -847,7 +300,7 @@
         "compCount": 1,
         "source": "fanatics-pwcc",
         "platform": "fanatics",
-        "observedAt": "2026-06-09T13:24:54.936Z"
+        "observedAt": "2026-06-09T14:46:08.561Z"
       },
       {
         "cardId": "base2-1st-3",
@@ -856,12 +309,12 @@
         "compCount": 2,
         "source": "fanatics-pwcc",
         "platform": "fanatics",
-        "observedAt": "2026-06-09T13:24:54.936Z"
+        "observedAt": "2026-06-09T14:46:08.561Z"
       }
     ]
   },
   "psa-apr": {
-    "timestamp": "2026-06-09T13:24:56.436Z",
+    "timestamp": "2026-06-09T14:46:09.434Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
@@ -870,7 +323,7 @@
         "compCount": 3,
         "source": "psa-apr",
         "platform": "psa-apr",
-        "observedAt": "2026-06-09T13:24:54.931Z"
+        "observedAt": "2026-06-09T14:46:08.557Z"
       },
       {
         "cardId": "base5-1st-83",
@@ -879,7 +332,7 @@
         "compCount": 3,
         "source": "psa-apr",
         "platform": "psa-apr",
-        "observedAt": "2026-06-09T13:24:56.435Z"
+        "observedAt": "2026-06-09T14:46:09.433Z"
       },
       {
         "cardId": "base2-1st-3",
@@ -888,12 +341,12 @@
         "compCount": 3,
         "source": "psa-apr",
         "platform": "psa-apr",
-        "observedAt": "2026-06-09T13:24:56.436Z"
+        "observedAt": "2026-06-09T14:46:09.434Z"
       }
     ]
   },
   "yahoo-jp": {
-    "timestamp": "2026-06-09T13:24:55.715Z",
+    "timestamp": "2026-06-09T14:46:09.367Z",
     "signals": []
   }
 }

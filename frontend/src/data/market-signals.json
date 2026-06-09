@@ -1,37 +1,26 @@
 {
-  "generatedAt": "2026-06-09T13:24:58.353Z",
+  "generatedAt": "2026-06-09T14:46:09.453Z",
   "cards": {
     "neo1-1st-18": {
       "name": "Typhlosion",
-      "settledPriceUsd": 2600,
-      "confidence": 0.8,
-      "wideDispute": true,
-      "flags": [
-        {
-          "code": "same_grade_disagreement",
-          "severity": "high",
-          "message": "The swarm settle ($2,600) and the grade-matched PSA 10 oracle ($4,975) disagree by 48% — the PSA-10 anchor itself is contested. Dispute window widened."
-        }
-      ]
+      "settledPriceUsd": 4975,
+      "confidence": 1,
+      "wideDispute": false,
+      "flags": []
     },
     "jp-vs-091": {
       "name": "Karen's Umbreon",
-      "settledPriceUsd": 12900,
+      "settledPriceUsd": 15882,
       "confidence": 1,
       "wideDispute": false,
       "flags": []
     },
     "base5-1st-83": {
       "name": "Dark Raichu",
-      "settledPriceUsd": 4161,
-      "confidence": 0.52,
+      "settledPriceUsd": 7987,
+      "confidence": 0.72,
       "wideDispute": true,
       "flags": [
-        {
-          "code": "same_grade_disagreement",
-          "severity": "high",
-          "message": "The swarm settle ($4,161) and the grade-matched PSA 10 oracle ($7,987) disagree by 48% — the PSA-10 anchor itself is contested. Dispute window widened."
-        },
         {
           "code": "grade_inversion",
           "severity": "high",
@@ -46,16 +35,10 @@
     },
     "base2-1st-3": {
       "name": "Flareon",
-      "settledPriceUsd": 5616,
-      "confidence": 0.8,
-      "wideDispute": true,
-      "flags": [
-        {
-          "code": "same_grade_disagreement",
-          "severity": "high",
-          "message": "The swarm settle ($5,616) and the grade-matched PSA 10 oracle ($7,300) disagree by 23% — the PSA-10 anchor itself is contested. Dispute window widened."
-        }
-      ]
+      "settledPriceUsd": 7300,
+      "confidence": 1,
+      "wideDispute": false,
+      "flags": []
     }
   }
 }

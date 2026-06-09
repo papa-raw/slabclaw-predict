@@ -49,6 +49,34 @@
       "confidence": 0.85,
       "comps": 3,
       "source": "psa-apr"
+    },
+    {
+      "date": "2026-06-09T14:04:49.186Z",
+      "priceCents": 337500,
+      "confidence": 0.85,
+      "comps": 3,
+      "source": "psa-apr"
+    },
+    {
+      "date": "2026-06-09T14:38:10.893Z",
+      "priceCents": 337500,
+      "confidence": 0.85,
+      "comps": 3,
+      "source": "psa-apr"
+    },
+    {
+      "date": "2026-06-09T14:43:43.061Z",
+      "priceCents": 337500,
+      "confidence": 0.85,
+      "comps": 3,
+      "source": "psa-apr"
+    },
+    {
+      "date": "2026-06-09T14:46:08.557Z",
+      "priceCents": 337500,
+      "confidence": 0.85,
+      "comps": 3,
+      "source": "psa-apr"
     }
   ],
   "anomalies": []

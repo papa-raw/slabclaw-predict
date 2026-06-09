@@ -49,6 +49,34 @@
       "confidence": 0.7,
       "comps": 2,
       "source": "fanatics-pwcc"
+    },
+    {
+      "date": "2026-06-09T14:04:49.190Z",
+      "priceCents": 1332500,
+      "confidence": 0.7,
+      "comps": 2,
+      "source": "fanatics-pwcc"
+    },
+    {
+      "date": "2026-06-09T14:38:10.898Z",
+      "priceCents": 1332500,
+      "confidence": 0.7,
+      "comps": 2,
+      "source": "fanatics-pwcc"
+    },
+    {
+      "date": "2026-06-09T14:43:43.065Z",
+      "priceCents": 1332500,
+      "confidence": 0.7,
+      "comps": 2,
+      "source": "fanatics-pwcc"
+    },
+    {
+      "date": "2026-06-09T14:46:08.560Z",
+      "priceCents": 1332500,
+      "confidence": 0.7,
+      "comps": 2,
+      "source": "fanatics-pwcc"
     }
   ],
   "anomalies": []
