@@ -25,6 +25,13 @@ const SOURCE_FAMILY = {
   fanatics: 'fanatics-pwcc', pwcc: 'fanatics-pwcc', 'fanatics-pwcc': 'fanatics-pwcc',
 };
 const familyOf = (p) => SOURCE_FAMILY[String(p || '').toLowerCase()] || String(p || '').toLowerCase();
+
+// Sources that report ASKS (live listings / FMV), not realized sales. Asks bound the
+// price — you can't realistically settle above the lowest ask — but must NOT vote in
+// the settlement median: an ask structurally sits above the clearing price.
+const ASK_PLATFORMS = new Set(['alt', 'cardmarket', 'courtyard', 'beezie', 'collector-crypt']);
+const kindOf = (platform, source) =>
+  (/ask|listing|active|fmv/i.test(source || '') || ASK_PLATFORMS.has(String(platform || '').toLowerCase())) ? 'ask' : 'realized';
 const MAD_THRESHOLD = 3.5;
 const DISAGREEMENT_THRESHOLD = 0.4; // 40% interval width triggers circuit breaker
 
@@ -141,13 +148,21 @@ export function aggregate(cardId, allSignals, reputationWeights) {
   // after outlier rejection, counting distinct source families (not platforms).
   if (signals.length === 0) return result;
 
-  // Step 2: MAD outlier rejection
-  const prices = signals.map((s) => s.priceCents);
+  // ── Realized vs asks ───────────────────────────────────────────────────────
+  // Tag each signal. Settlement uses REALIZED sales; ASKS (Cardmarket / ALT / tokenized
+  // listings) bound the price but never vote — an ask structurally sits above the clearing
+  // price. So MAD outlier rejection, which would wrongly cut a legitimately-high ask, runs
+  // over REALIZED signals ONLY.
+  for (const s of signals) s.kind = kindOf(s.platform, s.source);
+  const realizedRaw = signals.filter((s) => s.kind === 'realized');
+  let asks = signals.filter((s) => s.kind === 'ask');
+
+  // Step 2: MAD outlier rejection (realized only)
+  const prices = realizedRaw.map((s) => s.priceCents);
   const priceMedian = median(prices);
   const priceMad = mad(prices);
-
-  const surviving = [];
-  for (const s of signals) {
+  let realized = [];
+  for (const s of realizedRaw) {
     const z = modifiedZScore(s.priceCents, priceMedian, priceMad);
     if (Math.abs(z) > MAD_THRESHOLD) {
       result.rejectedSources.push({
@@ -157,43 +172,69 @@ export function aggregate(cardId, allSignals, reputationWeights) {
         zScore: z,
       });
     } else {
-      surviving.push(s);
+      realized.push(s);
     }
   }
 
-  if (surviving.length === 0) {
+  if (realized.length === 0 && asks.length === 0) {
     result.flags.push('all_outliers');
     return result;
   }
 
-  // Independence gate: count distinct SOURCE FAMILIES among survivors. Two views of one
-  // feed (eBay + PriceCharting) don't make a market, so they count once.
+  // ── Cross-source plausibility gate (the production oracle's eBay-gate, generalized) ─
+  // A thin / mis-scraped source (e.g. a 1-comp Goldin snippet that grabbed a wrong
+  // variant at $425) can sit inside MAD tolerance yet be obviously wrong. Anchor on the
+  // well-supported realized sources (>=3 comps) and reject realized prices below 0.4x or
+  // above 2.5x that anchor.
+  const wellSupported = realized.filter((s) => (s.compCount || 0) >= 3);
+  const anchor = median((wellSupported.length ? wellSupported : realized).map((s) => s.priceCents));
+  if (anchor > 0) {
+    realized = realized.filter((s) => {
+      if (s.priceCents < 0.4 * anchor || s.priceCents > 2.5 * anchor) {
+        result.rejectedSources.push({
+          platform: s.platform,
+          priceCents: s.priceCents,
+          reason: `implausible vs anchor (${(s.priceCents / anchor).toFixed(2)}x of $${Math.round(anchor / 100)})`,
+        });
+        return false;
+      }
+      return true;
+    });
+  }
+
+  // Drop absurd asks (mis-scrapes / spoof listings) so the ask sanity band stays meaningful.
+  // Asks legitimately sit above realized, so the upper bound is loose (5x); a sub-0.3x ask
+  // is almost certainly a wrong-variant or bait listing.
+  if (anchor > 0) asks = asks.filter((a) => a.priceCents >= 0.3 * anchor && a.priceCents <= 5 * anchor);
+
+  // ── Independence gate (REALIZED families only — asks don't establish a market) ──
   const familyCounts = {};
-  for (const s of surviving) familyCounts[familyOf(s.platform)] = (familyCounts[familyOf(s.platform)] || 0) + 1;
+  for (const s of realized) familyCounts[familyOf(s.platform)] = (familyCounts[familyOf(s.platform)] || 0) + 1;
   const independentSources = Object.keys(familyCounts).length;
   result.sourceCount = independentSources;
-  result.rawSourceCount = surviving.length;
+  result.rawSourceCount = realized.length;
   result.sourceFamilies = Object.keys(familyCounts);
+  result.askCount = asks.length;
   if (independentSources < MIN_SOURCES) result.flags.push('insufficient_sources');
 
-  // Step 3: Confidence-weighted median
+  // ── Settlement: comp-weighted median of REALIZED, ONE vote per source family ──
   const rep = reputationWeights || {};
   const recencyHalfLife = 7 * 24 * 3600 * 1000; // 1 week
-
   const values = [];
   const weights = [];
-  for (const s of surviving) {
+  for (const s of realized) {
     const reliability = rep[s.platform]?.reliability || 1.0;
     const ageMs = s.observedAt ? Date.now() - new Date(s.observedAt).getTime() : 0;
     const recency = Math.exp(-ageMs / recencyHalfLife);
+    const sampleWeight = Math.sqrt(Math.max(1, s.compCount || 1)); // a 12-sale comp outweighs a 1-sale comp
     // Divide by family size so same-origin sources (eBay+PriceCharting) cast ONE vote total.
-    const weight = ((s.confidence || 0.5) * reliability * recency) / familyCounts[familyOf(s.platform)];
+    const weight = ((s.confidence || 0.5) * reliability * recency * sampleWeight) / familyCounts[familyOf(s.platform)];
     values.push(s.priceCents);
     weights.push(weight);
-
     result.contributingSources.push({
       platform: s.platform,
       family: familyOf(s.platform),
+      kind: 'realized',
       priceCents: s.priceCents,
       confidence: s.confidence,
       reliability,
@@ -203,11 +244,52 @@ export function aggregate(cardId, allSignals, reputationWeights) {
     });
   }
 
+  // Asks are recorded for transparency (weight 0) — they bound, they don't vote.
+  for (const s of asks) {
+    result.contributingSources.push({
+      platform: s.platform,
+      family: familyOf(s.platform),
+      kind: 'ask',
+      priceCents: s.priceCents,
+      confidence: s.confidence,
+      reliability: rep[s.platform]?.reliability || 1.0,
+      weight: 0,
+      source: s.source,
+      compCount: s.compCount || 0,
+    });
+  }
+
+  if (values.length === 0) {
+    // No realized sales survive — we can only price provisionally off the ask floor.
+    result.flags.push('asks_only');
+    if (asks.length === 0) return result;
+    const askPrices = asks.map((a) => a.priceCents);
+    result.consensusPriceCents = Math.min(...askPrices);
+    result.confidenceLower = Math.min(...askPrices);
+    result.confidenceUpper = Math.max(...askPrices);
+    return result;
+  }
+
   result.consensusPriceCents = Math.round(weightedMedian(values, weights));
   result.confidenceLower = Math.round(weightedPercentile(values, weights, 0.25));
   result.confidenceUpper = Math.round(weightedPercentile(values, weights, 0.75));
 
-  // Step 4: Aggregator circuit breakers
+  // ── Ask sanity band ────────────────────────────────────────────────────────
+  // Asks are a ceiling on the clearing price. If the realized consensus sits ABOVE the
+  // cheapest live listing, that's suspicious (we'd settle above buyable). If asks sit
+  // well ABOVE the realized consensus, the market may have moved up since the last sale
+  // — informational, and the quality tier widens the dispute window on it.
+  if (asks.length) {
+    const lowestAsk = Math.min(...asks.map((a) => a.priceCents));
+    result.lowestAskCents = lowestAsk;
+    if (result.consensusPriceCents > lowestAsk) {
+      result.flags.push('consensus_above_lowest_ask');
+    } else if (result.consensusPriceCents < 0.7 * lowestAsk) {
+      result.flags.push('asks_above_consensus');
+    }
+  }
+
+  // ── Aggregator circuit breaker (wide disagreement) ─────────────────────────
   const intervalWidth = result.confidenceUpper - result.confidenceLower;
   if (result.consensusPriceCents > 0 && intervalWidth / result.consensusPriceCents > DISAGREEMENT_THRESHOLD) {
     result.flags.push('wide_disagreement');

@@ -9,6 +9,10 @@ import { join } from 'path';
 
 const MEMWAL_ROOT = join(new URL('.', import.meta.url).pathname, '..', 'memwal');
 
+// How long a cached observation can stand in for a failed fresh fetch. Vintage graded
+// prices move slowly; beyond this the memory is too stale to resurrect.
+const WARM_TTL_MS = 30 * 86400000; // 30 days
+
 export class BaseAgent {
   constructor(platform, config = {}) {
     this.platform = platform;
@@ -179,6 +183,31 @@ export class BaseAgent {
     return mem;
   }
 
+  // ── Warm-cache fallback ──────────────────────────────────────────────
+  // When a fresh fetch fails this run (backend down, scrape miss), reuse the most recent
+  // cached observation within WARM_TTL so a transient miss doesn't DROP the source — a
+  // memory-backed swarm shouldn't forget a realized price it already knows. The cached
+  // observedAt is preserved, so recency decay + the stale_feed breaker down-weight the
+  // resurrected signal honestly (present, but never treated as fresh).
+  warmFallback(cardId) {
+    const mem = this.readCardMemory(cardId);
+    const last = mem.observations?.[mem.observations.length - 1];
+    if (!last?.priceCents) return null;
+    const ageMs = Date.now() - new Date(last.date).getTime();
+    if (!(ageMs >= 0) || ageMs > WARM_TTL_MS) return null;
+    return {
+      cardId,
+      priceCents: last.priceCents,
+      confidence: last.confidence ?? 0.5,
+      compCount: last.comps ?? 0,
+      source: last.source || this.platform,
+      platform: this.platform,
+      observedAt: last.date, // keep the ORIGINAL time → honest staleness downstream
+      flags: ['warm_cache'],
+      warmCache: true,
+    };
+  }
+
   // ── Main run loop ────────────────────────────────────────────────────
 
   async run() {
@@ -186,38 +215,40 @@ export class BaseAgent {
     const runLog = { platform: this.platform, timestamp: new Date().toISOString(), cards: {} };
 
     for (const cardId of this.cardIds) {
+      let rawSignal = null;
+      let fetchErr = null;
       try {
         const cardData = await this.fetchCardData(cardId);
-        if (!cardData) {
-          runLog.cards[cardId] = { error: 'card not found in API' };
-          continue;
-        }
-
-        const rawSignal = await this.fetchPlatformData(cardId, cardData);
-        if (!rawSignal || rawSignal.priceCents == null) {
-          runLog.cards[cardId] = { error: 'no platform data', raw: rawSignal };
-          continue;
-        }
-
-        const cardMemory = this.readCardMemory(cardId);
-        const { signal, flags } = this.applyCircuitBreakers(rawSignal, cardMemory);
-
-        this.updateCardMemory(cardId, signal, flags);
-
-        if (!signal.rejected) {
-          signals.push(signal);
-        }
-
-        runLog.cards[cardId] = {
-          priceCents: signal.priceCents,
-          confidence: signal.confidence,
-          flags,
-          rejected: signal.rejected || false,
-          compCount: signal.compCount || 0,
-        };
+        rawSignal = cardData ? await this.fetchPlatformData(cardId, cardData) : null;
       } catch (err) {
-        runLog.cards[cardId] = { error: err.message };
+        fetchErr = err.message;
       }
+
+      // Fresh data this run? If not, stand in the last good cached observation.
+      const fresh = !!(rawSignal && rawSignal.priceCents != null);
+      if (!fresh) rawSignal = this.warmFallback(cardId);
+
+      if (!rawSignal || rawSignal.priceCents == null) {
+        runLog.cards[cardId] = { error: fetchErr || 'no platform data (no warm cache)' };
+        continue;
+      }
+
+      const cardMemory = this.readCardMemory(cardId);
+      const { signal, flags } = this.applyCircuitBreakers(rawSignal, cardMemory);
+
+      // Only RECORD fresh observations — never re-stamp a resurrected one as new memory.
+      if (fresh) this.updateCardMemory(cardId, signal, flags);
+
+      if (!signal.rejected) signals.push(signal);
+
+      runLog.cards[cardId] = {
+        priceCents: signal.priceCents,
+        confidence: signal.confidence,
+        flags,
+        rejected: signal.rejected || false,
+        compCount: signal.compCount || 0,
+        warmCache: fresh ? undefined : true,
+      };
     }
 
     // Write signals to shared context

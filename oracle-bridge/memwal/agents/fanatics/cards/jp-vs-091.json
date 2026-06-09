@@ -1,0 +1,13 @@
+{
+  "cardId": "jp-vs-091",
+  "observations": [
+    {
+      "date": "2026-06-09T09:16:28.704Z",
+      "priceCents": 2700000,
+      "confidence": 0.7,
+      "comps": 1,
+      "source": "fanatics-pwcc"
+    }
+  ],
+  "anomalies": []
+}

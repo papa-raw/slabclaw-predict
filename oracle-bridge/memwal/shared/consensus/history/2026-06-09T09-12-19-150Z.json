@@ -1,0 +1,211 @@
+{
+  "neo1-1st-18": {
+    "cardId": "neo1-1st-18",
+    "consensusPriceCents": 337500,
+    "confidenceLower": 337500,
+    "confidenceUpper": 337500,
+    "contributingSources": [
+      {
+        "platform": "psa-apr",
+        "family": "psa-apr",
+        "kind": "realized",
+        "priceCents": 337500,
+        "confidence": 0.85,
+        "reliability": 0.417120689111111,
+        "weight": 0.6140705797748559,
+        "source": "psa-apr",
+        "compCount": 3
+      },
+      {
+        "platform": "alt",
+        "family": "alt",
+        "kind": "ask",
+        "priceCents": 383700,
+        "confidence": 0.4,
+        "reliability": 0.4812784247344737,
+        "weight": 0,
+        "source": "alt-ask",
+        "compCount": 1
+      }
+    ],
+    "rejectedSources": [
+      {
+        "platform": "fanatics",
+        "priceCents": 1332500,
+        "reason": "implausible vs anchor (3.95x of $3375)"
+      }
+    ],
+    "flags": [
+      "insufficient_sources"
+    ],
+    "sourceCount": 1,
+    "roundId": "neo1-1st-18_1780996339145",
+    "timestamp": "2026-06-09T09:12:19.145Z",
+    "rawSourceCount": 1,
+    "sourceFamilies": [
+      "psa-apr"
+    ],
+    "askCount": 1,
+    "lowestAskCents": 383700
+  },
+  "jp-vs-091": {
+    "cardId": "jp-vs-091",
+    "consensusPriceCents": 1674000,
+    "confidenceLower": 1674000,
+    "confidenceUpper": 1674000,
+    "contributingSources": [
+      {
+        "platform": "cardmarket",
+        "family": "cardmarket",
+        "kind": "ask",
+        "priceCents": 1674000,
+        "confidence": 0.5,
+        "reliability": 0.8185269454906673,
+        "weight": 0,
+        "source": "cardmarket-eu-ask",
+        "compCount": 2
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [
+      "insufficient_sources",
+      "asks_only"
+    ],
+    "sourceCount": 0,
+    "roundId": "jp-vs-091_1780996339146",
+    "timestamp": "2026-06-09T09:12:19.146Z",
+    "rawSourceCount": 0,
+    "sourceFamilies": [],
+    "askCount": 1
+  },
+  "base5-1st-83": {
+    "cardId": "base5-1st-83",
+    "consensusPriceCents": 470000,
+    "confidenceLower": 397000,
+    "confidenceUpper": 793000,
+    "contributingSources": [
+      {
+        "platform": "goldin",
+        "family": "goldin",
+        "kind": "realized",
+        "priceCents": 793000,
+        "confidence": 0.8,
+        "reliability": 0.6654131658648864,
+        "weight": 0.53230658715828,
+        "source": "goldin-auctions",
+        "compCount": 1
+      },
+      {
+        "platform": "fanatics",
+        "family": "fanatics-pwcc",
+        "kind": "realized",
+        "priceCents": 470000,
+        "confidence": 0.7,
+        "reliability": 0.4051362067333333,
+        "weight": 0.28358144475570785,
+        "source": "fanatics-pwcc",
+        "compCount": 1
+      },
+      {
+        "platform": "psa-apr",
+        "family": "psa-apr",
+        "kind": "realized",
+        "priceCents": 397000,
+        "confidence": 0.85,
+        "reliability": 0.47513620673333323,
+        "weight": 0.6994817064788132,
+        "source": "psa-apr",
+        "compCount": 3
+      },
+      {
+        "platform": "alt",
+        "family": "alt",
+        "kind": "ask",
+        "priceCents": 527250,
+        "confidence": 0.4,
+        "reliability": 0.48624399253662115,
+        "weight": 0,
+        "source": "alt-ask",
+        "compCount": 1
+      }
+    ],
+    "rejectedSources": [],
+    "flags": [
+      "wide_disagreement"
+    ],
+    "sourceCount": 3,
+    "roundId": "base5-1st-83_1780996339146",
+    "timestamp": "2026-06-09T09:12:19.146Z",
+    "rawSourceCount": 3,
+    "sourceFamilies": [
+      "goldin",
+      "fanatics-pwcc",
+      "psa-apr"
+    ],
+    "askCount": 1,
+    "lowestAskCents": 527250
+  },
+  "base2-1st-3": {
+    "cardId": "base2-1st-3",
+    "consensusPriceCents": 300100,
+    "confidenceLower": 300100,
+    "confidenceUpper": 338000,
+    "contributingSources": [
+      {
+        "platform": "fanatics",
+        "family": "fanatics-pwcc",
+        "kind": "realized",
+        "priceCents": 338000,
+        "confidence": 0.7,
+        "reliability": 0.43972268020181815,
+        "weight": 0.4352819096669529,
+        "source": "fanatics-pwcc",
+        "compCount": 2
+      },
+      {
+        "platform": "psa-apr",
+        "family": "psa-apr",
+        "kind": "realized",
+        "priceCents": 300100,
+        "confidence": 0.85,
+        "reliability": 0.46072268020181817,
+        "weight": 0.6782625408396261,
+        "source": "psa-apr",
+        "compCount": 3
+      },
+      {
+        "platform": "alt",
+        "family": "alt",
+        "kind": "ask",
+        "priceCents": 875000,
+        "confidence": 0.4,
+        "reliability": 0.4958731977609863,
+        "weight": 0,
+        "source": "alt-ask",
+        "compCount": 1
+      }
+    ],
+    "rejectedSources": [
+      {
+        "platform": "goldin",
+        "priceCents": 42500,
+        "reason": "MAD outlier (z=-4.58)",
+        "zScore": -4.584464379947229
+      }
+    ],
+    "flags": [
+      "insufficient_sources",
+      "asks_above_consensus"
+    ],
+    "sourceCount": 2,
+    "roundId": "base2-1st-3_1780996339146",
+    "timestamp": "2026-06-09T09:12:19.146Z",
+    "rawSourceCount": 2,
+    "sourceFamilies": [
+      "fanatics-pwcc",
+      "psa-apr"
+    ],
+    "askCount": 1,
+    "lowestAskCents": 875000
+  }
+}

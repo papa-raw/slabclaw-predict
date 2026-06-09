@@ -105,6 +105,20 @@
       "confidence": 0.4,
       "comps": 1,
       "source": "alt-ask"
+    },
+    {
+      "date": "2026-06-09T09:11:49.403Z",
+      "priceCents": 527250,
+      "confidence": 0.4,
+      "comps": 1,
+      "source": "alt-ask"
+    },
+    {
+      "date": "2026-06-09T09:16:28.751Z",
+      "priceCents": 527250,
+      "confidence": 0.4,
+      "comps": 1,
+      "source": "alt-ask"
     }
   ],
   "anomalies": []
