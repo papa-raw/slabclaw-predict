@@ -11,6 +11,7 @@
 /// Seed data (consensusData._seed === true) renders before the live swarm runs.
 
 import consensusData from '../data/oracle-consensus.json';
+import marketSignals from '../data/market-signals.json';
 import { DEMO_MARKETS, EXPLORER_URL } from '../constants';
 import { usdFull } from '../lib/format';
 
@@ -29,6 +30,7 @@ const PLAT_COLOR = {
 export default function OracleConsensusPanel({ productId }) {
   const card = consensusData?.consensus?.[productId];
   const isSeed = consensusData?._seed === true;
+  const signals = marketSignals?.cards?.[productId] || null;
 
   if (!card) return <EmptyState isSeed={isSeed} />;
 
@@ -99,6 +101,9 @@ export default function OracleConsensusPanel({ productId }) {
             {flags.map((f) => <FlagNote key={f} flag={f} agree={agree} />)}
           </div>
         )}
+
+        {/* quality flags — grade inversions + multiplier divergence (manipulation signals) */}
+        {signals?.flags?.length > 0 && <QualityFlags signals={signals} />}
 
         {/* who priced it — plain columns; "vs agreed" is trust at a glance */}
         <div className="bg-sc-surface/40 rounded-lg overflow-hidden border border-sc-border/60">
@@ -182,6 +187,33 @@ export default function OracleConsensusPanel({ productId }) {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// Manipulation / oracle-quality flags: grade inversions, multiplier divergence,
+// intra-grade spread. Below-grade slabs asking over the settled 10 → widen dispute.
+function QualityFlags({ signals }) {
+  const flags = signals.flags || [];
+  return (
+    <div className={`rounded-lg border px-3 py-2 ${signals.wideDispute ? 'border-sc-no/30 bg-sc-no/5' : 'border-sc-amber/30 bg-sc-amber/5'}`}>
+      <div className="flex items-center justify-between mb-1.5">
+        <span className={`text-[10px] font-bold uppercase tracking-wide ${signals.wideDispute ? 'text-sc-no' : 'text-sc-amber'}`}>
+          ⚠ Price-relationship checks
+        </span>
+        <span className="text-[9px] text-sc-muted">
+          confidence {Math.round((signals.confidence ?? 1) * 100)}%{signals.wideDispute ? ' · dispute window widened' : ''}
+        </span>
+      </div>
+      <ul className="space-y-1">
+        {flags.slice(0, 5).map((f, i) => (
+          <li key={i} className="flex items-start gap-1.5 text-[11px] leading-relaxed text-sc-dim">
+            <span className={`mt-px shrink-0 ${f.severity === 'high' ? 'text-sc-no' : 'text-sc-amber'}`}>•</span>
+            <span>{f.message}</span>
+          </li>
+        ))}
+      </ul>
+      {flags.length > 5 && <div className="text-[9px] text-sc-muted mt-1">+{flags.length - 5} more</div>}
     </div>
   );
 }
