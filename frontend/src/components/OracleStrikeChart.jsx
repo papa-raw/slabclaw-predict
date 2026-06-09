@@ -97,14 +97,18 @@ export default function OracleStrikeChart({
     const timeTicks = [];
     for (let i = 0; i <= 4; i++) timeTicks.push(tMin + ((tMax - tMin) * i) / 4);
 
-    let oraclePath = oracleLine.length
-      ? oracleLine.map((p, i) => `${i ? 'L' : 'M'}${x(p.t).toFixed(1)},${y(p.price).toFixed(1)}`).join(' ')
-      : null;
-    // The line must END exactly at the "now" dot — otherwise the white marker floats
-    // disconnected from the trend. Append a final segment to (now, oracleNow).
-    if (oraclePath && oracleNow != null) {
-      oraclePath += ` L${x(now).toFixed(1)},${y(oracleNow).toFixed(1)}`;
+    // The line must END exactly at the "now" dot (oracleNow) so the white marker sits ON the
+    // trend, not floating. But simply appending (now, oracleNow) makes a near-VERTICAL jump
+    // when the last smoothed point is already at ~now but a different price. So drop the
+    // trailing points within ~5 days of now and let the final segment slope naturally to the dot.
+    let linePts = oracleLine;
+    if (oracleNow != null && oracleLine.length) {
+      const trimmed = oracleLine.filter((p) => p.t <= now - 5 * DAY);
+      linePts = [...(trimmed.length ? trimmed : oracleLine.slice(0, -1)), { t: now, price: oracleNow }];
     }
+    const oraclePath = linePts.length
+      ? linePts.map((p, i) => `${i ? 'L' : 'M'}${x(p.t).toFixed(1)},${y(p.price).toFixed(1)}`).join(' ')
+      : null;
 
     let conePaths = null;
     if (cone) {
