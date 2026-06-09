@@ -231,8 +231,8 @@
       Anyone can trade YES/NO on whether a&nbsp;card exceeds a&nbsp;strike price by&nbsp;expiry. To settle, the market needs a&nbsp;real price&nbsp;— not a&nbsp;feed, but a&nbsp;<strong>swarm</strong> of&nbsp;agents that read every major venue, <strong>remember</strong> each card's history, and publish evidence on Walrus so <span class="teal">anyone can&nbsp;verify</span>.
     </p>
     <p class="footnote" style="margin-top:28px">
-      <a href="http://localhost:5174" target="_blank">Open the dapp →</a> &nbsp;·&nbsp;
-      <a href="../explain-site/index.html" target="_blank">Full explanation for judges →</a>
+      <a href="/" target="_blank">Open the dapp →</a> &nbsp;·&nbsp;
+      <a href="/#architecture" target="_blank">Architecture &amp; docs →</a>
     </p>
   </section>
 
@@ -389,7 +389,34 @@
     </div>
   </section>
 
-  <!-- 7 · MANIPULATION RESISTANCE -->
+  <!-- 7 · OBSERVABLE LEARNING -->
+  <section class="slide">
+    <div class="kicker">Observable learning · the Walrus payoff</div>
+    <h2>Not just stored on Walrus. <span class="teal">Smarter because of&nbsp;it.</span></h2>
+    <p class="lead" style="margin-top:16px;font-size:clamp(15px,1.5vw,19px)">
+      Memory persisted to Walrus is what lets the swarm improve run over&nbsp;run&nbsp;— and you can watch it&nbsp;happen.
+    </p>
+    <div class="cols-3" style="margin-top:24px">
+      <div class="card">
+        <div class="ek">Reliability divergence</div>
+        <h3 class="teal">Sources earn their weight</h3>
+        <p>Everyone starts at&nbsp;1.0. The reputation EMA learns who tracks&nbsp;consensus: eBay · PriceCharting · Courtyard hold <b>~86%</b>; thin or ask-only sources settle to <b>~44–49%</b>.</p>
+      </div>
+      <div class="card">
+        <div class="ek">Confidence narrowing</div>
+        <h3 class="blue">Bands tighten with data</h3>
+        <p>Each independent <b>realized</b> source narrows the consensus&nbsp;interval. More memory of a card's comps → a tighter, higher-quality settle&nbsp;price.</p>
+      </div>
+      <div class="card">
+        <div class="ek">Self-correcting flags</div>
+        <h3 class="gold">It learns each card's norm</h3>
+        <p>The quality tier stores a per-card <b>calibration</b> on&nbsp;Walrus. As a card warms, false-positive manipulation flags&nbsp;fall&nbsp;— the swarm stops crying wolf on that card's real&nbsp;spread.</p>
+      </div>
+    </div>
+    <p class="footnote">Kill the process, restore memory from a Walrus blob, and the learned weights + calibrations come back with&nbsp;it. <span class="teal">Persistence is the mechanism, not the feature.</span></p>
+  </section>
+
+  <!-- 8 · MANIPULATION RESISTANCE -->
   <section class="slide">
     <div class="kicker">Manipulation resistance</div>
     <h2>Thin markets are easy to&nbsp;spoof. We make it <span class="gold">expensive and&nbsp;pointless</span>.</h2>
@@ -484,7 +511,7 @@
       <div class="step"><div class="num">04</div><div class="h">Settle</div><div class="d">Bridge proposes with evidence. 24h UMA-style dispute window.</div></div>
       <div class="step"><div class="num">05</div><div class="h">Verify</div><div class="d">Winners claim. Evidence blob on Walrus — re-run the math yourself.</div></div>
     </div>
-    <p class="footnote" style="margin-top:18px">Flareon market ships in a <b>disputed</b> state so judges can walk the full resolution path live. &nbsp;·&nbsp; <a href="http://localhost:5174" target="_blank">Open the dapp →</a></p>
+    <p class="footnote" style="margin-top:18px">Flareon market ships in a <b>disputed</b> state so judges can walk the full resolution path live. &nbsp;·&nbsp; <a href="/" target="_blank">Open the dapp →</a></p>
   </section>
 
   <!-- 11 · CLOSE -->
@@ -510,7 +537,7 @@
   <button class="nav-btn" id="prev" aria-label="previous">‹</button>
   <div id="dots"></div>
   <button class="nav-btn" id="next" aria-label="next">›</button>
-  <span id="count"><b>1</b> / 11</span>
+  <span id="count"><b>1</b> / 12</span>
 </div>
 
 <script>

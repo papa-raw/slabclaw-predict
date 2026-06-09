@@ -103,11 +103,8 @@ const TIERS = [
 
 // ── Docs hub (links use explicit index.html so they resolve in dev AND prod) ────
 const DOCS = [
-  { title: 'Pitch deck', desc: 'The 60-second story — a credibly-neutral price commons.', href: '/deck/index.html' },
-  { title: 'Swarm explainer', desc: 'MemWal, shared context, verifiable evidence, observable learning.', href: '/explain/index.html' },
+  { title: 'Deck', desc: 'The full story — architecture, MemWal, observable learning, evidence.', href: '/deck/index.html' },
   { title: 'Source code', desc: 'Move contracts, oracle bridge, swarm, frontend — all open.', href: REPO },
-  { title: 'Walrus track brief', desc: 'The problem statement this is built against.', href: '/docs/walrus-track-problem-statement.pdf' },
-  { title: 'Oracle source research', desc: 'The 10-platform source hierarchy + independence map.', href: '/docs/oracle-source-research.json' },
   { title: 'Live evidence on Walrus', desc: 'The latest published consensus bundle — re-run the math yourself.', href: `${WALRUSCAN}/${EVIDENCE_BLOB}` },
 ];
 
