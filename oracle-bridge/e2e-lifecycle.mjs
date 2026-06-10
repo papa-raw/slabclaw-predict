@@ -33,7 +33,9 @@ const usd = (c) => '$' + (c / 100).toLocaleString('en-US', { maximumFractionDigi
 const vec = (tx, s) => tx.pure.vector('u8', Array.from(Buffer.from(s)));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const DEFAULTS = { windowMs: 86_400_000, bond: 10_000_000_000, minSources: 3 };
+// Production floor is 2 (two corroborating independent sold-families — the
+// rare-card thin-market gate does the rest off-chain). Restore to that.
+const DEFAULTS = { windowMs: 86_400_000, bond: 10_000_000_000, minSources: 2 };
 const TEST = { windowMs: 45_000, bond: tUSD(2), expiryDeltaMs: 50_000 };
 
 // Real swarm output — prices, family counts, and the round's evidence blob.
@@ -235,7 +237,10 @@ record('active-cancel', 'create (long expiry)', (await readMarket(CANCEL)).state
 console.log(`\n── Stage 2 · waiting ${Math.ceil(TEST.expiryDeltaMs / 1000) + 8}s for expiry ──`);
 await sleep(TEST.expiryDeltaMs + 8_000);
 
-console.log('\n── Stage 3 · HONEST REFUSAL at the real floor (3 independent families) ──');
+console.log('\n── Stage 3 · HONEST REFUSAL below the floor ──');
+// Pin the floor to 3 for this stage so the refusal test is deterministic
+// regardless of the production floor (which is 2 for rare-card thin settles).
+await setConfig({ minSources: 3 });
 for (const pid of ['neo1-1st-18', 'jp-vs-091', 'base2-1st-3']) {
   const cs = cardState(pid);
   const r = await expectAbort(() => {

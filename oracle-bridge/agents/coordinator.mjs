@@ -15,7 +15,9 @@ import { join } from 'path';
 const MEMWAL_ROOT = join(new URL('.', import.meta.url).pathname, '..', 'memwal');
 const SHARED = join(MEMWAL_ROOT, 'shared');
 
-const MIN_SOURCES = 3;
+const MIN_SOURCES = 3;        // full confidence — no thinness flag at/above this
+const MIN_SOURCES_THIN = 2;   // a genuinely-rare card settles here IF the two sold-families agree
+const THIN_CORROBORATION = 0.30; // the family medians must sit within ±30% to settle thin
 
 // Source families — sources drawing on the SAME underlying data count once toward the
 // independence gate. eBay + PriceCharting are both eBay-sold (PriceCharting scrapes eBay
@@ -242,7 +244,9 @@ export function aggregate(cardId, allSignals, reputationWeights) {
   result.rawSourceCount = realized.length;
   result.sourceFamilies = Object.keys(familyCounts);
   result.askCount = asks.length;
-  if (independentSources < MIN_SOURCES) result.flags.push('insufficient_sources');
+  // The independence-gate decision is made AFTER settlement (below), because a
+  // genuinely-rare card can settle on 2 corroborating sold-families — we need
+  // the per-family prices to judge corroboration first.
 
   // ── Settlement: comp-weighted median of REALIZED, ONE vote per source family ──
   const rep = reputationWeights || {};
@@ -300,6 +304,30 @@ export function aggregate(cardId, allSignals, reputationWeights) {
   result.consensusPriceCents = Math.round(weightedMedian(values, weights));
   result.confidenceLower = Math.round(weightedPercentile(values, weights, 0.25));
   result.confidenceUpper = Math.round(weightedPercentile(values, weights, 0.75));
+
+  // ── Independence gate (rare-card aware) ──────────────────────────────────────
+  // 3+ independent sold-families → clean settle, no flag.
+  // Exactly 2 → a genuinely-rare card (clean sales are scarce). Rather than refuse
+  // forever, settle IF the two families AGREE (medians within ±THIN_CORROBORATION),
+  // record the thinness in the evidence, and extend the challenge window. If they
+  // disagree, or there's only 1 family, it can't settle (insufficient_sources).
+  if (independentSources < MIN_SOURCES) {
+    const famMedians = {};
+    for (const fam of Object.keys(familyCounts)) {
+      const fv = realized.filter((s) => familyOf(s.platform) === fam).map((s) => s.priceCents);
+      famMedians[fam] = fv.sort((a, b) => a - b)[Math.floor(fv.length / 2)];
+    }
+    const m = Object.values(famMedians);
+    const corroborate = independentSources >= MIN_SOURCES_THIN &&
+      m.length >= 2 && (Math.max(...m) - Math.min(...m)) / Math.min(...m) <= THIN_CORROBORATION;
+    if (corroborate) {
+      result.flags.push('thin_market');     // settleable — rarity disclosed, window extended
+      result.thinMarket = true;
+      result.disputeWindowMultiplier = 3;   // 3× the normal challenge window
+    } else {
+      result.flags.push('insufficient_sources'); // genuinely can't settle (1 family or disagreement)
+    }
+  }
 
   // ── Ask sanity band ────────────────────────────────────────────────────────
   // Asks are a ceiling on the clearing price. If the realized consensus sits ABOVE the

@@ -322,7 +322,8 @@ function AskRow({ s, consensus }) {
 // Translate a coordinator flag into a plain-language note for bettors.
 function FlagNote({ flag, agree }) {
   const map = {
-    insufficient_sources: { tone: 'amber', text: `Only ${agree} independent marketplace${agree === 1 ? '' : 's'} had recent sales. A market needs at least 3 independent sold sources before it can settle — more comps needed first.` },
+    insufficient_sources: { tone: 'amber', text: `Only ${agree} independent marketplace${agree === 1 ? '' : 's'} had recent sales, and they don't yet agree closely enough to settle on. More sold comps needed first.` },
+    thin_market: { tone: 'amber', text: `This is a genuinely rare card — only ${agree} independent marketplaces have recent sales, but they agree, so the oracle settles on them. The thinness is recorded in the evidence and the challenge window is extended so anyone can contest before it finalizes.` },
     wide_disagreement: { tone: 'no', text: 'The marketplaces disagree by a lot right now. The oracle won’t settle on a shaky number — treat this price with caution.' },
     all_outliers: { tone: 'no', text: 'Every source looked manipulated and was rejected — no trustworthy price yet.' },
     asks_above_consensus: { tone: 'amber', text: 'Cards are currently listed well above the last sold prices — the market may be moving up. The settle price tracks actual sales, not asks.' },
