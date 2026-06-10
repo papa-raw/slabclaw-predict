@@ -199,6 +199,11 @@ node memwal-sync.mjs log         # list all memory snapshots
 node bridge.mjs --dry            # status only
 node bridge.mjs --watch          # keeper daemon
 
+# Full lifecycle E2E — all 4 products through create → trade → expire →
+# propose (honest refusal below the source floor) → dispute/finalize → claim →
+# refund paths, on fresh testnet markets with real consensus + evidence (40 checks)
+node e2e-lifecycle.mjs
+
 # Move contracts
 cd contracts/slabclaw_predict && sui move test
 ```

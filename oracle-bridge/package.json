@@ -2,7 +2,7 @@
   "name": "slabclaw-oracle-bridge",
   "version": "1.0.0",
   "type": "module",
-  "description": "Off-chain bridge: SlabClaw 10-platform oracle → Sui on-chain prediction markets",
+  "description": "Off-chain bridge: SlabClaw 10-platform oracle \u2192 Sui on-chain prediction markets",
   "scripts": {
     "test": "node --test \"test/**/*.test.mjs\"",
     "bridge": "node bridge.mjs",
@@ -22,7 +22,8 @@
     "walrus:log": "node walrus-evidence.mjs log",
     "memwal:snapshot": "node memwal-sync.mjs snapshot",
     "memwal:restore": "node memwal-sync.mjs restore",
-    "memwal:log": "node memwal-sync.mjs log"
+    "memwal:log": "node memwal-sync.mjs log",
+    "e2e": "node e2e-lifecycle.mjs"
   },
   "dependencies": {
     "@mysten/sui": "^1.20.0"

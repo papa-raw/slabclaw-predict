@@ -84,9 +84,8 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
           </div>
         </div>
 
-        {/* Right: testnet + wallet */}
+        {/* Right: wallet (its pill already carries the TESTNET badge) */}
         <div className="flex items-center gap-2 shrink-0">
-          <span className="hidden sm:block text-[9px] font-mono text-sc-muted border border-sc-border rounded px-1 py-px">TESTNET</span>
           <WalletButton />
         </div>
       </div>
