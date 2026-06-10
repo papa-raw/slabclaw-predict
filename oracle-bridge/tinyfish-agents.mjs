@@ -10,6 +10,7 @@
 import { BaseAgent } from './agents/base-agent.mjs';
 import { tfSearch, tfFetch, tfResolve, grade10Prices, psaCardfactsGem10, median } from './tinyfish.mjs';
 import { scrapeYahooJp } from './yahoo-jp-tinyfish.mjs';
+import { scrapeFanatics } from './fanatics-scraper.mjs';
 import { searchSold130, close130 } from './point130.mjs';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
@@ -46,11 +47,13 @@ class TinyfishAgent extends BaseAgent {
       if (!meta) { log.cards[cardId] = { error: 'no card meta' }; continue; }
       try {
         // Warm cache: reuse a recent observation from this platform's memory.
+        // FORCE_FRESH (set by `swarm.mjs --fresh`) bypasses it for a full re-scan.
         const mem = this.readCardMemory(cardId);
         const last = mem.observations?.[mem.observations.length - 1];
         let priceCents, source, confidence, compCount, cached = false;
+        const freshOnly = process.env.FORCE_FRESH === '1';
 
-        if (last?.priceCents > 0 && (Date.now() - new Date(last.date).getTime()) < CACHE_TTL) {
+        if (!freshOnly && last?.priceCents > 0 && (Date.now() - new Date(last.date).getTime()) < CACHE_TTL) {
           ({ priceCents, confidence } = last);
           source = last.source; compCount = last.comps; cached = true;
         } else {
@@ -120,17 +123,21 @@ class GoldinTfAgent extends TinyfishAgent {
   }
 }
 
-/// Fanatics Collect / PWCC realized + buy-now (independent marketplace).
+/// Fanatics Collect / PWCC realized — its own auction + buy-now tape, genuinely
+/// independent of eBay. Reads the public sold-history search directly (deterministic
+/// DOM scrape via the stealth browser), grade-matched to recent PSA-10 sales.
 class FanaticsTfAgent extends TinyfishAgent {
   constructor(c) { super('fanatics', c); }
-  async fetchSignal(meta) {
-    const results = await tfSearch(`${meta.query} PSA 10 Fanatics Collect PWCC sold price`);
-    const prices = results
-      .filter((r) => /fanaticscollect|pwcc/i.test((r.snippet || '') + (r.url || '')))
-      .flatMap((r) => grade10Prices(r.snippet || ''));
-    const p = median(prices);
-    if (!p) return null;
-    return { priceCents: Math.round(p * 100), source: 'fanatics-pwcc', confidence: 0.7, compCount: prices.length || 1 };
+  async fetchSignal(_meta, cardId) {
+    const r = await scrapeFanatics(cardId);
+    if (!r || !r.priceUsd) return null;
+    return {
+      priceCents: r.priceUsd * 100,
+      source: 'fanatics-pwcc',
+      confidence: 0.78,
+      compCount: r.compCount,
+      salesUsd: r.salesUsd,
+    };
   }
 }
 

@@ -10,27 +10,43 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const BK = '/Users/pat/Desktop/1_projects/slabclaw/slabclaw-app/backend/node_modules';
 
-let _chromium = null;
-let _browser = null;
-let _stealth = false;
+// Two pools: headless (fast, fine for most venues) and HEADED (clears Cloudflare
+// challenges that headless fingerprints trip — the 130point lesson).
+const _pool = { headless: null, headed: null };
 
-async function getBrowser() {
-  // Prefer patchright (stealth Chromium) — its fingerprint clears Cloudflare / light bot
-  // checks that trip a vanilla Playwright + system Chrome. Fall back to system Chrome if the
-  // stealth browser can't launch (e.g. its binary isn't installed).
-  if (!_browser || !_browser.isConnected()) {
-    if (!_stealth) {
-      try {
-        const pw = require(`${BK}/patchright`).chromium;
-        _browser = await pw.launch({ args: ['--no-sandbox'] });
-        _chromium = pw; _stealth = true;
-        return _browser;
-      } catch { /* fall through to system Chrome */ }
-    }
-    if (!_chromium) _chromium = require(`${BK}/playwright`).chromium;
-    _browser = await _chromium.launch({ channel: 'chrome', args: ['--no-sandbox'] });
+// Concurrency limiter: the swarm fires ~12 agents in parallel, but a single
+// browser can't run 8 interactive scrapes at once — they thrash and time out.
+// Cap concurrent page work so each scrape gets the browser's attention. Queued
+// calls wait their turn rather than failing.
+const MAX_CONCURRENT = Number(process.env.BROWSER_CONCURRENCY) || 2;
+let _active = 0;
+const _waiters = [];
+async function acquire() {
+  if (_active < MAX_CONCURRENT) { _active++; return; }
+  await new Promise((resolve) => _waiters.push(resolve));
+  _active++;
+}
+function release() {
+  _active--;
+  const next = _waiters.shift();
+  if (next) next();
+}
+
+async function getBrowser(headed = false) {
+  const key = headed ? 'headed' : 'headless';
+  if (!_pool[key] || !_pool[key].isConnected()) {
+    // Prefer patchright (stealth Chromium) — its fingerprint clears Cloudflare / light bot
+    // checks that trip a vanilla Playwright + system Chrome. Fall back to system Chrome if
+    // the stealth browser can't launch (e.g. its binary isn't installed).
+    try {
+      const pw = require(`${BK}/patchright`).chromium;
+      _pool[key] = await pw.launch({ headless: !headed, args: ['--no-sandbox'] });
+      return _pool[key];
+    } catch { /* fall through to system Chrome */ }
+    const chromium = require(`${BK}/playwright`).chromium;
+    _pool[key] = await chromium.launch({ channel: 'chrome', headless: !headed, args: ['--no-sandbox'] });
   }
-  return _browser;
+  return _pool[key];
 }
 
 // Best-effort dismiss of cookie / consent banners that otherwise dominate body.innerText.
@@ -41,32 +57,46 @@ async function dismissBanners(page) {
   }
 }
 
+// A Cloudflare interstitial reads as a near-empty page with one of these markers.
+const CF_MARKERS = /verify you are human|checking your browser|just a moment|cf-chl|enable javascript and cookies/i;
+function looksBlocked(text) {
+  return !text || text.length < 400 || CF_MARKERS.test(text.slice(0, 600));
+}
+
 /// Render a URL and return its visible text (document.body.innerText). null on failure.
-export async function renderText(url, { waitMs = 2500, timeout = 30000 } = {}) {
-  let page;
+/// Tries headless first; when the page looks like a bot-challenge, retries HEADED
+/// (slow but clears Cloudflare). Pass { headed: true } to go straight to headed.
+export async function renderText(url, { waitMs = 2500, timeout = 30000, headed = false } = {}) {
+  await acquire();
   try {
-    const b = await getBrowser();
-    page = await b.newPage({
-      viewport: { width: 1280, height: 1800 },
-      userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-    });
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
-    await page.waitForTimeout(1200);
-    await dismissBanners(page);
-    await page.waitForTimeout(waitMs);
-    return await page.evaluate(() => document.body.innerText);
-  } catch {
-    return null;
-  } finally {
-    if (page) await page.close().catch(() => {});
+  for (const useHeaded of headed ? [true] : [false, true]) {
+    let page;
+    try {
+      const b = await getBrowser(useHeaded);
+      page = await b.newPage({
+        viewport: { width: 1280, height: 1800 },
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+      });
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
+      await page.waitForTimeout(useHeaded ? 4500 : 1200); // headed: give the CF check time to clear
+      await dismissBanners(page);
+      await page.waitForTimeout(waitMs);
+      const text = await page.evaluate(() => document.body.innerText);
+      if (!looksBlocked(text)) return text;
+    } catch { /* try the next mode */ } finally {
+      if (page) await page.close().catch(() => {});
+    }
   }
+  return null;
+  } finally { release(); }
 }
 
 /// Render and run a DOM extraction fn in the page context. null on failure.
-export async function renderEval(url, evalFn, { waitMs = 2500, timeout = 30000 } = {}) {
+export async function renderEval(url, evalFn, { waitMs = 2500, timeout = 30000, headed = false } = {}) {
+  await acquire();
   let page;
   try {
-    const b = await getBrowser();
+    const b = await getBrowser(headed);
     page = await b.newPage({ viewport: { width: 1280, height: 1800 } });
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
     await page.waitForTimeout(waitMs);
@@ -75,9 +105,95 @@ export async function renderEval(url, evalFn, { waitMs = 2500, timeout = 30000 }
     return null;
   } finally {
     if (page) await page.close().catch(() => {});
+    release();
   }
 }
 
+/// Load a page, type a query into a search box, submit, and return the rendered
+/// text after results load. For venues (Fanatics) whose sold-history is a
+/// client-side search rather than a URL the swarm can hit directly. null on failure.
+export async function renderSearch(url, query, inputSelector, { waitMs = 6000, timeout = 45000, headed = false } = {}) {
+  await acquire();
+  try {
+  for (const useHeaded of headed ? [true] : [false, true]) {
+    let page;
+    try {
+      const b = await getBrowser(useHeaded);
+      page = await b.newPage({
+        viewport: { width: 1280, height: 1800 },
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+      });
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
+      await page.waitForTimeout(useHeaded ? 4000 : 2500);
+      await dismissBanners(page);
+      const input = page.locator(inputSelector).first();
+      await input.fill(query, { timeout: 8000 });
+      await page.waitForTimeout(700);
+      await input.press('Enter');
+      await page.waitForTimeout(waitMs);
+      const text = await page.evaluate(() => document.body.innerText);
+      if (!looksBlocked(text)) return text;
+    } catch { /* try next mode */ } finally {
+      if (page) await page.close().catch(() => {});
+    }
+  }
+  return null;
+  } finally { release(); }
+}
+
+/// Like renderSearch, but run a DOM-extraction fn in the page after results load
+/// and return its result. Structured extraction beats parsing flattened innerText
+/// when rows carry title/price/date that must not be cross-associated. null on failure.
+/// opts.validate(rows) -> bool: decides whether the polled rows are the REAL
+/// search results (not the page's pre-filter default rows that render first).
+/// Without it, any non-empty extract is accepted. Critical for sites (Fanatics)
+/// that show default content before the query filter applies.
+export async function searchAndExtract(url, query, inputSelector, extractFn, { waitMs = 6500, timeout = 45000, headed = false, pollMs = 18000, validate = null } = {}) {
+  await acquire();
+  try {
+  let best = null;
+  for (const useHeaded of headed ? [true] : [false, true]) {
+    let page;
+    try {
+      const b = await getBrowser(useHeaded);
+      page = await b.newPage({
+        viewport: { width: 1280, height: 1800 },
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+      });
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
+      await page.waitForTimeout(useHeaded ? 4000 : 2500);
+      await dismissBanners(page);
+      const input = page.locator(inputSelector).first();
+      await input.fill(query, { timeout: 8000 });
+      await page.waitForTimeout(700);
+      await input.press('Enter');
+      await page.waitForTimeout(1500);
+      // Async results render on their own clock AND the page may show default rows
+      // before the query filter lands — POLL until rows pass validate(), not just
+      // until any rows appear.
+      const deadline = Date.now() + pollMs;
+      while (Date.now() < deadline) {
+        const txt = await page.evaluate(() => document.body.innerText);
+        if (!looksBlocked(txt)) {
+          const rows = await page.evaluate(extractFn);
+          if (rows && rows.length) {
+            if (!validate || validate(rows)) return rows;
+            best = rows; // remember in case nothing ever validates
+          }
+        }
+        await page.waitForTimeout(1500);
+      }
+    } catch { /* try next mode */ } finally {
+      if (page) await page.close().catch(() => {});
+    }
+  }
+  // Nothing validated across both modes. Return best-effort (caller re-filters).
+  return best;
+  } finally { release(); }
+}
+
 export async function closeBrowser() {
-  if (_browser) { await _browser.close().catch(() => {}); _browser = null; }
+  for (const key of ['headless', 'headed']) {
+    if (_pool[key]) { await _pool[key].close().catch(() => {}); _pool[key] = null; }
+  }
 }

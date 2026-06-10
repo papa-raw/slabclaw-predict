@@ -112,6 +112,48 @@
       "confidence": 0.85,
       "comps": 3,
       "source": "psa-apr"
+    },
+    {
+      "date": "2026-06-10T08:57:31.402Z",
+      "priceCents": 337500,
+      "confidence": 0.85,
+      "comps": 3,
+      "source": "psa-apr"
+    },
+    {
+      "date": "2026-06-10T08:59:36.787Z",
+      "priceCents": 337500,
+      "confidence": 0.85,
+      "comps": 3,
+      "source": "psa-apr"
+    },
+    {
+      "date": "2026-06-10T09:10:58.348Z",
+      "priceCents": 337500,
+      "confidence": 0.85,
+      "comps": 3,
+      "source": "psa-apr"
+    },
+    {
+      "date": "2026-06-10T09:21:45.642Z",
+      "priceCents": 337500,
+      "confidence": 0.85,
+      "comps": 3,
+      "source": "psa-apr"
+    },
+    {
+      "date": "2026-06-10T09:25:27.233Z",
+      "priceCents": 337500,
+      "confidence": 0.85,
+      "comps": 3,
+      "source": "psa-apr"
+    },
+    {
+      "date": "2026-06-10T09:36:40.421Z",
+      "priceCents": 337500,
+      "confidence": 0.85,
+      "comps": 3,
+      "source": "psa-apr"
     }
   ],
   "anomalies": []
