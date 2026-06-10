@@ -169,7 +169,10 @@
   .cardfan img:nth-child(1) { transform: rotate(-8deg) translateX(46px); }
   .cardfan img:nth-child(2) { transform: rotate(0deg); position: relative; z-index: 2 }
   .cardfan img:nth-child(3) { transform: rotate(8deg) translateX(-46px); }
-  @media (max-width: 1180px) { .cardfan { display: none } }
+  /* shrink the fan a touch on narrower laptops so it never crowds the headline,
+     and only hide it on tablets/phones where there's genuinely no room */
+  @media (max-width: 1080px) { .cardfan img { width: clamp(96px,10vw,140px) } .cardfan img:nth-child(1){transform:rotate(-8deg) translateX(34px)} .cardfan img:nth-child(3){transform:rotate(8deg) translateX(-34px)} }
+  @media (max-width: 820px) { .cardfan { display: none } }
 
   @media (max-width: 880px) {
     .split, .cols-3, .cols-4 { grid-template-columns: 1fr }
