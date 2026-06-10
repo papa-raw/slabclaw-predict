@@ -5,6 +5,7 @@
 /// comment rather than the condition badge.
 
 import { execFile } from 'node:child_process';
+import { renderEval } from './browser.mjs';
 
 export const CARDMARKET_URLS = {
   'neo1-1st-18': 'https://www.cardmarket.com/en/Pokemon/Products/Singles/Neo-Genesis/Typhlosion-NG18?language=1&minCondition=3&isFirstEd=Y',
@@ -45,11 +46,38 @@ export function parseGrade(s) {
   return { grader: GRADER_MAP[m[1].toUpperCase()] || m[1].toUpperCase(), grade: parseFloat(m[2].replace(',', '.')) };
 }
 
+/// BACKUP transport: render the public product page with the HEADED stealth
+/// browser (a residential IP + patchright clears checks a datacenter fetch
+/// can't) and read the offers table straight out of the DOM. The grade lives
+/// in the seller-comment column, not the condition badge — same rule as the
+/// agent goal.
+async function browserBackup(url) {
+  const rows = await renderEval(url, () => {
+    const out = [];
+    document.querySelectorAll('div.article-row').forEach((row) => {
+      const seller = row.querySelector('.seller-name a, .seller-info a')?.textContent?.trim() || '';
+      const price = row.querySelector('.price-container')?.textContent?.trim() || '';
+      const comment = row.querySelector('.product-comments, [class*="comment"]')?.textContent?.trim() || '';
+      const cond = row.querySelector('.article-condition .badge, [class*="condition"] .badge')?.textContent?.trim() || '';
+      const country = row.querySelector('.seller-info [data-bs-original-title], .seller-info [title]')?.getAttribute('data-bs-original-title')
+        || row.querySelector('.seller-info [title]')?.getAttribute('title') || '';
+      if (price) out.push({ seller, country, condition: cond, grade: comment, priceText: price });
+    });
+    return out;
+  }, { waitMs: 4000, timeout: 45000, headed: true });
+  if (!rows || !rows.length) return null;
+  return rows.map((o) => ({
+    ...o,
+    priceEur: parseFloat(String(o.priceText).replace(/[^\d,.]/g, '').replace(/\.(?=\d{3})/g, '').replace(',', '.')) || null,
+  }));
+}
+
 /// Scrape one card's Cardmarket offers → normalized listings (incl. grade from notes).
+/// TinyFish browser-agent when available; headed stealth-browser DOM read as backup.
 export async function scrapeCardmarketCard(cardId) {
   const url = CARDMARKET_URLS[cardId];
   if (!url) return [];
-  const raw = await tfAgent(url);
+  const raw = (await tfAgent(url)) || (await browserBackup(url));
   if (!raw) return [];
   return raw.map((o) => {
     const { grader, grade } = parseGrade(o.grade);

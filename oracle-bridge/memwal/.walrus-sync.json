@@ -6,6 +6,48 @@
       "fileCount": 137,
       "sizeBytes": 722815,
       "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/Sc3deJUZ_1CYFpwPFu3DgqibSKx3s0DLPwqx_NdfDFI"
+    },
+    {
+      "blobId": "oHsWKCipONJ1eXFUaaOaQoUzdw3XiEKTLzysdsloCa4",
+      "timestamp": "2026-06-10T08:58:53.426Z",
+      "fileCount": 139,
+      "sizeBytes": 745623,
+      "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/oHsWKCipONJ1eXFUaaOaQoUzdw3XiEKTLzysdsloCa4"
+    },
+    {
+      "blobId": "9Oi7rqRyJ8rU50X-s57GnzRs0gnFcHvhQlNcjwXS_KY",
+      "timestamp": "2026-06-10T09:00:57.351Z",
+      "fileCount": 141,
+      "sizeBytes": 768370,
+      "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/9Oi7rqRyJ8rU50X-s57GnzRs0gnFcHvhQlNcjwXS_KY"
+    },
+    {
+      "blobId": "pV0xMnYQvMYW-XzOrZ_dCEkC_MyztryE5cock3nXm-E",
+      "timestamp": "2026-06-10T09:12:40.280Z",
+      "fileCount": 143,
+      "sizeBytes": 786918,
+      "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/pV0xMnYQvMYW-XzOrZ_dCEkC_MyztryE5cock3nXm-E"
+    },
+    {
+      "blobId": "t8-Uy08EhaxAxIHl9_uHsbBYVgqb2OBMCJNGQGnoT-E",
+      "timestamp": "2026-06-10T09:23:28.278Z",
+      "fileCount": 145,
+      "sizeBytes": 821122,
+      "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/t8-Uy08EhaxAxIHl9_uHsbBYVgqb2OBMCJNGQGnoT-E"
+    },
+    {
+      "blobId": "gTbXEVCL8Hu18wcb4qAvZNzBHFZ6POJzPkhj9_mDMV8",
+      "timestamp": "2026-06-10T09:27:09.450Z",
+      "fileCount": 147,
+      "sizeBytes": 835506,
+      "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/gTbXEVCL8Hu18wcb4qAvZNzBHFZ6POJzPkhj9_mDMV8"
+    },
+    {
+      "blobId": "nnK7y5jKaihWIp-T5S5_Ze7Tv3WQP3V8myMxyrvFv_I",
+      "timestamp": "2026-06-10T09:38:44.848Z",
+      "fileCount": 149,
+      "sizeBytes": 861667,
+      "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/nnK7y5jKaihWIp-T5S5_Ze7Tv3WQP3V8myMxyrvFv_I"
     }
   ]
 }

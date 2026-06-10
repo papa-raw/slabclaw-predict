@@ -5,29 +5,101 @@
 /// Two primitives: tfSearch (web search → results[]) and tfFetch (URL → markdown).
 /// Plus tfResolve ("google into" a page: search, then take the first result whose
 /// host matches) and grade-matched price extractors.
+///
+/// SELF-HEALING: when the TinyFish CLI fails (credits exhausted, rate-limited,
+/// not installed), a circuit breaker opens and every call transparently routes
+/// through the backup transport — the patchright stealth browser (browser.mjs,
+/// headed when Cloudflare demands it) for fetches and DuckDuckGo-HTML for
+/// search. The swarm never goes blind because an API ran dry.
 
 import { execFile } from 'node:child_process';
+import { renderText } from './browser.mjs';
+
+// ── TinyFish circuit breaker ────────────────────────────────────────────────
+// Open after this many consecutive CLI failures; everything then goes straight
+// to the backup transport for the rest of the process (and logs it once).
+const TF_TRIP_AFTER = 2;
+let _tfFailures = 0;
+let _tfDown = false;
+let _tfDownLogged = false;
+
+function tfAvailable() {
+  return !_tfDown;
+}
+function tfRecordResult(ok) {
+  if (ok) { _tfFailures = 0; return; }
+  _tfFailures++;
+  if (_tfFailures >= TF_TRIP_AFTER && !_tfDown) {
+    _tfDown = true;
+    if (!_tfDownLogged) {
+      _tfDownLogged = true;
+      console.log('  [tinyfish] CLI unavailable (credits/limits) — backup browser transport engaged for this run');
+    }
+  }
+}
 
 function runCli(args, timeoutMs) {
   return new Promise((resolve) => {
-    execFile('tinyfish', args, { timeout: timeoutMs, maxBuffer: 16 * 1024 * 1024 }, (err, stdout) => {
-      if (!stdout) return resolve(null);
+    execFile('tinyfish', args, { timeout: timeoutMs, maxBuffer: 16 * 1024 * 1024 }, (err, stdout, stderr) => {
+      // Credit exhaustion / quota errors come back on stderr with empty stdout —
+      // treat any empty/unparseable response as a CLI failure for the breaker.
+      if (err || !stdout) return resolve(null);
       try { resolve(JSON.parse(stdout)); } catch { resolve(null); }
     });
   });
 }
 
-/// Web search. Returns [{ position, site_name, title, snippet, url }].
-export async function tfSearch(query, timeoutMs = 45000) {
-  const d = await runCli(['search', 'query', query], timeoutMs);
-  return Array.isArray(d?.results) ? d.results : [];
+// ── Backup search: DuckDuckGo HTML endpoint (no JS, no API, parseable) ──────
+async function ddgSearch(query, timeoutMs = 20000) {
+  try {
+    const resp = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36' },
+      signal: AbortSignal.timeout?.(timeoutMs),
+    });
+    if (!resp.ok) return [];
+    const html = await resp.text();
+    const out = [];
+    // result blocks: <a class="result__a" href="…">title</a> … <a class="result__snippet">snippet</a>
+    const re = /<a[^>]*class="result__a"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?(?:<a[^>]*class="result__snippet"[^>]*>([\s\S]*?)<\/a>)?/g;
+    let m;
+    while ((m = re.exec(html)) !== null && out.length < 10) {
+      let url = m[1];
+      // DDG wraps results: //duckduckgo.com/l/?uddg=<encoded>&rut=…
+      const uddg = /[?&]uddg=([^&]+)/.exec(url);
+      if (uddg) url = decodeURIComponent(uddg[1]);
+      const strip = (s) => (s || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+      out.push({ position: out.length + 1, site_name: '', title: strip(m[2]), snippet: strip(m[3]), url });
+    }
+    return out;
+  } catch {
+    return [];
+  }
 }
 
-/// Fetch a URL as markdown. Returns { text, finalUrl }.
+/// Web search. Returns [{ position, site_name, title, snippet, url }].
+/// TinyFish when available; DuckDuckGo-HTML backup otherwise.
+export async function tfSearch(query, timeoutMs = 45000) {
+  if (tfAvailable()) {
+    const d = await runCli(['search', 'query', query], timeoutMs);
+    const results = Array.isArray(d?.results) ? d.results : null;
+    tfRecordResult(results !== null);
+    if (results !== null) return results;
+  }
+  return ddgSearch(query);
+}
+
+/// Fetch a URL as markdown/text. Returns { text, finalUrl }.
+/// TinyFish when available; patchright stealth browser (headless→headed) backup.
 export async function tfFetch(url, timeoutMs = 70000) {
-  const d = await runCli(['fetch', 'content', 'get', url], timeoutMs);
-  const r = (Array.isArray(d?.results) ? d.results[0] : d) || {};
-  return { text: r.text || '', finalUrl: r.final_url || url };
+  if (tfAvailable()) {
+    const d = await runCli(['fetch', 'content', 'get', url], timeoutMs);
+    const r = (Array.isArray(d?.results) ? d.results[0] : d) || {};
+    const ok = !!r.text;
+    tfRecordResult(ok);
+    if (ok) return { text: r.text, finalUrl: r.final_url || url };
+  }
+  const text = await renderText(url, { timeout: Math.min(timeoutMs, 45000) });
+  return { text: text || '', finalUrl: url };
 }
 
 /// "Google into" a page: search, return the first result URL whose host matches.

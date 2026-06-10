@@ -8,6 +8,7 @@
 /// coverage already comes from eBay / PriceCharting / PSA APR / Goldin / Fanatics).
 
 import { execFile } from 'node:child_process';
+import { renderText } from './browser.mjs';
 
 const USD_JPY = 150; // approximate FX for yen-denominated closing prices
 
@@ -47,12 +48,38 @@ function tfAgent(url, timeoutMs = 150000) {
   });
 }
 
+/// BACKUP transport: render the closed-search page with the stealth browser and
+/// parse rows deterministically. Same filters as the agent goal: PSA-10 AND the
+/// VS-series print, realized yen prices only.
+function parseClosedSearchText(text) {
+  if (!text) return null;
+  const out = [];
+  // Listing rows surface as "…title… 12,345円" in the rendered text; check the
+  // window before each yen amount for the grade + series markers.
+  const re = /([\d][\d,]{3,})円/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const windowText = text.slice(Math.max(0, m.index - 200), m.index);
+    const isPsa10 = /PSA\s*10/i.test(windowText) && !/PSA\s*[1-9](?![\d０-９])/i.test(windowText.replace(/PSA\s*10/ig, ''));
+    const isVs = /ポケモンカードVS|カードVS|\bVS\b/i.test(windowText);
+    const yen = parseInt(m[1].replace(/,/g, ''), 10);
+    if (isPsa10 && isVs && yen >= 10_000) out.push({ title: windowText.slice(-80), priceYen: yen, isPsa10: true, isVsSeries: true });
+  }
+  return out.length ? out : null;
+}
+
+async function browserBackup(url) {
+  const text = await renderText(url, { waitMs: 3000, timeout: 40000 });
+  return parseClosedSearchText(text);
+}
+
 /// Scrape one card's Yahoo JP closed auctions → { priceUsd, compCount, salesUsd } | null.
 /// Returns the MEDIAN of PSA-10 closing prices (realized), converted to USD.
+/// TinyFish browser-agent when available; stealth-browser parse as the backup.
 export async function scrapeYahooJp(cardId) {
   const q = YAHOO_JP_QUERIES[cardId];
   if (!q) return null;
-  const raw = await tfAgent(yahooClosedUrl(q));
+  const raw = (await tfAgent(yahooClosedUrl(q))) || (await browserBackup(yahooClosedUrl(q)));
   if (!raw || !raw.length) return null;
 
   // PSA-10 AND the VS-series card only — exclude cheaper Karen's Umbreon prints.

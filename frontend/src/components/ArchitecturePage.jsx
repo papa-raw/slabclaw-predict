@@ -174,16 +174,20 @@ export default function ArchitecturePage() {
         </div>
       </div>
 
-      {/* Why TinyFish */}
+      {/* How agents read the venues — two transports, no single point of failure */}
       <div className="bg-sc-card border border-sc-border rounded-xl p-4 mb-10">
-        <div className="text-[10px] font-semibold text-sc-accent uppercase tracking-wide mb-1.5">Why TinyFish</div>
+        <div className="text-[10px] font-semibold text-sc-accent uppercase tracking-wide mb-1.5">How agents read the venues</div>
         <p className="text-[12px] leading-relaxed text-sc-dim">
-          The source agents read prices through{' '}
+          Many venues — Fanatics&rsquo; sold-history, Cardmarket, Goldin, live Yahoo auction pages — are
+          JavaScript-heavy apps whose publicly-listed prices a plain HTTP fetch can&rsquo;t read. Agents reach them
+          through{' '}
           <a href="https://www.tinyfish.ai" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">TinyFish</a>{' '}
-          browser agents. Many venues — Cardmarket, Goldin, live Yahoo auction pages — are JavaScript-heavy
-          single-page apps whose publicly-listed prices a plain HTTP fetch can’t read. TinyFish renders the
-          real page in a browser and returns structured data from a plain-language goal, so the swarm reaches
-          a wider set of genuinely independent, uncorrelated sources for its consensus.{' '}
+          browser agents and{' '}
+          <Term def="A self-hosted stealth-Chromium transport (patchright) that renders the real page — headed where Cloudflare demands it — and extracts grade-matched sold comps straight from the DOM. When TinyFish is rate-limited or out of credits, a circuit breaker opens and every agent routes through this backup automatically, so the swarm never goes blind.">a
+          self-hosted stealth-browser backup</Term>{' '}
+          that takes over automatically when the API is rate-limited — so the oracle never goes blind because a
+          single provider ran dry. Both render the page and read grade-matched realized prices from genuinely
+          independent venues.{' '}
           <a href="#legal" className="text-sc-accent hover:underline">Data &amp; sources →</a>
         </p>
       </div>

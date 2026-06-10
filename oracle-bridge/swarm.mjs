@@ -38,6 +38,8 @@ const WATCH = args.includes('--watch');
 const PROPOSE = args.includes('--propose');
 const DRY = args.includes('--dry');
 const VERBOSE = args.includes('--verbose');
+// --fresh: bypass the 6h warm cache and re-scrape every venue (full re-scan).
+if (args.includes('--fresh')) process.env.FORCE_FRESH = '1';
 const INTERVAL = (parseInt(args.find((a) => /^\d+$/.test(a)), 10) || 300) * 1000;
 
 const MEMWAL_ROOT = join(new URL('.', import.meta.url).pathname, 'memwal');
