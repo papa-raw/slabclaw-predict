@@ -45,6 +45,13 @@ export default function Footer({ onFunded }) {
 
           {/* faucet — pushed right */}
           <div className="flex items-center gap-2.5 ml-auto">
+            {/* tx fees need testnet SUI, which we can't mint for you — a cold visitor
+                with an empty wallet would otherwise hit a silent wall on first trade */}
+            <a href="https://faucet.sui.io/?network=testnet" target="_blank" rel="noopener noreferrer"
+              className="hidden sm:inline text-[11px] text-sc-dim hover:text-sc-accent transition"
+              title="Transactions need a little testnet SUI for gas — free from the official faucet">
+              Need gas? Get testnet SUI ↗
+            </a>
             {hasWallet && (
               <span className="tnum text-sc-dim">
                 Balance <span className="text-sc-text font-semibold">{balLoading ? '—' : balance.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span> tUSD

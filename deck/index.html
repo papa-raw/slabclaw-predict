@@ -199,12 +199,11 @@
     <div class="kicker" style="margin-bottom:18px">Sui Overflow 2026 · Walrus Track</div>
     <h1 style="margin-top:8px; max-width:58%">A&nbsp;<span class="grad">memory-backed oracle&nbsp;swarm</span> for real-world asset&nbsp;prices.</h1>
     <p class="lead" style="margin-top:20px; max-width:54%">
-      9&nbsp;source-specialist agents price graded collectibles across every major&nbsp;venue.
-      They remember, coordinate, and publish verifiable evidence on&nbsp;<a href="https://www.walrus.xyz" target="_blank" rel="noopener"><strong>Walrus</strong></a>.
+      Agents that read every major venue, <strong>remember on&nbsp;<a href="https://www.walrus.xyz" target="_blank" rel="noopener">Walrus</a></strong>, and publish proof anyone can&nbsp;re-run.
     </p>
     <div class="stats">
-      <div class="stat"><span class="n teal">9</span><span class="l">Source agents</span></div>
-      <div class="stat"><span class="n gold">$2B+</span><span class="l">Market / year</span></div>
+      <div class="stat"><span class="n teal">13</span><span class="l">Source agents</span></div>
+      <div class="stat"><span class="n gold">11</span><span class="l">Independent venues</span></div>
       <div class="stat"><span class="n green">4</span><span class="l">Live testnet markets</span></div>
     </div>
   </section>
@@ -216,15 +215,15 @@
     <div class="split" style="margin-top:28px">
       <div>
         <ul class="list">
-          <li><b>Thin markets:</b> many cards see 0–2&nbsp;sales a&nbsp;month, so one wash trade can set the&nbsp;"price."</li>
-          <li><b>No shared method:</b> eBay is sold comps, Goldin is auction hammers, ALT is an index, TCGPlayer is live&nbsp;asks&nbsp;— different methods, grades, and recency, and every venue has a stake in its own&nbsp;number.</li>
-          <li><b>No onchain price → no onchain market:</b> prediction markets, lending, and fractionalization are all blocked without one.</li>
+          <li><b>Thin markets:</b> one wash trade can set the&nbsp;"price."</li>
+          <li><b>Every venue</b> uses its own method&nbsp;— and has a stake in its own&nbsp;number.</li>
+          <li><b>No trustworthy price</b> → no onchain RWA markets. Everything downstream is&nbsp;blocked.</li>
         </ul>
       </div>
       <div class="card" style="border-color:var(--line-s)">
         <div class="ek">The consequence</div>
-        <h3 style="margin-top:6px">Every feed is single-source, point-in-time, and&nbsp;unauditable.</h3>
-        <p>You take the number on&nbsp;faith. There's no way to verify how a&nbsp;price was computed, what was excluded, or who benefits from the&nbsp;answer.</p>
+        <h3 style="margin-top:6px">Today you take the number on&nbsp;faith.</h3>
+        <p>Single-source, point-in-time, unauditable.</p>
       </div>
     </div>
   </section>
@@ -236,23 +235,17 @@
     <div class="split" style="margin-top:24px; grid-template-columns:1fr 1.04fr; align-items:start; width:100%; gap:clamp(24px,3vw,48px)">
       <div>
         <p class="lead">
-          Anyone trades YES/NO on whether a&nbsp;card beats a&nbsp;strike price by&nbsp;expiry. To settle, the market needs a&nbsp;real price&nbsp;— not a&nbsp;feed, but a&nbsp;<strong>swarm</strong> of&nbsp;9 agents that read every major venue, <strong>remember</strong> each card's history, and publish evidence on Walrus so <span class="teal">anyone can&nbsp;verify</span>.
+          Trade YES/NO on a card's price. Settling needs a&nbsp;<strong>real</strong> price&nbsp;— a swarm of 13 agents that <strong>remember</strong>, agree, and <span class="teal">show their&nbsp;work</span>.
         </p>
-        <p class="footnote" style="margin-top:16px; white-space:nowrap">Each agent: fetch → filter → self-score → circuit breakers → MemWal.</p>
+        <p class="footnote" style="margin-top:16px; white-space:nowrap">Each agent: fetch → filter → self-score → MemWal.</p>
       </div>
       <div>
-        <div class="ek" style="font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px">9 source agents · 9 perspectives</div>
+        <div class="ek" style="font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px">13 agents · 11 independent venue families</div>
         <table class="t">
           <tbody>
-            <tr><td><b>eBay</b></td><td class="green">realized · primary anchor</td></tr>
-            <tr><td><b>PriceCharting</b></td><td class="green">realized · deep history</td></tr>
-            <tr><td><b>Goldin</b></td><td class="green">realized · auction floor</td></tr>
-            <tr><td><b>Fanatics / PWCC</b></td><td class="green">realized · independent</td></tr>
-            <tr><td><b>PSA APR</b></td><td class="green">realized · grader’s own</td></tr>
-            <tr><td><b>Yahoo Auctions JP</b></td><td class="green">realized · independent JP</td></tr>
-            <tr><td><b>ALT.xyz</b></td><td>index-derived value</td></tr>
-            <tr><td><b>Cardmarket</b></td><td>ask · bounds the range</td></tr>
-            <tr><td><b>TCGPlayer</b></td><td>ask · retail floor</td></tr>
+            <tr><td><b class="green">Sold prices settle</b></td><td>eBay-origin (one vote) · Goldin · Fanatics&nbsp;/&nbsp;PWCC · PSA&nbsp;APR · Yahoo&nbsp;JP</td></tr>
+            <tr><td><b>Asks only bound</b></td><td>Cardmarket · TCGPlayer · ALT · Courtyard · Beezie · Collector&nbsp;Crypt</td></tr>
+            <tr><td><b class="teal">Correlated tapes</b></td><td>collapse to one family — counts never inflate</td></tr>
           </tbody>
         </table>
       </div>
@@ -271,7 +264,7 @@
         </defs>
 
         <!-- Tier 1 label -->
-        <text x="12" y="18" class="label" fill="#5C6578">TIER 1 · SOURCE AGENTS (PARALLEL)</text>
+        <text x="12" y="18" class="label" fill="#5C6578">TIER 1 · 13 SOURCE AGENTS, PARALLEL (9 SHOWN)</text>
 
         <!-- 9 agent boxes -->
         <g>
@@ -370,10 +363,10 @@
     <div class="split" style="margin-top:24px">
       <div>
         <ul class="list">
-          <li><b>Per-card price history:</b> the last 100&nbsp;observations per source, so today's number is judged against the card's own&nbsp;past.</li>
-          <li><b>Reputation weights:</b> a running average of how often each source has agreed with the final&nbsp;consensus. Sources that track it earn weight; drifters lose&nbsp;it.</li>
-          <li><b>Anomaly memory:</b> every flagged manipulation (price jumps, seller concentration) is remembered per&nbsp;card and pre-filtered next&nbsp;run.</li>
-          <li><b>Walrus persistence:</b> the whole learned state snapshots to Walrus each&nbsp;run. A fresh machine restores it from one blob&nbsp;ID&nbsp;— <span class="teal">no warm-up, no central database, and the memory can't be silently&nbsp;altered.</span></li>
+          <li><b>Price history:</b> today's number is judged against the card's own&nbsp;past.</li>
+          <li><b>Reputation:</b> sources that track consensus earn weight; drifters lose&nbsp;it.</li>
+          <li><b>Anomaly memory:</b> past manipulation is pre-filtered next&nbsp;run.</li>
+          <li><b>One blob ID</b> restores it all on a fresh machine&nbsp;— <span class="teal">our production node does exactly this, every 6&nbsp;hours.</span></li>
         </ul>
       </div>
       <div class="card" style="border-color:var(--line-s)">
@@ -389,7 +382,7 @@
     …
   ]
 }</pre>
-        <p class="footnote" style="margin-top:10px"><a href="https://aggregator.walrus-testnet.walrus.space/v1/blobs/puArzfwFivKREcWXy-ndLen8lhufJyoIDr_2nNGfXJc" target="_blank">View MemWal snapshot on Walrus →</a></p>
+        <p class="footnote" style="margin-top:10px"><a href="https://walruscan.com/testnet/blob/hk5HrxTh_HZ9tByugQna3sH_UJiHI-giAaHKb5FxZCM" target="_blank">A real snapshot, on Walrus →</a> · <a href="https://api.slabclaw.com/predict/health" target="_blank">live feed health →</a></p>
       </div>
     </div>
   </section>
@@ -398,27 +391,25 @@
   <section class="slide">
     <div class="kicker">Observable learning · the Walrus payoff</div>
     <h2>Not just stored on Walrus. <span class="teal">Smarter because of&nbsp;it.</span></h2>
-    <p class="lead" style="margin-top:16px;font-size:clamp(15px,1.5vw,19px);max-width:none">
-      Memory persisted to Walrus is what lets the swarm improve run over run — and you can watch it happen.
-    </p>
+
     <div class="cols-3" style="margin-top:24px">
       <div class="card">
         <div class="ek">Reliability divergence</div>
         <h3 class="teal">Sources earn their weight</h3>
-        <p>Everyone starts at&nbsp;1.0. The reputation EMA learns who tracks&nbsp;consensus: eBay · PriceCharting · Courtyard hold <b>~86%</b>; thin or ask-only sources settle to <b>~44–49%</b>.</p>
+        <p>Everyone starts equal. Realized anchors earn <b>~88%</b>; noisy venues sink&nbsp;— asks never vote at&nbsp;all.</p>
       </div>
       <div class="card">
         <div class="ek">Confidence narrowing</div>
         <h3 class="blue">Bands tighten with data</h3>
-        <p>Each independent <b>realized</b> source narrows the consensus&nbsp;interval&nbsp;— and as a card's comp history, source reputations, and calibration all sharpen together, the band tightens and the settle gets more&nbsp;reliable.</p>
+        <p>Every remembered round narrows the consensus&nbsp;interval.</p>
       </div>
       <div class="card">
         <div class="ek">Self-correcting flags</div>
         <h3 class="gold">It learns each card's norm</h3>
-        <p>The quality tier stores a per-card <b>calibration</b> on&nbsp;Walrus. As a card warms, false-positive manipulation flags&nbsp;fall&nbsp;— the swarm stops crying wolf on that card's real&nbsp;spread.</p>
+        <p>Per-card calibration kills false alarms as the card&nbsp;warms.</p>
       </div>
     </div>
-    <p class="footnote" style="white-space:nowrap">Kill the process, restore memory from a Walrus blob, and the learned weights + calibrations come back with it. <span class="teal">Persistence is the mechanism, not the feature.</span></p>
+    <p class="footnote" style="white-space:nowrap">Kill the process. Restore the blob. <span class="teal">The learning comes back.</span></p>
   </section>
 
   <!-- 8 · MANIPULATION RESISTANCE -->
@@ -447,7 +438,7 @@
         <p>Won't settle under 3&nbsp;sources. UMA-style bonded dispute&nbsp;window. Wide disagreement → oracle&nbsp;declines.</p>
       </div>
     </div>
-    <p class="footnote" style="max-width:90ch">One wash source is 1 of 9 — MAD drops it. Moving the median takes faking many independent marketplaces at once, and any fresh source starts at low reputation weight, so it barely counts.</p>
+    <p class="footnote" style="max-width:90ch">One wash source is 1 of 11 families — MAD drops it. Moving the median means faking many marketplaces at&nbsp;once.</p>
   </section>
 
   <!-- 8 · EVIDENCE -->
@@ -457,12 +448,8 @@
     <div class="split" style="margin-top:24px">
       <div>
         <p class="lead" style="font-size:clamp(15px,1.5vw,19px)">
-          Each consensus round emits an <strong>evidence bundle</strong> — price, every comp, per-source weights, rejected outliers, the aggregation method — stored on Walrus with the blob ID referenced onchain. <strong>A market cannot settle without it</strong>; anyone pulls the blob and re-runs the math. Auditable by construction.
+          <strong>A market cannot settle without its evidence blob.</strong> The contract aborts. Pull the blob, re-run the math&nbsp;— the price either checks out or it&nbsp;doesn't.
         </p>
-        <ul class="list" style="margin-top:18px">
-          <li><b>Live on Sui testnet:</b> 4 PSA-10 markets with faucet&nbsp;tUSD.</li>
-          <li><b>Every resolution</b> carries a verifiable <span class="mono">evidence_blob_id</span>&nbsp;onchain.</li>
-        </ul>
         <p class="footnote" style="margin-top:16px; white-space:nowrap">Package <a href="https://suiscan.xyz/testnet/object/0x9807050b60400d30c848dcf035a2038b615ffdb7d6d2ed46332959d39b14f115" target="_blank">0x9807050b…</a> · <a href="https://suiscan.xyz/testnet/object/0xd77d634059460679568e4370fe570b758a47841ebf35a479d88f5b05f617879c" target="_blank">market object ↗</a> carries <a href="https://walruscan.com/testnet/blob/Q2dlXakO8CMH3vL9BKJn60jL0Ac7uWN-jx8cSWosGRE" target="_blank">evidence blob ↗</a></p>
       </div>
       <div class="card" style="border-color:var(--line-s)">
@@ -493,14 +480,14 @@
     <div class="split" style="margin-top:24px">
       <div>
         <p class="lead" style="font-size:clamp(14px,1.4vw,17.5px)">
-          The two functions that move money are machine-checked by the <strong>Sui Prover</strong> (Z3&nbsp;+&nbsp;Boogie) — they hold for <span class="teal">every</span> input, not just the cases a unit test happens to&nbsp;try.
+          The functions that move money are machine-checked for <span class="teal">every</span> input&nbsp;— not just the cases a test happens to&nbsp;try.
         </p>
         <ul class="list" style="margin-top:18px">
-          <li><b>Solvency:</b> a payout is always <span class="mono">≤</span> the&nbsp;pool. No claim can ever overdraw the&nbsp;market.</li>
-          <li><b>No silent truncation:</b> the <span class="mono">u128→u64</span> payout narrowing is proven&nbsp;lossless.</li>
-          <li><b>Bounded probability:</b> the YES price is always a valid <span class="mono">[0–10000]</span>&nbsp;bps, and provably&nbsp;overflow-safe.</li>
+          <li><b>Solvency:</b> no claim can ever overdraw the&nbsp;pool.</li>
+          <li><b>No silent truncation</b> in the payout&nbsp;math.</li>
+          <li><b>Probability bounded</b> and overflow-safe.</li>
         </ul>
-        <p class="footnote" style="margin-top:16px;white-space:nowrap">28/28 Move tests green · 40-check security review · root-caused, not patched.</p>
+        <p class="footnote" style="margin-top:16px;white-space:nowrap">28/28 Move tests · 40-check security review.</p>
       </div>
       <div class="card" style="border-color:var(--line-s)">
         <div class="ek" style="display:flex;align-items:center;gap:8px"><span class="pulse"></span> sui-prover · Z3&nbsp;+&nbsp;Boogie</div>
@@ -520,7 +507,7 @@
     <div class="kicker">The vision</div>
     <h2 style="max-width:none; font-size:clamp(26px,3.6vw,46px)">Every collectible has a price opinion.<br><span class="grad">We make it verifiable, neutral, and onchain.</span></h2>
     <p style="margin-top:22px; max-width:82%">
-      The prediction market proves the oracle works. The oracle is the lasting thing: a memory-backed agent swarm that turns scattered, gameable price signals into a <strong>public valuation commons</strong> on Walrus. It starts with cards. It extends to watches, sneakers, wine — any graded or authenticated real-world asset.
+      A <strong>public valuation commons</strong> on Walrus. Cards first&nbsp;— then watches, sneakers, wine, any authenticated real-world&nbsp;asset.
     </p>
     <p class="footnote" style="margin-top:32px">Don't trust the oracle — verify the blob.</p>
   </section>
