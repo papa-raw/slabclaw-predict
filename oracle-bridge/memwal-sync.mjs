@@ -82,7 +82,8 @@ export async function snapshotToWalrus() {
     return null;
   }
 
-  const resp = await fetch(`${PUBLISHER}/v1/blobs?epochs=5`, {
+  // 53 epochs ≈ max testnet retention — memory snapshots must outlive the judging window
+  const resp = await fetch(`${PUBLISHER}/v1/blobs?epochs=53`, {
     method: 'PUT',
     body: payload,
     headers: { 'Content-Type': 'application/json' },

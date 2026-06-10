@@ -2,7 +2,7 @@
 
 **Prediction markets on real-world collectibles, settled on Sui — priced by a memory-backed, manipulation-resistant multi-agent oracle swarm.**
 
-> *"Will PSA 10 Karen's Umbreon exceed $15,000 by October 1, 2026?"* — YES/NO, onchain, settled against real marketplace data from 9 independent source agents.
+> *"Will PSA 10 Karen's Umbreon exceed $15,000 by October 1, 2026?"* — YES/NO, onchain, settled against real marketplace data from 13 source agents across 11 independent venue families.
 
 **Sui Overflow 2026 · Walrus track** — memory-backed agents / MemWal
 
@@ -12,7 +12,7 @@
 
 ## The one-liner
 
-Anyone can trade YES/NO on whether a graded card exceeds a strike price by expiry. The market resolves against a **real price** — not a single feed, but a **swarm of 9 source-specialist agents** that read every major collectibles venue, **remember** each card's history and past manipulation attempts across sessions (persisted on **MemWal / Walrus Memory**), coordinate to a manipulation-resistant consensus, and store their evidence as verifiable artifacts on **Walrus**.
+Anyone can trade YES/NO on whether a graded card exceeds a strike price by expiry. The market resolves against a **real price** — not a single feed, but a **swarm of 13 source-specialist agents across 11 independent venue families** that reads every major collectibles venue, **remember** each card's history and past manipulation attempts across sessions (persisted on **MemWal / Walrus Memory**), coordinate to a manipulation-resistant consensus, and store their evidence as verifiable artifacts on **Walrus**.
 
 The prediction market is the showcase. **The agentic, memory-backed oracle is the product.**
 
@@ -20,7 +20,7 @@ The prediction market is the showcase. **The agentic, memory-backed oracle is th
 
 The Walrus track asks for *AI agents / agentic workflows with long-term memory (MemWal), long-running workflows where agents track state over time, and artifact-driven workflows.* Our oracle is exactly that:
 
-- **Multi-agent (9 specialists)** — one agent per marketplace source. Each knows its platform's data format, pricing patterns, and failure modes.
+- **Multi-agent (13 specialists, 11 independent venue families)** — one agent per marketplace source (eBay-origin feeds like PriceCharting and 130point collapse into a single voting family, so correlated tapes never inflate the count). Each agent knows its platform's data format, pricing patterns, and failure modes.
 - **Long-running + stateful** — agents continuously monitor prices and **remember**: per-card comp history, source reliability weights (evolving over rounds), and previously-detected manipulation patterns. Kill the process, restart — memory persists via MemWal.
 - **Coordinated** — agents reconcile heterogeneous inputs (sold comps, active listings, auction results, tokenized FMV) into one consensus via **confidence-weighted median + MAD outlier rejection**, with circuit breakers that block proposals when sources disagree.
 - **Artifact-driven** — every consensus round emits an evidence bundle on **Walrus** containing all inputs, weights, rejections, and aggregation math. Disputes are nearly self-resolving: download the blob, re-run the computation, verify.
@@ -40,16 +40,14 @@ Behind that: a 40-check security review with every finding root-caused and fixed
 ## Architecture
 
 ```
-TIER 1: Source Specialists (9 agents, parallel)
-  eBay ─────────────┐
-  PriceCharting ────┤
-  Courtyard ────────┤
-  TCGPlayer ────────┤  Each reads from SlabClaw's 10-platform
-  ALT.xyz ──────────┼─ registry API → platform-specific filtering
-  Cardmarket ───────┤  → local circuit breakers (price jump, stale
-  Beezie (Base) ────┤  feed, seller concentration, zero price)
-  Collector Crypt ──┤  → writes signal to shared MemWal context
-  Goldin Auctions ──┘
+TIER 1: Source Specialists (13 agents, parallel)
+  Registry-fed (6): eBay · PriceCharting ─┐  Read SlabClaw's registry API
+    Courtyard · TCGPlayer · Beezie ·      │  → platform-specific filtering
+    Collector Crypt                       │  → local circuit breakers (price
+  Venue-direct (7): PSA APR · Goldin ·    ├─ jump, stale feed, seller
+    Fanatics · ALT.xyz · Cardmarket ·     │  concentration, zero price)
+    Yahoo Auctions JP · 130point          │  → writes signal to MemWal
+  (eBay + PriceCharting + 130point share ─┘  one eBay-origin voting family)
 
          │ all signals → shared/agent-signals/latest.json
          ▼
@@ -71,7 +69,7 @@ TIER 3: Bridge Keeper (conditional)
 
 1. **Market** — a binary prediction: exact product (set · number · grader · grade), strike, expiry.
 2. **Trade** — buy YES or NO with **tUSD** (faucet-minted test USD); parimutuel pool.
-3. **Oracle swarm runs** — 9 agents fetch live marketplace data, coordinator aggregates, evidence uploads to Walrus.
+3. **Oracle swarm runs** — 13 agents fetch live marketplace data, coordinator aggregates, evidence uploads to Walrus.
 4. **Settle** — after expiry the bridge keeper proposes the consensus price onchain (if quality gates pass).
 5. **Dispute** — 24h window; anyone can challenge with a tUSD bond. Evidence on Walrus makes disputes nearly self-resolving.
 6. **Claim** — undisputed → auto-finalize; winners claim from the pool.
@@ -83,7 +81,7 @@ TIER 3: Bridge Keeper (conditional)
 | Move contracts (`market`, `oracle`, `registry`, `test_usd`) on Sui testnet | ✅ deployed |
 | 4 PSA-10 markets seeded with positions | ✅ live |
 | React dapp — browse, faucet tUSD, buy YES/NO, oracle-vs-strike chart, registry ladder, dispute/resolution flow | ✅ working |
-| **Oracle swarm** — 9 source agents + coordinator + bridge keeper | ✅ working |
+| **Oracle swarm** — 13 source agents (11 venue families) + coordinator + bridge keeper | ✅ working |
 | **MemWal persistence** — per-agent card memory, shared signals, reputation weights | ✅ working |
 | **Walrus evidence** — every consensus round uploaded as verifiable blob | ✅ working |
 | **Frontend Oracle Swarm panel** — per-source signals, weights, confidence interval, reliability chart | ✅ working |
@@ -101,7 +99,8 @@ TIER 3: Bridge Keeper (conditional)
 | File | What it does |
 |---|---|
 | `oracle-bridge/agents/base-agent.mjs` | Base class: MemWal I/O, circuit breakers, signal normalization |
-| `oracle-bridge/agents/{ebay,pricecharting,courtyard,tcgplayer,alt,cardmarket,beezie,collector-crypt,goldin}-agent.mjs` | 9 platform-specific source agents |
+| `oracle-bridge/agents/*.mjs` | Registry-fed source agents (eBay, PriceCharting, Courtyard, TCGPlayer, Beezie, Collector Crypt) |
+| `oracle-bridge/tinyfish-agents.mjs` + `point130.mjs` + `yahoo-jp-tinyfish.mjs` | Venue-direct agents (PSA APR, Goldin, Fanatics, ALT, Cardmarket, Yahoo JP, 130point) |
 | `oracle-bridge/agents/coordinator.mjs` | MAD outlier rejection → confidence-weighted median → evidence bundle |
 | `oracle-bridge/swarm.mjs` | Orchestrator: runs all agents in parallel → coordinator → Walrus upload |
 | `oracle-bridge/bridge-swarm.mjs` | Swarm-powered bridge: agents → consensus → onchain proposal |
@@ -114,20 +113,22 @@ TIER 3: Bridge Keeper (conditional)
 
 Agent memory doesn't just survive process restarts — it lives on Walrus. After every swarm run, the full memory state (78 files: per-card observations, reputation weights, anomaly history, consensus) is snapshotted to a Walrus blob. On cold start, the swarm restores from the latest snapshot automatically.
 
-[View latest MemWal snapshot →](https://aggregator.walrus-testnet.walrus.space/v1/blobs/puArzfwFivKREcWXy-ndLen8lhufJyoIDr_2nNGfXJc)
+The latest snapshot blob ID is in the live feed: [`/predict/health`](https://api.slabclaw.com/predict/health) · an onchain-referenced example: [`Q2dlXakO…`](https://walruscan.com/testnet/blob/Q2dlXakO8CMH3vL9BKJn60jL0Ac7uWN-jx8cSWosGRE)
 
 ### Evidence on Walrus
 
 Every swarm run uploads a complete evidence bundle to Walrus containing:
-- All 9 agents' signals (price, confidence, comp count, source)
+- All agents' signals (price, confidence, comp count, source)
 - MAD z-scores for every rejected outlier
 - Confidence-weighted median computation
 - Source reliability weights (evolving over rounds)
 - Card-by-card consensus with confidence intervals
 
-[View latest evidence blob →](https://aggregator.walrus-testnet.walrus.space/v1/blobs/DsshTPEVIBg0LsCZaue6JpJacQizjuTF_Yzola8oVcQ)
+Each round's evidence blob ID ships inside [`/predict/consensus`](https://api.slabclaw.com/predict/consensus) (`evidence.blobId` per card); the one referenced ONCHAIN by the live PROPOSED market: [verify on Walruscan →](https://walruscan.com/testnet/blob/Q2dlXakO8CMH3vL9BKJn60jL0Ac7uWN-jx8cSWosGRE)
 
-### Learning over time (what judges see)
+### Learning over time
+
+Three behaviors, all visible in the dapp's reliability chart (*the 10 bootstrap rounds below are simulated via `seed-history.mjs` and labeled as such — production rounds accumulate live every 6 hours*):
 
 1. **Source reliability divergence** — Round 1: all sources weight 1.0. Round 10: eBay 96%, collector-crypt 49%. The swarm learns which sources to trust.
 2. **Confidence interval narrowing** — Round 1: ±25%. Round 10: ±4%. More data = tighter consensus.
@@ -166,10 +167,17 @@ No autonomous settlement runs in production: consensus rounds are computed and p
 # Frontend (dapp)
 cd frontend && npm install && npm run dev        # http://localhost:5174
 
-# Oracle swarm — run all 9 agents + coordinator + Walrus upload
-cd oracle-bridge
-node seed-history.mjs --clean    # seed 10 rounds of MemWal history
+# Oracle swarm — run all 13 agents + coordinator + Walrus upload
+cd oracle-bridge && npm install  # installs @mysten/sui (required before any script below)
+node seed-history.mjs --clean    # seed 10 rounds of MemWal history (simulated bootstrap)
 node swarm.mjs                   # one-shot: all agents → consensus → Walrus
+# Data sources (graceful degradation, in order of what you have):
+#   SLABCLAW_API=<url>           # registry backend for the 6 registry-fed agents
+#                                # (defaults to http://localhost:3456; without it those
+#                                # agents fall back to the warm MemWal cache restored above)
+#   tinyfish CLI + credits       # the 7 venue-direct agents; without it they skip
+# With neither, the swarm still produces consensus from restored MemWal memory —
+# that degradation IS the memory thesis (see /predict/health for the live deployment).
 node swarm.mjs --verbose         # with per-agent detail
 node swarm.mjs --watch           # poll every 300s
 
@@ -199,7 +207,7 @@ cd contracts/slabclaw_predict && sui move test
 ```
 contracts/slabclaw_predict/      Move: market · oracle · registry · test_usd
 oracle-bridge/
-  agents/                        9 source agents + coordinator
+  agents/                        source agents + coordinator
     base-agent.mjs               MemWal I/O, circuit breakers, signal normalization
     ebay-agent.mjs               eBay sold comps + active listings
     pricecharting-agent.mjs      PriceCharting scraped sold data
@@ -210,27 +218,31 @@ oracle-bridge/
     beezie-agent.mjs             Beezie/OpenSea tokenized (Base chain)
     collector-crypt-agent.mjs    Collector Crypt/MagicEden (Solana)
     goldin-agent.mjs             Goldin realized auction prices
-    coordinator.mjs              Aggregation: MAD → weighted median → evidence
+    coordinator.mjs              Aggregation: families → MAD → weighted median → evidence
+  tinyfish-agents.mjs            Venue-direct agents (PSA APR, Goldin, Fanatics, ALT, Cardmarket, Yahoo JP, 130point)
+  point130.mjs                   130point sold-comps scraper (headed stealth browser)
+  yahoo-jp-tinyfish.mjs          Yahoo Auctions JP closed-auction scraper
   swarm.mjs                      Orchestrator (all agents → coordinator → Walrus)
   bridge-swarm.mjs               Swarm-powered onchain bridge
+  serve-consensus.mjs            Production /predict/* API (consensus · signals · health)
   memwal-sync.mjs                Walrus-backed memory persistence (snapshot/restore)
   walrus-evidence.mjs            Walrus upload/read/log
-  seed-history.mjs               Demo history generator
+  seed-history.mjs               Demo history generator (simulated bootstrap rounds)
   memwal/                        MemWal persistence root
   bridge.mjs                     Legacy single-source bridge
 frontend/                        React + Vite + @mysten/dapp-kit
   src/components/
-    OracleSwarmPanel.jsx         Swarm consensus visualization
+    OracleConsensusPanel.jsx     Swarm consensus visualization (realized vs asks, evidence links)
     MarketDetail.jsx             Market detail with Oracle Swarm tab
-explain-site/                    Standalone explanation site for judges
-docs/                            Problem statements + oracle-source research
+  src/hooks/useLiveConsensus.js  Live production feed with atomic baked-snapshot fallback
+docs/                            Problem statements + formal verification + oracle-source research
 ```
 
 ## Manipulation resistance
 
 | Attack | Cost | Defense | Outcome |
 |---|---|---|---|
-| Single-source spoof | ~$6K fees | MAD rejection (1/9 sources) | Caught & filtered |
+| Single-source spoof | ~$6K fees | MAD rejection (1 of 11 families) | Caught & filtered |
 | Multi-source coordination | ~$23K+ fees | New signals lack reputation + CUSUM drift detection | Extremely expensive & detectable |
 | Agent compromise | Variable | Transparent aggregation on Walrus = anyone verifies | Provably detectable |
 | Coordinator compromise | Key access | Evidence blob = re-computable math | Provably fraudulent |

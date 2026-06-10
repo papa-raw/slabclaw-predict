@@ -42,11 +42,13 @@ const TIERS = [
   {
     n: 1,
     tag: 'Tier 1',
-    title: 'Source agents — nine independent venues',
+    title: 'Source agents — 13 specialists, 11 independent venue families',
     body: (
       <>
-        Nine venue specialists each scrape their OWN marketplace — eBay, PriceCharting, Cardmarket, ALT,
-        Goldin, Fanatics, PSA APR, Yahoo Auctions JP, TCGPlayer. Every observation is tagged{' '}
+        Thirteen venue specialists each read their OWN marketplace — eBay, PriceCharting, Courtyard, TCGPlayer,
+        Beezie, Collector Crypt, PSA APR, Goldin, Fanatics, ALT, Cardmarket, Yahoo Auctions JP, 130point.
+        Same-origin feeds collapse into one voting family (eBay + PriceCharting + 130point = one eBay-sold vote),
+        so correlated tapes never inflate the source count. Every observation is tagged{' '}
         <Term def="Realized = a completed sale. Ask = a live listing. Asks sit above the clearing price, so they bound the range but never vote in the settle.">realized sale vs live ask</Term>{' '}
         and written to MemWal. It gets sharper each run because three memories refine in MemWal:{' '}
         <Term def="Per-card baselines — the card's typical realized price and its grade-to-grade price ratios — held as exponentially-weighted averages. Cold-start global bands converge to card-specific ones, so false-positive flags fall as the card is learned.">a per-card price calibration</Term>,{' '}
@@ -189,7 +191,7 @@ export default function ArchitecturePage() {
           <span className="text-[9px] font-mono text-sc-muted border border-sc-border rounded px-1 py-px">TESTNET</span>
         </div>
         <div className="divide-y divide-sc-border/60">
-          <RegistryRow label="Package" id={PACKAGE_ID} href={obj(PACKAGE_ID)} note="market · oracle · resolution · registry" />
+          <RegistryRow label="Package" id={PACKAGE_ID} href={obj(PACKAGE_ID)} note="market · oracle · registry · test_usd" />
           <RegistryRow label="AssetRegistry" id={REGISTRY_ID} href={obj(REGISTRY_ID)} note="shared object" />
           <RegistryRow label="tUSD Faucet" id={FAUCET_ID} href={obj(FAUCET_ID)} note="mint test USD to trade" />
           {DEMO_MARKETS.map((m) => (

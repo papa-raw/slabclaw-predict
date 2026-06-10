@@ -96,7 +96,9 @@ function diffConsensus(sent, fetched) {
   return mismatches;
 }
 
-export async function uploadEvidence(bundle, epochs = 5) {
+// Default 53 epochs ≈ max testnet retention — evidence referenced onchain must not
+// expire while anyone might still verify it (judging runs through late August).
+export async function uploadEvidence(bundle, epochs = 53) {
   // Redact seller / personal data BEFORE anything leaves the process. Walrus is
   // public + effectively permanent; plaintext marketplace usernames must never
   // be published. Redaction is consensus-neutral (prices untouched), so all
