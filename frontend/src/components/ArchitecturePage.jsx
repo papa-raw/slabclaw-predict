@@ -90,7 +90,9 @@ const TIERS = [
         <Term def="Grades trade at stable ratios (a PSA 9 is typically 25–48% of a PSA 10). A comp that breaks the expected ratio for that card is flagged as suspect.">multiplier-divergence</Term>{' '}
         checks against the card's{' '}
         <Term def="What the swarm has remembered about THIS specific card — its baseline price and grade ratios — refined a little every round and stored in MemWal. 'Learned' means not hard-coded: it converges from the card's own data.">learned calibration</Term>.
-        A contested price widens the dispute window instead of settling on a shaky number.
+        A contested price widens the dispute window instead of settling on a shaky number. A{' '}
+        <Term def="Some cards (e.g. a rare 1st-ed Japanese PSA 10) genuinely have only two independent sold-sources because clean sales are scarce. Rather than refuse forever, the oracle settles on those agreeing sources, records the thin-market status in the evidence, and extends the challenge window so anyone can contest before it finalizes.">genuinely rare card</Term>{' '}
+        still settles on the independent sales that agree — its thinness is recorded in the evidence and its challenge window is extended, not the price suppressed.
       </>
     ),
   },

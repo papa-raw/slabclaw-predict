@@ -75,9 +75,14 @@ async function main() {
   console.log(`   blobId:   ${up.blobId}  (verified: ${up.verified})`);
   console.log(`   view:     ${up.aggregatorUrl}`);
 
+  // Settleable = 3+ agreeing sold-families (clean), OR a genuinely-rare card that
+  // cleared the thin-market corroboration gate (2 agreeing families, rarity recorded).
+  const settleable = (k) => k && k.consensusPriceCents > 0 && !(k.flags || []).includes('wide_disagreement')
+    && !(k.flags || []).includes('insufficient_sources')
+    && ((k.sourceCount || 0) >= CONFIG_MIN_SOURCES || (k.flags || []).includes('thin_market'));
   const eligible = CARDS
     .map((c) => ({ c, k: consensus[c.productId] }))
-    .filter(({ k }) => k && k.consensusPriceCents > 0 && (k.sourceCount || 0) >= CONFIG_MIN_SOURCES && !(k.flags || []).includes('wide_disagreement'))
+    .filter(({ k }) => settleable(k))
     .sort((a, b) => (b.k.sourceCount || 0) - (a.k.sourceCount || 0));
 
   if (eligible.length === 0) {

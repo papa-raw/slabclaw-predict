@@ -101,18 +101,31 @@ test('single source is flagged insufficient_sources with sourceCount < 3', () =>
 // ─────────────────────────────────────────────────────────────────────────
 // 3. Thin market — two sources still flagged
 // ─────────────────────────────────────────────────────────────────────────
-test('two realized sources (thin market) still flagged insufficient_sources', () => {
-  // ebay + goldin are both REALIZED, distinct families. alt would be an ASK (it doesn't
-  // count toward the realized independence gate), so use two realized venues here.
+test('two AGREEING realized sources (rare card) settle as thin_market, not blocked', () => {
+  // ebay + goldin are both REALIZED, distinct families, and agree closely (within ±30%).
+  // A genuinely-rare card settles on these with the thinness recorded + window extended.
   const signals = makeSignals([
     { platform: 'ebay', priceCents: 1500000 },
     { platform: 'goldin', priceCents: 1510000 },
   ]);
   const result = aggregate(CARD, signals, {});
 
-  assert.ok(result.flags.includes('insufficient_sources'), 'two sources should flag insufficient_sources');
-  assert.ok(result.sourceCount < 3, `sourceCount ${result.sourceCount} should be < 3`);
+  assert.ok(result.flags.includes('thin_market'), 'two agreeing sources should flag thin_market');
+  assert.ok(!result.flags.includes('insufficient_sources'), 'should NOT be blocked');
+  assert.ok(result.thinMarket === true && result.disputeWindowMultiplier > 1, 'thin market extends the challenge window');
   assert.equal(result.sourceCount, 2);
+  assert.ok(result.consensusPriceCents > 0, 'a price is still produced');
+});
+
+test('two DISAGREEING realized sources stay insufficient_sources (cannot settle)', () => {
+  // ebay $15k vs goldin $9k — 40% apart, beyond the ±30% corroboration band.
+  const signals = makeSignals([
+    { platform: 'ebay', priceCents: 1500000 },
+    { platform: 'goldin', priceCents: 900000 },
+  ]);
+  const result = aggregate(CARD, signals, {});
+  assert.ok(result.flags.includes('insufficient_sources'), 'disagreeing pair must not settle');
+  assert.ok(!result.flags.includes('thin_market'), 'disagreeing pair is not a thin-market settle');
 });
 
 // ─────────────────────────────────────────────────────────────────────────

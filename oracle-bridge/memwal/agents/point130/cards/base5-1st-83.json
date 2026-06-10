@@ -63,6 +63,13 @@
       "confidence": 0.72,
       "comps": 3,
       "source": "point130-sold"
+    },
+    {
+      "date": "2026-06-10T13:10:11.037Z",
+      "priceCents": 589000,
+      "confidence": 0.72,
+      "comps": 3,
+      "source": "point130-sold"
     }
   ],
   "anomalies": []

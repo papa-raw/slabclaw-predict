@@ -192,9 +192,9 @@
   <!-- 1 · TITLE -->
   <section class="slide active">
     <div class="cardfan">
-      <img src="https://images.pokemontcg.io/base5/83.png" alt="" loading="lazy" />
-      <img src="https://images.pokemontcg.io/neo1/18.png" alt="" loading="lazy" />
-      <img src="https://images.pokemontcg.io/base2/3.png" alt="" loading="lazy" />
+      <img src="/cards/base5-83.png" alt="" loading="eager" decoding="async" />
+      <img src="/cards/neo1-18.png" alt="" loading="eager" decoding="async" />
+      <img src="/cards/base2-3.png" alt="" loading="eager" decoding="async" />
     </div>
     <div class="kicker" style="margin-bottom:18px">Sui Overflow 2026 · Walrus Track</div>
     <h1 style="margin-top:8px; max-width:58%">A&nbsp;<span class="grad">memory-backed oracle&nbsp;swarm</span> for real-world asset&nbsp;prices.</h1>
@@ -240,12 +240,12 @@
         <p class="footnote" style="margin-top:16px; white-space:nowrap">Each agent: fetch → filter → self-score → MemWal.</p>
       </div>
       <div>
-        <div class="ek" style="font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px">13 agents · 11 independent venue families</div>
+        <div class="ek" style="font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px">13 agents · 11 independent venues</div>
         <table class="t">
           <tbody>
-            <tr><td><b class="green">Sold prices settle</b></td><td>eBay-origin (one vote) · Goldin · Fanatics&nbsp;/&nbsp;PWCC · PSA&nbsp;APR · Yahoo&nbsp;JP</td></tr>
-            <tr><td><b>Asks only bound</b></td><td>Cardmarket · TCGPlayer · ALT · Courtyard · Beezie · Collector&nbsp;Crypt</td></tr>
-            <tr><td><b class="teal">Correlated tapes</b></td><td>collapse to one family — counts never inflate</td></tr>
+            <tr><td><b class="green">Completed sales</b><br><span class="muted" style="font-size:11px">set the price</span></td><td>eBay · Goldin · Fanatics&nbsp;/&nbsp;PWCC · PSA&nbsp;APR · Yahoo&nbsp;Japan</td></tr>
+            <tr><td><b>Asking prices</b><br><span class="muted" style="font-size:11px">set the ceiling</span></td><td>Cardmarket · TCGPlayer · ALT · Courtyard · Beezie · Collector&nbsp;Crypt</td></tr>
+            <tr><td colspan="2" style="padding-top:10px"><span class="teal">Sources that resell the same data count once</span> — so nobody can pad the numbers by quoting eBay five different ways.</td></tr>
           </tbody>
         </table>
       </div>
@@ -373,12 +373,12 @@
         <div class="ek">MemWal snapshot · live on Walrus</div>
         <pre class="mono" style="color:var(--ink-2);font-size:12px;line-height:1.65;margin-top:10px;white-space:pre-wrap">{
   "type": "memwal-snapshot",
-  "fileCount": 78,
-  "files": [
+  "files": 149,
+  "contents": [
     "agents/ebay/cards/jp-vs-091.json",
-    "agents/alt/cards/neo1-1st-18.json",
+    "agents/fanatics/cards/base5-1st-83.json",
     "shared/reputation/weights.json",
-    "shared/consensus/history/…",
+    "shared/calibration/per-card.json",
     …
   ]
 }</pre>
@@ -394,22 +394,22 @@
 
     <div class="cols-3" style="margin-top:24px">
       <div class="card">
-        <div class="ek">Reliability divergence</div>
-        <h3 class="teal">Sources earn their weight</h3>
-        <p>Everyone starts equal. Realized anchors earn <b>~88%</b>; noisy venues sink&nbsp;— asks never vote at&nbsp;all.</p>
+        <div class="ek">Trust, earned</div>
+        <h3 class="teal">Reliable sources count for more</h3>
+        <p>Every source starts equal. The ones whose sales hold up earn weight (<b>~88%</b>); the noisy ones fade. Asking prices only set a ceiling&nbsp;— they never decide the final number.</p>
       </div>
       <div class="card">
-        <div class="ek">Confidence narrowing</div>
-        <h3 class="blue">Bands tighten with data</h3>
-        <p>Every remembered round narrows the consensus&nbsp;interval.</p>
+        <div class="ek">Sharper over time</div>
+        <h3 class="blue">The price range tightens</h3>
+        <p>Each round it remembers, the gap between the high and low estimate shrinks&nbsp;— so the number gets more&nbsp;confident.</p>
       </div>
       <div class="card">
-        <div class="ek">Self-correcting flags</div>
-        <h3 class="gold">It learns each card's norm</h3>
-        <p>Per-card calibration kills false alarms as the card&nbsp;warms.</p>
+        <div class="ek">Knows each card</div>
+        <h3 class="gold">Fewer false alarms</h3>
+        <p>It learns what's normal for each specific card, so it stops flagging that card's real price&nbsp;swings.</p>
       </div>
     </div>
-    <p class="footnote" style="white-space:nowrap">Kill the process. Restore the blob. <span class="teal">The learning comes back.</span></p>
+    <p class="footnote">Wipe the server and it rebuilds everything it learned straight from Walrus. <span class="teal">The memory outlives the machine.</span></p>
   </section>
 
   <!-- 8 · MANIPULATION RESISTANCE -->
@@ -418,27 +418,27 @@
     <h2>Thin markets are easy to&nbsp;spoof. We make it <span class="gold">expensive and&nbsp;pointless</span>.</h2>
     <div class="cols-4" style="margin-top:24px">
       <div class="card">
-        <div class="ek">Per-agent</div>
-        <h3>Circuit breakers</h3>
-        <p>Reject zero-price, flag &gt;5×&nbsp;jumps, stale feeds &gt;14d, &gt;60% single-seller&nbsp;concentration.</p>
+        <div class="ek">At each source</div>
+        <h3>Sanity checks</h3>
+        <p>Ignore $0 glitches, flag a price that suddenly jumps 5×, distrust sales older than two weeks, and catch when one seller is behind too many of the&nbsp;sales.</p>
       </div>
       <div class="card">
-        <div class="ek">Coordinator</div>
-        <h3>MAD outlier rejection</h3>
-        <p>Modified Z-score (threshold&nbsp;3.5) drops signals that diverge from the robust&nbsp;median.</p>
+        <div class="ek">Combining them</div>
+        <h3>Throw out the outliers</h3>
+        <p>Any sale that sits far from where the others cluster gets&nbsp;dropped before the price is&nbsp;set.</p>
       </div>
       <div class="card">
-        <div class="ek">Coordinator</div>
-        <h3>Weighted median</h3>
-        <p>Weight&nbsp;= confidence × reliability × recency. A&nbsp;wash trade can't outvote the&nbsp;crowd.</p>
+        <div class="ek">Combining them</div>
+        <h3>Trust-weighted middle</h3>
+        <p>The price is the middle of what's left, leaning on the most reliable, most recent&nbsp;sales. One fake trade can't move&nbsp;it.</p>
       </div>
       <div class="card">
         <div class="ek">Onchain</div>
-        <h3>Source gate + dispute</h3>
-        <p>Won't settle under 3&nbsp;sources. UMA-style bonded dispute&nbsp;window. Wide disagreement → oracle&nbsp;declines.</p>
+        <h3>Agreement + challenge</h3>
+        <p>Needs independent marketplaces that <b>agree</b>. Rare cards get a longer challenge&nbsp;window instead of being blocked. If sources clash, it holds&nbsp;off.</p>
       </div>
     </div>
-    <p class="footnote" style="max-width:90ch">One wash source is 1 of 11 families — MAD drops it. Moving the median means faking many marketplaces at&nbsp;once.</p>
+    <p class="footnote" style="max-width:90ch">A single faked sale is one voice against many real ones&nbsp;— it gets thrown out. To move the price you'd have to fake several independent marketplaces at&nbsp;once.</p>
   </section>
 
   <!-- 8 · EVIDENCE -->
@@ -455,19 +455,17 @@
       <div class="card" style="border-color:var(--line-s)">
         <div class="ek">evidence bundle · stored on Walrus</div>
         <pre class="mono" style="color:var(--ink-2);font-size:11.5px;line-height:1.6;margin-top:10px;white-space:pre-wrap">{
-  "cardId": "jp-vs-091",
-  "consensusPriceCents": 1512000,
-  "confidence": [1437000, 1588000],
-  "contributingSources": [
-    { "ebay": 0.28, "pricecharting": 0.24,
-      "courtyard": 0.18, "alt": 0.15, … }
+  "card": "Karen's Umbreon · PSA 10",
+  "settlesAt": "$15,882",
+  "range": ["$15,882", "$15,882"],
+  "soldSources": {
+    "ebay": 0.64, "fanatics": 0.36
+  },
+  "rejected": [
+    { "fanatics_lot": "wrong variant" }
   ],
-  "rejectedSources": [
-    { "reason": "MAD outlier (z=4.10)" }
-  ],
-  "aggregationMethod":
-    "confidence_weighted_median",
-  "minSources": 3
+  "method": "trust-weighted median",
+  "evidenceOnWalrus": "Q2dlXakO…"
 }</pre>
       </div>
     </div>
@@ -483,21 +481,20 @@
           The functions that move money are machine-checked for <span class="teal">every</span> input&nbsp;— not just the cases a test happens to&nbsp;try.
         </p>
         <ul class="list" style="margin-top:18px">
-          <li><b>Solvency:</b> no claim can ever overdraw the&nbsp;pool.</li>
-          <li><b>No silent truncation</b> in the payout&nbsp;math.</li>
-          <li><b>Probability bounded</b> and overflow-safe.</li>
+          <li><b>Winners can never drain more than the pool holds.</b></li>
+          <li><b>Every payout is exact</b>&nbsp;— no rounding that quietly loses a&nbsp;cent.</li>
+          <li><b>The odds always stay valid</b>&nbsp;— no overflow, no impossible&nbsp;prices.</li>
         </ul>
-        <p class="footnote" style="margin-top:16px;white-space:nowrap">28/28 Move tests · 40-check security review.</p>
+        <p class="footnote" style="margin-top:16px">Checked by the <a href="https://github.com/asymptotic-code/sui-prover" target="_blank">Sui Prover</a>&nbsp;— a mathematical proof, not a&nbsp;test.</p>
       </div>
       <div class="card" style="border-color:var(--line-s)">
-        <div class="ek" style="display:flex;align-items:center;gap:8px"><span class="pulse"></span> sui-prover · Z3&nbsp;+&nbsp;Boogie</div>
+        <div class="ek" style="display:flex;align-items:center;gap:8px"><span class="pulse"></span> <a href="https://github.com/asymptotic-code/sui-prover" target="_blank">sui-prover</a> · Z3&nbsp;+&nbsp;Boogie</div>
         <pre class="mono" style="font-size:12.5px;line-height:1.75;margin-top:12px;white-space:pre-wrap"><span class="muted">$ sui-prover</span>
 <span class="green">✅</span> compute_payout_spec · Check
 <span class="green">✅</span> compute_payout_spec · NoAbort
 <span class="green">✅</span> yes_price_bps_spec · Check
 <span class="green">✅</span> yes_price_bps_spec · NoAbort
 <span class="teal">Verification successful</span></pre>
-        <p class="footnote" style="margin-top:12px">Solvency is a <b>theorem</b> here — reproducible in one&nbsp;command.</p>
       </div>
     </div>
   </section>
@@ -507,9 +504,8 @@
     <div class="kicker">The vision</div>
     <h2 style="max-width:none; font-size:clamp(26px,3.6vw,46px)">Every collectible has a price opinion.<br><span class="grad">We make it verifiable, neutral, and onchain.</span></h2>
     <p style="margin-top:22px; max-width:82%">
-      A <strong>public valuation commons</strong> on Walrus. Cards first&nbsp;— then watches, sneakers, wine, any authenticated real-world&nbsp;asset.
+      One <strong>shared, public source of truth</strong> for what collectibles are worth, stored on Walrus. Cards first&nbsp;— then watches, sneakers, wine, anything real that people authenticate and&nbsp;trade.
     </p>
-    <p class="footnote" style="margin-top:32px">Don't trust the oracle — verify the blob.</p>
   </section>
 
 </div>
