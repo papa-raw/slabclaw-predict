@@ -119,6 +119,114 @@ const DOCS = [
   { title: 'Live evidence on Walrus', desc: 'The latest published consensus bundle — re-run the math yourself.', href: `${WALRUSCAN}/${EVIDENCE_BLOB}` },
 ];
 
+// Full system diagram: the SlabClaw scanner (data foundation) → 13 source agents
+// (registry-fed + venue-direct) → MemWal → coordinator → Walrus + Sui → the
+// two-node production topology that serves the live feed. The scanner and the
+// serving topology are the pieces the textual pipeline below doesn't show.
+const GOLD = '#f5c542', TEAL = '#46E3BE', BLUE = '#4DA2FF', INK = '#E8ECF5', DIM = '#8a8a9c', LINE = '#262633', PANEL = '#0E0E14';
+function SystemDiagram() {
+  const Node = ({ x, y, w, h, stroke = LINE, fill = PANEL, children }) => (
+    <rect x={x} y={y} width={w} height={h} rx="7" fill={fill} stroke={stroke} strokeWidth="1.25" />
+  );
+  const T = ({ x, y, s = 11, fill = INK, w = 600, anchor = 'middle', children }) => (
+    <text x={x} y={y} textAnchor={anchor} fontSize={s} fill={fill} fontFamily="Inter, sans-serif" fontWeight={w}>{children}</text>
+  );
+  const L = ({ x, y, fill = DIM }) => null;
+  const label = (x, y, txt) => <text x={x} y={y} fontSize="9" letterSpacing="0.08em" fill="#5C6578" fontFamily="JetBrains Mono, monospace">{txt}</text>;
+  return (
+    <svg viewBox="0 0 920 580" style={{ width: '100%', minWidth: 640, height: 'auto' }} role="img" aria-label="SlabClaw Predict system architecture">
+      {/* ── DATA FOUNDATION ── */}
+      {label(2, 14, 'DATA SOURCES')}
+      <Node x={0} y={22} w={430} h={50} stroke={GOLD + '88'} />
+      <T x={215} y={42} s={12.5} w={600}>SlabClaw scanner</T>
+      <T x={215} y={59} s={9.5} fill={DIM}>10-platform registry · 5,167 products · local SQLite</T>
+      <Node x={490} y={22} w={430} h={50} stroke={GOLD + '88'} />
+      <T x={705} y={42} s={12.5} w={600}>Direct venue reads</T>
+      <T x={705} y={59} s={9.5} fill={DIM}>TinyFish agent + self-hosted stealth browser (auto-failover)</T>
+
+      {/* arrows down to tier 1 */}
+      <line x1={215} y1={72} x2={215} y2={96} stroke={GOLD + '66'} strokeWidth="1.25" />
+      <line x1={705} y1={72} x2={705} y2={96} stroke={GOLD + '66'} strokeWidth="1.25" />
+
+      {/* ── TIER 1 ── */}
+      {label(2, 92, 'TIER 1 · 13 SOURCE AGENTS, IN PARALLEL')}
+      <Node x={0} y={98} w={430} h={52} />
+      <T x={215} y={118} s={11} w={600} fill={TEAL}>Registry-fed agents (6)</T>
+      <T x={215} y={135} s={9.5} fill={DIM}>eBay · PriceCharting · Courtyard · TCGPlayer · Beezie · Collector&nbsp;Crypt</T>
+      <Node x={490} y={98} w={430} h={52} />
+      <T x={705} y={118} s={11} w={600} fill={TEAL}>Venue-direct agents (7)</T>
+      <T x={705} y={135} s={9.5} fill={DIM}>Goldin · Fanatics · PSA&nbsp;APR · Yahoo&nbsp;JP · ALT · Cardmarket · 130point</T>
+
+      <line x1={215} y1={150} x2={215} y2={170} stroke={TEAL + '55'} strokeWidth="1.25" strokeDasharray="3,3" />
+      <line x1={705} y1={150} x2={705} y2={170} stroke={TEAL + '55'} strokeWidth="1.25" strokeDasharray="3,3" />
+
+      {/* ── MemWal shared memory ── */}
+      <rect x={0} y={170} width={920} height={30} rx="5" fill="rgba(70,227,190,.06)" stroke="rgba(70,227,190,.22)" strokeWidth="1" />
+      <T x={460} y={189} s={10.5} fill={TEAL} w={600}>SHARED SIGNALS → MemWal &nbsp;·&nbsp; per-card calibration · source reputation · warm cache</T>
+
+      <line x1={460} y1={200} x2={460} y2={222} stroke={TEAL} strokeWidth="1.5" />
+      <polygon points="455,220 460,228 465,220" fill={TEAL} opacity="0.6" />
+
+      {/* ── TIER 2 ── */}
+      {label(2, 218, 'TIER 2 · COORDINATOR')}
+      <Node x={150} y={228} w={620} h={50} stroke={`url(#sgrad)`} />
+      <defs><linearGradient id="sgrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor={BLUE} /><stop offset="100%" stopColor={TEAL} /></linearGradient></defs>
+      <T x={460} y={248} s={12.5} w={600}>Manipulation-resistant coordinator</T>
+      <T x={460} y={265} s={9.5} fill={DIM}>family dedup · MAD outlier cut · anchor gate · realized sales settle · 2-source rare-card gate</T>
+
+      {/* fork to walrus + sui */}
+      <path d={`M460,278 V300 H250 V320`} fill="none" stroke={TEAL + '55'} strokeWidth="1.5" />
+      <path d={`M460,278 V300 H670 V320`} fill="none" stroke={BLUE + '55'} strokeWidth="1.5" />
+      <polygon points="245,318 250,326 255,318" fill={TEAL} opacity="0.6" />
+      <polygon points="665,318 670,326 675,318" fill={BLUE} opacity="0.6" />
+
+      {/* ── TIER 3 ── */}
+      {label(2, 314, 'TIER 3 · ONCHAIN')}
+      <Node x={70} y={324} w={360} h={48} stroke={TEAL + '66'} />
+      <T x={250} y={344} s={12} fill={TEAL} w={600}>Walrus</T>
+      <T x={250} y={360} s={9.5} fill={DIM}>evidence blobs + MemWal snapshots (permanent, verifiable)</T>
+      <Node x={490} y={324} w={360} h={48} stroke={BLUE + '66'} />
+      <T x={670} y={344} s={12} fill={BLUE} w={600}>Sui Move contracts</T>
+      <T x={670} y={360} s={9.5} fill={DIM}>market · oracle · registry · memory · test_usd</T>
+
+      {/* cold-start restore loop (Walrus → tier 1) */}
+      <path d="M70,348 H18 V158 H40" fill="none" stroke={TEAL + '44'} strokeWidth="1" strokeDasharray="3,3" />
+      <polygon points="38,154 46,158 38,162" fill={TEAL} opacity="0.5" />
+      <text x={24} y={250} fontSize="8.5" fill={TEAL} fontFamily="JetBrains Mono, monospace" transform="rotate(-90 24 250)">cold-start restore</text>
+
+      {/* ── PRODUCTION TOPOLOGY ── */}
+      {label(2, 404, 'IN PRODUCTION · WALRUS IS THE MEMORY BUS BETWEEN TWO NODES')}
+      <line x1={0} y1={388} x2={920} y2={388} stroke={LINE} strokeWidth="1" />
+      {/* row of 4 boxes with arrows */}
+      <Node x={0} y={414} w={200} h={56} stroke={GOLD + '66'} />
+      <T x={100} y={436} s={11} w={600}>Data-plane node</T>
+      <T x={100} y={452} s={9} fill={DIM}>runs full swarm daily</T>
+      <T x={100} y={463} s={9} fill={DIM}>→ snapshots to Walrus</T>
+
+      <Node x={245} y={414} w={190} h={56} stroke={TEAL + '66'} />
+      <T x={340} y={436} s={11} fill={TEAL} w={600}>Walrus + Sui</T>
+      <T x={340} y={452} s={9} fill={DIM}>memory blob id</T>
+      <T x={340} y={463} s={9} fill={DIM}>anchored onchain</T>
+
+      <Node x={480} y={414} w={200} h={56} stroke={BLUE + '66'} />
+      <T x={580} y={433} s={11} w={600}>Serving node (keyless)</T>
+      <T x={580} y={449} s={9} fill={DIM}>restores memory from chain</T>
+      <T x={580} y={460} s={9} fill={DIM}>+ Walrus, every 6h</T>
+
+      <Node x={725} y={414} w={195} h={56} stroke={LINE} />
+      <T x={822} y={433} s={11} w={600}>slabclaw.com</T>
+      <T x={822} y={449} s={9} fill={DIM}>live /predict feed</T>
+      <T x={822} y={460} s={9} fill={DIM}>baked-snapshot fallback</T>
+
+      <line x1={200} y1={442} x2={245} y2={442} stroke={DIM} strokeWidth="1.25" /><polygon points="243,438 251,442 243,446" fill={DIM} />
+      <line x1={435} y1={442} x2={480} y2={442} stroke={DIM} strokeWidth="1.25" /><polygon points="478,438 486,442 478,446" fill={DIM} />
+      <line x1={680} y1={442} x2={725} y2={442} stroke={DIM} strokeWidth="1.25" /><polygon points="723,438 731,442 723,446" fill={DIM} />
+
+      <T x={460} y={500} s={9.5} fill={DIM} w={500}>Kill either node and the other rebuilds the swarm&rsquo;s memory from the onchain pointer + Walrus. No file moves between machines.</T>
+    </svg>
+  );
+}
+
 export default function ArchitecturePage() {
   return (
     <main className="max-w-5xl mx-auto px-4 lg:px-6 py-7 pb-32">
@@ -133,6 +241,13 @@ export default function ArchitecturePage() {
           every settlement published as a verifiable blob on{' '}
           <a href="https://www.walrus.xyz" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">Walrus</a>.
         </p>
+      </div>
+
+      {/* Full system diagram — scanner → swarm → chain → production */}
+      <SectionTitle>System at a glance · scanner → swarm → chain</SectionTitle>
+      <p className="text-[11px] text-sc-muted mb-3 -mt-1">Where the data comes from, how it becomes a price, and how that price is served in production.</p>
+      <div className="bg-sc-card border border-sc-border rounded-xl p-4 mb-10 overflow-x-auto">
+        <SystemDiagram />
       </div>
 
       {/* Pipeline — source → consensus → self-audit → chain */}
