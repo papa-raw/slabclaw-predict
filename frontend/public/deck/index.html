@@ -412,7 +412,7 @@
         <p>It learns what's normal for each specific card, so it stops flagging that card's real price&nbsp;swings.</p>
       </div>
     </div>
-    <p class="footnote">Wipe the server and it rebuilds everything it learned straight from Walrus. <span class="teal">The memory outlives the machine.</span></p>
+    <p class="footnote" style="white-space:nowrap">Wipe the server and it rebuilds what it learned straight from Walrus. <span class="teal">The memory outlives the machine.</span></p>
   </section>
 
   <!-- 8 · MANIPULATION RESISTANCE -->
@@ -441,7 +441,7 @@
         <p>Needs independent marketplaces that <b>agree</b>. Rare cards get a longer challenge&nbsp;window instead of being blocked. If sources clash, it holds&nbsp;off.</p>
       </div>
     </div>
-    <p class="footnote" style="max-width:90ch">A single faked sale is one voice against many real ones&nbsp;— it gets thrown out. To move the price you'd have to fake several independent marketplaces at&nbsp;once.</p>
+    <p class="footnote" style="white-space:nowrap">A faked sale is one voice against many real ones&nbsp;— it gets thrown out. Moving the price means faking several marketplaces at&nbsp;once.</p>
   </section>
 
   <!-- 8 · EVIDENCE -->
@@ -452,6 +452,9 @@
       <div>
         <p class="lead" style="font-size:clamp(15px,1.5vw,19px)">
           <strong>A market cannot settle without its evidence blob.</strong> The contract aborts. Pull the blob, re-run the math&nbsp;— the price either checks out or it&nbsp;doesn't.
+        </p>
+        <p style="margin-top:14px; font-size:clamp(13px,1.25vw,15.5px); line-height:1.6; color:var(--ink-2)">
+          Every other price feed&nbsp;— Chainlink, a marketplace average, an appraiser&nbsp;— hands you a <strong>number you have to trust</strong>. You never see which sales it used or what it threw out, so a wrong or gamed price only surfaces after someone&rsquo;s been paid. We make the <span class="teal">proof a precondition of the price</span>: the full derivation is committed onchain and stored permanently on Walrus, so a disagreement isn&rsquo;t an argument&nbsp;— it&rsquo;s a re-run anyone can do. That&rsquo;s only practical because Walrus holds the whole receipt cheaply and forever, while the chain holds the one ID that makes it&nbsp;tamper-proof.
         </p>
         <p class="footnote" style="margin-top:16px; white-space:nowrap">Package <a href="https://suiscan.xyz/testnet/object/0x9807050b60400d30c848dcf035a2038b615ffdb7d6d2ed46332959d39b14f115" target="_blank">0x9807050b…</a> · <a href="https://suiscan.xyz/testnet/object/0xd77d634059460679568e4370fe570b758a47841ebf35a479d88f5b05f617879c" target="_blank">market object ↗</a> carries <a href="https://walruscan.com/testnet/blob/Q2dlXakO8CMH3vL9BKJn60jL0Ac7uWN-jx8cSWosGRE" target="_blank">evidence blob ↗</a></p>
       </div>
@@ -476,19 +479,19 @@
 
   <!-- 9 · FORMAL VERIFICATION -->
   <section class="slide">
-    <div class="kicker">Provably solvent · Sui Prover</div>
-    <h2>Most teams <span class="muted">test</span> the money&nbsp;path.<br>We <span class="grad">proved</span>&nbsp;it.</h2>
+    <div class="kicker">Why your money is safe</div>
+    <h2>It holds a real pool of money.<br>So we <span class="grad">proved the math can't&nbsp;break</span>.</h2>
     <div class="split" style="margin-top:24px">
       <div>
         <p class="lead" style="font-size:clamp(14px,1.4vw,17.5px)">
-          The functions that move money are machine-checked for <span class="teal">every</span> input&nbsp;— not just the cases a test happens to&nbsp;try.
+          Winners get paid out of a shared pool. One overflow or rounding slip and the pool comes up short&nbsp;— someone doesn&rsquo;t get their winnings. Tests only check the cases you think&nbsp;of; we had the payout math <span class="teal">proven correct for every possible input</span>.
         </p>
         <ul class="list" style="margin-top:18px">
-          <li><b>Winners can never drain more than the pool holds.</b></li>
-          <li><b>Every payout is exact</b>&nbsp;— no rounding that quietly loses a&nbsp;cent.</li>
-          <li><b>The odds always stay valid</b>&nbsp;— no overflow, no impossible&nbsp;prices.</li>
+          <li>Winners can never claim more than the pool actually&nbsp;holds.</li>
+          <li>Every payout is exact&nbsp;— no rounding that quietly loses a&nbsp;cent.</li>
+          <li>The odds always stay valid&nbsp;— no overflow, no impossible&nbsp;prices.</li>
         </ul>
-        <p class="footnote" style="margin-top:16px">Checked by the <a href="https://github.com/asymptotic-code/sui-prover" target="_blank">Sui Prover</a>&nbsp;— a mathematical proof, not a&nbsp;test.</p>
+        <p class="footnote" style="margin-top:16px">Checked by the <a href="https://github.com/asymptotic-code/sui-prover" target="_blank">Sui Prover</a>.</p>
       </div>
       <div class="card" style="border-color:var(--line-s)">
         <div class="ek" style="display:flex;align-items:center;gap:8px"><span class="pulse"></span> <a href="https://github.com/asymptotic-code/sui-prover" target="_blank">sui-prover</a> · Z3&nbsp;+&nbsp;Boogie</div>
