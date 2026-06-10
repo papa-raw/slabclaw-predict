@@ -457,6 +457,7 @@
           Most price feeds just hand you a <strong>number and ask you to trust it</strong>. You can&rsquo;t see which sales went into it or what got thrown out, so if it&rsquo;s wrong (or someone gamed it) you only find out after the money&rsquo;s moved. Here a market can&rsquo;t settle until the full working is published to Walrus and pinned onchain: the sales it used, the weights, everything it rejected. So if you doubt a price, <span class="teal">you don&rsquo;t take our word for it&nbsp;— you pull the file and re-run the math yourself</span>. Walrus keeps the whole receipt cheaply and permanently; the chain just holds the one ID that proves nobody&rsquo;s touched&nbsp;it.
         </p>
         <p class="footnote" style="margin-top:16px; white-space:nowrap">Package <a href="https://suiscan.xyz/testnet/object/0x9807050b60400d30c848dcf035a2038b615ffdb7d6d2ed46332959d39b14f115" target="_blank">0x9807050b…</a> · <a href="https://suiscan.xyz/testnet/object/0xd77d634059460679568e4370fe570b758a47841ebf35a479d88f5b05f617879c" target="_blank">market object ↗</a> carries <a href="https://walruscan.com/testnet/blob/Q2dlXakO8CMH3vL9BKJn60jL0Ac7uWN-jx8cSWosGRE" target="_blank">evidence blob ↗</a></p>
+        <p class="footnote" style="margin-top:6px">And the settlement math itself is formally proven with the <a href="https://github.com/asymptotic-code/sui-prover" target="_blank">Sui Prover</a>&nbsp;— a winner can never be paid more than the pool&nbsp;holds.</p>
       </div>
       <div class="card" style="border-color:var(--line-s)">
         <div class="ek">evidence bundle · stored on Walrus</div>
@@ -477,35 +478,7 @@
     </div>
   </section>
 
-  <!-- 9 · FORMAL VERIFICATION -->
-  <section class="slide">
-    <div class="kicker">Why your money is safe</div>
-    <h2>It holds a real pool of money.<br>So we <span class="grad">proved the math can't&nbsp;break</span>.</h2>
-    <div class="split" style="margin-top:24px">
-      <div>
-        <p class="lead" style="font-size:clamp(14px,1.4vw,17.5px)">
-          Winners get paid out of a shared pool, so a single overflow or rounding slip leaves someone unpaid. Almost everyone ships on tests, which only cover the cases you thought to write&nbsp;— and at a hackathon, nobody proves the math. We did: the payout code is <span class="teal">mathematically checked to hold for every possible input</span>, the bar usually saved for protocols holding&nbsp;millions.
-        </p>
-        <ul class="list" style="margin-top:18px">
-          <li>Winners can never claim more than the pool actually&nbsp;holds.</li>
-          <li>Every payout is exact&nbsp;— no rounding that quietly loses a&nbsp;cent.</li>
-          <li>The odds always stay valid&nbsp;— no overflow, no impossible&nbsp;prices.</li>
-        </ul>
-        <p class="footnote" style="margin-top:16px">Checked by the <a href="https://github.com/asymptotic-code/sui-prover" target="_blank">Sui Prover</a>.</p>
-      </div>
-      <div class="card" style="border-color:var(--line-s)">
-        <div class="ek" style="display:flex;align-items:center;gap:8px"><span class="pulse"></span> <a href="https://github.com/asymptotic-code/sui-prover" target="_blank">sui-prover</a> · Z3&nbsp;+&nbsp;Boogie</div>
-        <pre class="mono" style="font-size:12.5px;line-height:1.75;margin-top:12px;white-space:pre-wrap"><span class="muted">$ sui-prover</span>
-<span class="green">✅</span> compute_payout_spec · Check
-<span class="green">✅</span> compute_payout_spec · NoAbort
-<span class="green">✅</span> yes_price_bps_spec · Check
-<span class="green">✅</span> yes_price_bps_spec · NoAbort
-<span class="teal">Verification successful</span></pre>
-      </div>
-    </div>
-  </section>
-
-  <!-- 10 · CLOSE -->
+  <!-- 9 · CLOSE -->
   <section class="slide" style="align-items:flex-start">
     <div class="kicker">The vision</div>
     <h2 style="max-width:none; font-size:clamp(26px,3.6vw,46px)">Every collectible has a price opinion.<br><span class="grad">We make it verifiable, neutral, and onchain.</span></h2>
@@ -523,7 +496,7 @@
   <button class="nav-btn" id="prev" aria-label="previous">‹</button>
   <div id="dots"></div>
   <button class="nav-btn" id="next" aria-label="next">›</button>
-  <span id="count"><b>1</b> / 10</span>
+  <span id="count"><b>1</b> / 9</span>
 </div>
 
 <script>
