@@ -28,6 +28,14 @@ export const CONFIG = {
   // UpgradeCap for the hardened package (used by migrate_* after future upgrades)
   upgradeCapId: '0x8d918a08746ac1bd1cc25813e00ab6b369cc6b242995ce5a06ccd3ace54fdc06',
 
+  // v2 upgrade (2026-06-10): adds the `memory` module — the onchain anchor for
+  // MemWal snapshots. Calls to memory::* go through the v2 package id; all
+  // original types/objects keep the original packageId above.
+  packageIdV2: '0x2bfc147c040cdf194a1c959b8843404d767c706f9d3abf6a1f74d06731117c64',
+  // Shared SwarmMemory object — the canonical onchain pointer to the swarm's
+  // latest memory snapshot on Walrus ("memory that outlives its operator").
+  swarmMemoryId: '0x41dfc599a161c5ba620d56b051b3ac92ba1db189c83ed7ce4f863740ae54649d',
+
   // SlabClaw backend API (override with SLABCLAW_API when the registry
   // serves on a different port, e.g. on the production VPS)
   slabclawApi: process.env.SLABCLAW_API || 'http://localhost:3456',

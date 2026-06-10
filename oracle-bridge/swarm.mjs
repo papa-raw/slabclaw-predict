@@ -26,7 +26,7 @@ import { runCoordinator } from './agents/coordinator.mjs';
 import { runQualityTier } from './quality-tier.mjs';
 import { getClient, proposeResolution } from './sui-client.mjs';
 import { uploadEvidence } from './walrus-evidence.mjs';
-import { snapshotToWalrus, restoreFromWalrus, memwalIsEmpty } from './memwal-sync.mjs';
+import { snapshotToWalrus, restoreFromWalrus, memwalIsEmpty, checkpointOnchain } from './memwal-sync.mjs';
 import { writeFrontendConsensus } from './export-consensus.mjs';
 import { CONFIG, marketStateCode } from './config.mjs';
 import { DEMO_MARKETS } from '../frontend/src/constants.js';
@@ -251,6 +251,15 @@ async function pass() {
       console.log(`  Blob:  ${snap.blobId}`);
       console.log(`  Files: ${snap.fileCount} (${(snap.sizeBytes / 1024).toFixed(1)}KB)`);
       console.log(`  View:  ${snap.aggregatorUrl}`);
+      // Anchor the pointer onchain so the memory lineage is operator-independent.
+      // Needs the oracle key — data-plane nodes have it, the serving node doesn't
+      // (it only restores), so a missing keystore is expected and non-fatal.
+      try {
+        const cp = await checkpointOnchain(snap);
+        if (cp) console.log(`  Chain: SwarmMemory → ${snap.blobId.slice(0, 16)}… (tx ${cp.digest.slice(0, 12)}…)`);
+      } catch (e) {
+        console.log(`  Chain: checkpoint skipped (${e.message.slice(0, 60)})`);
+      }
     }
   } catch (e) {
     console.log(`\n  MemWal snapshot failed: ${e.message.slice(0, 100)}`);

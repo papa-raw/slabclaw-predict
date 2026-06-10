@@ -19,6 +19,7 @@ import { join, dirname } from 'node:path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CONSENSUS_PATH = join(__dirname, '..', 'frontend', 'src', 'data', 'oracle-consensus.json');
 const SIGNALS_PATH = join(__dirname, '..', 'frontend', 'src', 'data', 'market-signals.json');
+const RESTORE_STATE_PATH = join(__dirname, 'memwal', '.restore-state.json');
 const PORT = parseInt(process.env.PORT, 10) || 3457;
 
 // A round older than ~2 missed 6h swarm cycles is unhealthy — say so honestly.
@@ -54,9 +55,21 @@ const server = http.createServer((req, res) => {
       const generatedAt = envelope.timestamp || mtimeMs;
       const ageMs = Date.now() - generatedAt;
       const ok = ageMs < STALE_MS;
+      // Memory provenance: which Walrus blob this node's agent memory was
+      // restored from, and whether the pointer came from the onchain
+      // SwarmMemory object (operator-independent) or a local log.
+      let memory = null;
+      try {
+        const rs = JSON.parse(readFileSync(RESTORE_STATE_PATH, 'utf8'));
+        memory = {
+          restoredFromBlobId: rs.blobId, pointerSource: rs.source,
+          restoredAt: rs.restoredAt, files: rs.restored,
+        };
+      } catch { /* never restored on this node yet */ }
       return send(res, ok ? 200 : 503, JSON.stringify({
         ok, consensusAgeMs: ageMs, roundId: envelope.roundId || null,
         generatedAt, markets: Object.keys(envelope.consensus || {}).length,
+        memory,
       }));
     }
     return send(res, 404, JSON.stringify({ error: 'not found' }));
