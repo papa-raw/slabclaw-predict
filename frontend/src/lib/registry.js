@@ -10,6 +10,23 @@ import { toTime } from './format';
 const norm = (s) => (s || '').toString().trim().toUpperCase();
 const sameGrade = (a, b) => Number(a) === Number(b);
 
+/// Whether a registry listing belongs in the buyable "LISTINGS" ladder.
+/// Two junk classes are excluded at the source:
+///   1. Auction BIDS — a current high-bid is not a purchasable ask, and its
+///      auction URL goes dead the moment the auction ends.
+///   2. Implausible vs the grade oracle — a PSA-10 row priced far below the
+///      grade-matched oracle is a wrong-grade/variant scrape or a stale/dead
+///      auction, not a real PSA-10 ask. Asks sit ABOVE realized, never 60% below.
+export function isSurfaceableListing(l, oracleAnchorPrice) {
+  if (!l || l.price == null || l.price <= 0) return false;
+  const type = (l.listing_type || l.type || '').toString().toLowerCase();
+  if (type === 'bid') return false; // auction bid, not a buyable ask
+  if (!l.url) return false;          // no link → can't act on it
+  const oracle = oracleAnchorPrice ?? l.oracle_price ?? l.oracle_anchor?.price ?? null;
+  if (oracle != null && oracle > 0 && l.price < 0.4 * oracle) return false; // wrong-grade/variant/dead
+  return true;
+}
+
 /** Load one card's full registry record. Live-first, snapshot-fallback. */
 export async function loadCard(productId) {
   if (!productId) return null;
