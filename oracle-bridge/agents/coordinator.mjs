@@ -1,7 +1,9 @@
 /// coordinator.mjs — Tier 2 aggregation agent.
 ///
 /// Reads all source agent signals from shared MemWal context, applies:
-///   1. Source-count gate (≥3)
+///   1. Independence gate (rare-card aware): ≥3 families → full confidence; exactly 2
+///      agreeing families (±30%) settle as thin_market with a 3× dispute window;
+///      <2 or disagreement → insufficient_sources (blocked). See lines 18-20, 314-329.
 ///   2. MAD outlier rejection (modified Z-score, threshold 3.5)
 ///   3. Confidence-weighted median (Pyth pattern)
 ///   4. Aggregator-level circuit breakers

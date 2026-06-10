@@ -73,9 +73,15 @@ module slabclaw_predict::oracle {
 
     // ── Oracle functions ────────────────────────────────────────────────
 
-    /// Create a price attestation. Called by oracle operator.
-    /// Returns the attestation by value — caller passes it to market resolution.
-    /// Enforces minimum source count (3 platforms must agree).
+    /// Create a price attestation. Returns the attestation by value.
+    ///
+    /// NOTE: This is an unused v2-only helper. The LIVE settlement path is
+    /// `market::propose_resolution`, which gates on the governance-tunable
+    /// `registry::min_sources(config)` floor (currently 2). This helper instead
+    /// uses the frozen `MIN_SOURCES` constant below and has no production callers
+    /// (only `oracle_tests.move`). It is retained for a possible v2 PTB flow where
+    /// attestations are passed as values; if revived, change `MIN_SOURCES` to read
+    /// the `ProtocolConfig` floor so the two paths can't diverge.
     public fun attest_price(
         _cap: &OracleCap,
         asset_id: vector<u8>,
@@ -119,8 +125,11 @@ module slabclaw_predict::oracle {
 
     // ── Constants ───────────────────────────────────────────────────────
 
-    /// Minimum number of marketplace sources required for a valid attestation.
-    /// SlabClaw oracle aggregates from 10 platforms; 3 is the safety floor.
+    /// Minimum sources for the (unused, v2-only) `attest_price` helper. This is
+    /// frozen at 3 and is NOT the live floor — the production settlement path
+    /// (`market::propose_resolution`) reads the governance-tunable
+    /// `registry::min_sources(config)` instead (currently 2 for rare-card / thin-market
+    /// settlement). Do not treat this constant as the protocol-wide source gate.
     const MIN_SOURCES: u64 = 3;
 
     // ── Error codes ─────────────────────────────────────────────────────

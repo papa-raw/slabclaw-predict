@@ -29,6 +29,7 @@ module slabclaw_predict::test_usd {
 
     const EAmountTooLarge: u64 = 0;
 
+    #[allow(deprecated_usage)]
     fun init(witness: TEST_USD, ctx: &mut TxContext) {
         let (treasury, metadata) = coin::create_currency(
             witness,

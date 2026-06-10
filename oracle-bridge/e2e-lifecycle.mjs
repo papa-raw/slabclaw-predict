@@ -203,7 +203,7 @@ for (const p of PRODUCTS) {
 const DEMO_IDS = ['0xf63f37a07f61a38c78b3ea6d650315e903a6192b767c34cfc5a8a2266c1144ea',
   '0x2da84029427ff70dfafadb8643d4f3a83f76f5344bd1de05c1902cff102c9720',
   '0x9700623a1e977a179b011908da25e7800d682e4bc8dd38929ac7bc121c459b71',
-  '0xd77d634059460679568e4370fe570b758a47841ebf35a479d88f5b05f617879c'];
+  '0xa291d583f9c2297b002298f033260ab7bc698af378539aa3564001254e72fdd7'];
 const demoBefore = [];
 for (const id of DEMO_IDS) demoBefore.push(await readMarket(id));
 
@@ -212,9 +212,12 @@ console.log('\n── Stage 0 · mint tUSD + tighten config for the test ──'
   const tx = new Transaction();
   tx.moveCall({ target: `${CONFIG.packageId}::test_usd::mint`, arguments: [tx.object(CONFIG.faucetId), tx.pure.u64(tUSD(600))] });
   await exec(tx);
-  await setConfig({ windowMs: TEST.windowMs, bond: TEST.bond });
+  // Set the FULL baseline (window+bond+floor) so the test is deterministic regardless
+  // of any prior governance drift. Stage 3 pins floor=3 for the refusal test; Stage 5
+  // drops to 2 for the thin-market path; Stage 11 restores DEFAULTS.
+  await setConfig({ windowMs: TEST.windowMs, bond: TEST.bond, minSources: DEFAULTS.minSources });
   const cfg = await readConfig();
-  record('config', 'test config applied', cfg.windowMs === TEST.windowMs && cfg.bond === TEST.bond && cfg.minSources === 3,
+  record('config', 'test config applied', cfg.windowMs === TEST.windowMs && cfg.bond === TEST.bond && cfg.minSources === DEFAULTS.minSources,
     `window=${cfg.windowMs}ms bond=${cfg.bond / 1e9}tUSD floor=${cfg.minSources}`);
 }
 
@@ -238,45 +241,51 @@ console.log(`\n── Stage 2 · waiting ${Math.ceil(TEST.expiryDeltaMs / 1000) 
 await sleep(TEST.expiryDeltaMs + 8_000);
 
 console.log('\n── Stage 3 · HONEST REFUSAL below the floor ──');
-// Pin the floor to 3 for this stage so the refusal test is deterministic
-// regardless of the production floor (which is 2 for rare-card thin settles).
+// Pin floor=3, then attempt to propose every product market with a deliberately-low
+// source count (1). The contract must reject all of them — deterministic regardless of
+// how many families each card actually has this round (the data shifts as scrapers improve).
 await setConfig({ minSources: 3 });
-for (const pid of ['neo1-1st-18', 'jp-vs-091', 'base2-1st-3']) {
-  const cs = cardState(pid);
+for (const p of PRODUCTS) {
+  const cs = cardState(p.productId);
   const r = await expectAbort(() => {
     const tx = new Transaction();
     tx.moveCall({ target: `${CONFIG.packageId}::market::propose_resolution`, arguments: [
-      tx.object(CONFIG.oracleCapId), tx.object(M[pid]), tx.object(CONFIG.registryId), tx.object(CONFIG.configId),
-      tx.pure.u64(cs.price), tx.pure.u64(cs.sources), vec(tx, cs.blobId), tx.object(CONFIG.clockId),
+      tx.object(CONFIG.oracleCapId), tx.object(M[p.productId]), tx.object(CONFIG.registryId), tx.object(CONFIG.configId),
+      tx.pure.u64(cs.price), tx.pure.u64(1), vec(tx, cs.blobId), tx.object(CONFIG.clockId),
     ] });
     return tx;
   }, 16 /* EInsufficientSources */);
-  record(pid, `propose with ${cs.sources} families correctly REFUSED`, r.aborted && r.match,
+  record(p.productId, 'propose below the source floor correctly REFUSED', r.aborted && r.match,
     r.aborted ? `abort code ${r.code}` : 'tx unexpectedly succeeded');
 }
 
-console.log('\n── Stage 4 · Dark Raichu clears the floor honestly → PROPOSED ──');
-{
-  const cs = cardState('base5-1st-83');
-  const pr = await proposeResolution({ oracleCapId: CONFIG.oracleCapId, marketId: M['base5-1st-83'], priceUsdCents: cs.price, sourcesCount: cs.sources, evidenceBlobId: cs.blobId });
-  await client.waitForTransaction({ digest: pr.digest });
-  const m = await readMarket(M['base5-1st-83']);
-  record('base5-1st-83', 'propose at floor=3 (real consensus + evidence)', m.state === 1 && m.evidence === cs.blobId,
-    `${usd(m.proposedPrice)} · evidence matches blob`);
-}
+// Partition the 4 products by their LIVE family count: ≥3 = clean (settle at floor 3),
+// 2 = thin rare-card (settle at floor 2 with thin_market). Routes itself as data changes.
+const cleanCards = PRODUCTS.map((p) => p.productId).filter((pid) => cardState(pid).sources >= 3);
+const thinCards = PRODUCTS.map((p) => p.productId).filter((pid) => cardState(pid).sources < 3);
 
-console.log('\n── Stage 5 · floor→1 (governance) for mechanics on thin cards ──');
-await setConfig({ minSources: 1 });
-for (const pid of ['neo1-1st-18', 'jp-vs-091', 'base2-1st-3']) {
+console.log(`\n── Stage 4 · clean cards (≥3 families) settle at floor 3 → PROPOSED ──`);
+for (const pid of cleanCards) {
   const cs = cardState(pid);
   const pr = await proposeResolution({ oracleCapId: CONFIG.oracleCapId, marketId: M[pid], priceUsdCents: cs.price, sourcesCount: cs.sources, evidenceBlobId: cs.blobId });
   await client.waitForTransaction({ digest: pr.digest });
   const m = await readMarket(M[pid]);
-  record(pid, 'propose (mechanics, real price/evidence)', m.state === 1, usd(m.proposedPrice));
+  record(pid, `propose at floor=3 (${cs.sources} families, real evidence)`, m.state === 1 && m.evidence === cs.blobId, `${usd(m.proposedPrice)}`);
 }
-// the no-winner market needs a proposal too
+
+console.log(`\n── Stage 5 · rare-card thin_market settles at floor 2 → PROPOSED ──`);
+await setConfig({ minSources: 2 });
+for (const pid of thinCards) {
+  const cs = cardState(pid);
+  const pr = await proposeResolution({ oracleCapId: CONFIG.oracleCapId, marketId: M[pid], priceUsdCents: cs.price, sourcesCount: cs.sources, evidenceBlobId: cs.blobId });
+  await client.waitForTransaction({ digest: pr.digest });
+  const m = await readMarket(M[pid]);
+  record(pid, `thin_market propose at floor=2 (${cs.sources} families)`, m.state === 1, usd(m.proposedPrice));
+}
+// the no-winner market needs a proposal too (uses a clean card's price/evidence)
 {
-  const cs = cardState('neo1-1st-18');
+  const seed = cleanCards[0] || 'base5-1st-83';
+  const cs = cardState(seed);
   const pr = await proposeResolution({ oracleCapId: CONFIG.oracleCapId, marketId: NOWIN, priceUsdCents: cs.price, sourcesCount: cs.sources, evidenceBlobId: cs.blobId });
   await client.waitForTransaction({ digest: pr.digest });
   record('no-winner', 'propose', (await readMarket(NOWIN)).state === 1);
@@ -378,7 +387,7 @@ await setConfig(DEFAULTS);
 {
   const cfg = await readConfig();
   record('config', 'defaults restored', cfg.windowMs === DEFAULTS.windowMs && cfg.bond === DEFAULTS.bond && cfg.minSources === DEFAULTS.minSources,
-    `window=24h bond=10tUSD floor=3`);
+    `window=24h bond=10tUSD floor=${cfg.minSources}`);
 }
 for (let i = 0; i < DEMO_IDS.length; i++) {
   const after = await readMarket(DEMO_IDS[i]);

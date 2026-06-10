@@ -1,0 +1,20 @@
+{
+  "cardId": "jp-vs-091",
+  "observations": [
+    {
+      "date": "2026-06-10T14:53:38.417Z",
+      "priceCents": 366700,
+      "confidence": 0.6,
+      "comps": 1,
+      "source": "yahoo-jp-sold"
+    },
+    {
+      "date": "2026-06-10T14:53:58.863Z",
+      "priceCents": 366700,
+      "confidence": 0.6,
+      "comps": 1,
+      "source": "yahoo-jp-sold"
+    }
+  ],
+  "anomalies": []
+}

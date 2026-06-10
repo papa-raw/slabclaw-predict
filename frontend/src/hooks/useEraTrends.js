@@ -2,6 +2,7 @@
 /// Hybrid: live-first; falls back to a small static snapshot for the demo.
 
 import { useQuery } from '@tanstack/react-query';
+import { registryFetchEnabled, registryUrl } from '../lib/registry';
 
 // Fallback mirrors a recent /api/registry/era-trends snapshot (90d_5v5).
 const FALLBACK = {
@@ -13,14 +14,18 @@ const FALLBACK = {
 };
 
 async function fetchEraTrends() {
-  try {
-    const res = await fetch('/api/registry/era-trends', { signal: AbortSignal.timeout?.(4000) });
-    if (res.ok) {
-      const json = await res.json();
-      if (json?.trends) return { trends: json.trends, source: 'live' };
+  // Skip the live call entirely when no registry backend is configured (e.g. the Vercel
+  // host) so the relative /api/registry/era-trends doesn't 404 before falling back.
+  if (registryFetchEnabled) {
+    try {
+      const res = await fetch(registryUrl('/api/registry/era-trends'), { signal: AbortSignal.timeout?.(4000) });
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.trends) return { trends: json.trends, source: 'live' };
+      }
+    } catch {
+      /* fall through */
     }
-  } catch {
-    /* fall through */
   }
   return { trends: FALLBACK, source: 'fallback' };
 }

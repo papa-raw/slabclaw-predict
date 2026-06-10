@@ -5,7 +5,7 @@ and — for the functions that move money — **formal verification** with the S
 (Z3 + Boogie). This document is the audit trail.
 
 > **TL;DR** — Every finding from a 40-check security review is fixed and covered by tests
-> (28/28 passing). The two settlement functions are then *mathematically proven* solvent,
+> (30/30 passing). The two settlement functions are then *mathematically proven* solvent,
 > truncation-free, and overflow-safe — not merely tested. Reproduce in one command:
 > `cd contracts/slabclaw_predict_proofs && sui-prover`.
 
@@ -27,11 +27,11 @@ was fixed at the source, not patched at the symptom.
 | `CFG-HC-2` | Medium | Economic parameters (dispute bond, window, source floor) were hard-coded and could only change via a package upgrade. | Introduced a governance-owned `ProtocolConfig` shared object with admin setters. Dispute terms are **snapshotted into the market at proposal time**, so a later config change can never move the goalposts on an in-flight dispute. |
 | `QA-DC-1` | Low | Constant comments referenced "SUI" though settlement is in `tUSD`. | Corrected throughout. |
 
-Test count went **19 → 28**, all green:
+Test count went **19 → 30**, all green:
 
 ```
 $ sui move test
-Test result: OK. Total tests: 28; passed: 28; failed: 0
+Test result: OK. Total tests: 30; passed: 30; failed: 0
 ```
 
 ---
@@ -121,7 +121,7 @@ sui-prover
 
 - The proofs cover the **settlement arithmetic** — the functions that compute who gets paid and how
   much. They do not (yet) prove the full object-lifecycle state machine; that is guarded by the
-  Move type system, the capability model, the version gate, and the 28-test suite.
+  Move type system, the capability model, the version gate, and the 30-test suite.
 - The proof package proves functions **identical** to production rather than importing the production
   package directly, because the production package's explicit `Sui` dependency collides with the
   prover's implicit-dependency injection. The functions are copied verbatim and cross-referenced in

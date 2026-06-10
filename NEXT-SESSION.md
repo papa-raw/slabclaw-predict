@@ -8,7 +8,7 @@
 ## Where we are (live)
 - **slabclaw.com = the live submission** (Vercel, project `slabclaw-predict`), `/privacy` + `/terms` preserved. Live oracle feed: `api.slabclaw.com/predict/{consensus,signals,health}`.
 - **Production topology**: data-plane node runs the full swarm daily and snapshots memory to Walrus; serving node **restores memory from Walrus** before each 6h round (systemd timer) and serves the feed. No autonomous settlement; proposals stay operator-signed.
-- **Markets**: Typhlosion `0xf63f37a0…`, Umbreon `0x2da84029…`, Flareon `0x9700623a…` ACTIVE (expiry Oct 1 2026, post-judging); Dark Raichu `0xd77d6340…` PROPOSED with onchain evidence blob `Q2dlXakO…`.
+- **Markets**: Typhlosion `0xf63f37a0…`, Umbreon `0x2da84029…`, Flareon `0x9700623a…` ACTIVE (expiry Oct 1 2026, post-judging); Dark Raichu `0xa291d583…` PROPOSED with onchain evidence blob `2zQcELz2…`.
 - **Daily health monitor** runs 07:00 UTC through Aug 27.
 - **Judge Gauntlet** (5 self-rubric judges + claim verifier + fresh cloner) scored: RWA 7.4 · UX 8.2 · Tech 7.7 · Presentation 7.8 · Walrus sponsor 7.4. The tech judge independently recomputed the settlement price from the onchain blob.
 

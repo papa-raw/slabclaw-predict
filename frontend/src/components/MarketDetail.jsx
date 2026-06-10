@@ -7,6 +7,7 @@ import { buildBuyYes, buildBuyNo, buildClaim, buildDispute, buildFinalize } from
 import { MARKET_STATE, EXPLORER_URL } from '../constants';
 import { useCard } from '../hooks/useRegistry';
 import { useTusdBalance } from '../hooks/useTusd';
+import { useLiveConsensus } from '../hooks/useLiveConsensus';
 import {
   oracleForGrade, priceSeries, smoothOracleHistory, distanceToStrike, sourceLabel,
 } from '../lib/registry';
@@ -26,8 +27,17 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
   const oracle = card ? oracleForGrade(card, meta.grader, meta.grade) : null;
   const series = card ? priceSeries(card, meta.grader, meta.grade).filter((p) => !start || p.t >= start) : [];
   const oLine = card ? smoothOracleHistory(card, meta.grader, meta.grade).filter((p) => !start || p.t >= start) : [];
-  const dist = oracle ? distanceToStrike(oracle.price, market.strikeUsdCents) : null;
-  const oracleAbove = oracle && oracle.price >= strikeDollars;
+
+  // The headline "Oracle now" must agree with the OracleConsensusPanel's "SETTLES AT"
+  // number — that's the value this bet actually resolves against. Prefer the live swarm
+  // consensus (same source the panel reads) and fall back to the registry oracle only
+  // when no consensus exists for this product.
+  const { data: consensusData } = useLiveConsensus();
+  const consensusCents = consensusData?.consensus?.[meta?.productId]?.consensusPriceCents ?? null;
+  const settlePrice = consensusCents != null ? consensusCents / 100 : (oracle?.price ?? null);
+
+  const dist = settlePrice != null ? distanceToStrike(settlePrice, market.strikeUsdCents) : null;
+  const oracleAbove = settlePrice != null && settlePrice >= strikeDollars;
 
   const totalShares = market.totalYes + market.totalNo;
   const yesPct = totalShares > 0 ? Math.round((market.totalYes / totalShares) * 100) : 50;
@@ -71,8 +81,10 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
           <span className="text-[10px] font-semibold text-sc-accent tracking-wide">PREDICT</span>
         </button>
 
-        {/* Center: card identity chip */}
-        <div className="flex items-center min-w-0 flex-1 justify-center">
+        {/* Center: card identity chip — hidden below md so it can't collide with the
+            left logo on a 390px viewport (centered on the full width, it lands on top of
+            SLABCLAW PREDICT). Mirrors Header.jsx's `hidden md:flex` KPI strip. */}
+        <div className="hidden md:flex items-center min-w-0 flex-1 justify-center">
           <div className="inline-flex items-center gap-2 bg-sc-surface/60 border border-sc-border/60 rounded-full px-3.5 py-1">
             <span className="text-[13px] font-semibold text-white truncate">{meta.name}</span>
             <span className="text-[11px] text-sc-muted shrink-0">#{meta.number}</span>
@@ -84,8 +96,9 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
           </div>
         </div>
 
-        {/* Right: wallet (its pill already carries the TESTNET badge) */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Right: wallet (its pill already carries the TESTNET badge). ml-auto keeps it
+            right-aligned on mobile, where the centered identity chip is hidden. */}
+        <div className="flex items-center gap-2 shrink-0 ml-auto md:ml-0">
           <WalletButton />
         </div>
       </div>
@@ -131,7 +144,7 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
             {/* stat cards — pill-style with subtle bg */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <StatCard label="Oracle now"
-                value={oracle ? usd(oracle.price) : '—'}
+                value={settlePrice != null ? usd(settlePrice) : '—'}
                 sub={dist != null ? `${arrow(dist)} ${pct(Math.abs(dist), { sign: false })} ${oracleAbove ? 'over' : 'under'} strike` : null}
                 subColor={oracleAbove ? 'text-sc-yes' : 'text-sc-no'}
                 accent={oracleAbove ? 'border-sc-yes/30' : 'border-sc-no/30'} />
@@ -170,7 +183,7 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
                 <OracleStrikeChart
                   series={series}
                   oracleLine={oLine}
-                  oracleNow={oracle?.price ?? null}
+                  oracleNow={settlePrice}
                   strike={strikeDollars}
                   expiryMs={market.expiryMs}
                   startMs={start}
@@ -182,7 +195,7 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
           </div>
           <div className="lg:col-span-1">
             <div className="lg:sticky lg:top-16">
-              <TradeBox market={market} meta={meta} oracle={oracle} strikeDollars={strikeDollars} onTxSuccess={onTxSuccess} />
+              <TradeBox market={market} meta={meta} settlePrice={settlePrice} strikeDollars={strikeDollars} onTxSuccess={onTxSuccess} />
             </div>
           </div>
         </div>
@@ -213,8 +226,11 @@ function DisputePanel({ market, meta, strikeDollars, onTxSuccess }) {
   const isProposed = market.state === 1;
   const isSettled = market.state === 3;
 
-  // Dispute window: proposedAt + 24h
-  const disputeDeadlineMs = market.proposedAt ? market.proposedAt + 86_400_000 : null;
+  // Dispute window: the ONCHAIN deadline snapshotted at proposal time (governance
+  // can set a longer window for thin/rare markets), falling back to proposedAt + 24h
+  // only if the chain field is unavailable. Reading the real value is what keeps the
+  // dispute CTA correctly OPEN for a long-window market.
+  const disputeDeadlineMs = market.disputeDeadlineMs ?? (market.proposedAt ? market.proposedAt + 86_400_000 : null);
   const disputeWindowOpen = disputeDeadlineMs && Date.now() < disputeDeadlineMs;
 
   // truncate address: 0xabcd…1234
@@ -544,7 +560,7 @@ function ResolveStep({ n, title, children }) {
   );
 }
 
-function TradeBox({ market, meta, oracle, strikeDollars, onTxSuccess }) {
+function TradeBox({ market, meta, settlePrice, strikeDollars, onTxSuccess }) {
   const account = useCurrentAccount();
   const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
   const { balance: tusd, isLoading: balLoading } = useTusdBalance();
@@ -585,11 +601,11 @@ function TradeBox({ market, meta, oracle, strikeDollars, onTxSuccess }) {
         <Side active={side === 'no'} color="no" pct={100 - yesPct} onClick={() => setSide('no')} label="NO" />
       </div>
 
-      {oracle && (
+      {settlePrice != null && (
         <div className="text-[11px] text-sc-muted mb-3 tnum">
-          Oracle {usd(oracle.price)} ·{' '}
-          <span className={oracle.price >= strikeDollars ? 'text-sc-yes' : 'text-sc-no'}>
-            {oracle.price >= strikeDollars ? 'above' : 'below'} strike {usd(strikeDollars)}
+          Oracle {usd(settlePrice)} ·{' '}
+          <span className={settlePrice >= strikeDollars ? 'text-sc-yes' : 'text-sc-no'}>
+            {settlePrice >= strikeDollars ? 'above' : 'below'} strike {usd(strikeDollars)}
           </span>
         </div>
       )}

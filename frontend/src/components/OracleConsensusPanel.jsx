@@ -21,11 +21,19 @@ const WALRUSCAN = 'https://walruscan.com/testnet/blob'; // human-readable Walrus
 // price helpers — consensus prices are integer cents
 const cents = (c) => (c == null ? '—' : usdFull(c / 100));
 
+// Distinct accent per venue family in the 13-agent roster. The venue-direct realized
+// sources (psa-apr, yahoo-jp, point130) are the rows that carry the rare-card thesis, so
+// they get their own colors instead of falling back to anonymous grey.
 const PLAT_COLOR = {
   ebay: '#e8a838', tcgplayer: '#7c8cf8', cardmarket: '#f5c542', fanatics: '#e879f9',
   alt: '#60a5fa', courtyard: '#38b2ac', beezie: '#e8a838', goldin: '#f59e0b',
-  heritage: '#9ca3af', 'collector-crypt': '#ec4899', pricecharting: '#22d3ee',
+  'collector-crypt': '#ec4899', pricecharting: '#22d3ee',
+  'psa-apr': '#f87171', 'yahoo-jp': '#a78bfa', point130: '#34d399',
 };
+
+// Coordinator stamps some platforms with a kind suffix (e.g. `psa-apr_sold`,
+// `yahoo-jp_active`). Strip it before the color lookup so suffixed keys still resolve.
+const platformKey = (p) => (p || '').toString().toLowerCase().replace(/_(sold|active|seeded)$/i, '');
 
 export default function OracleConsensusPanel({ productId }) {
   const { data: consensusData, source: consensusSource } = useLiveConsensus();
@@ -137,6 +145,14 @@ export default function OracleConsensusPanel({ productId }) {
               ) : realizedSources.map((s) => <SourceRow key={s.platform} s={s} maxWeight={maxWeight} consensus={card.consensusPriceCents} />)}
             </tbody>
           </table>
+          {/* Reconciles the "N independent sources" header with the longer marketplace list:
+              same-tape feeds collapse into one voting family, so the row count can exceed the
+              source count by design. Matches the family-collapse language on ArchitecturePage. */}
+          {realizedSources.length > agree && (
+            <div className="px-3 py-1.5 text-[9px] text-sc-muted leading-relaxed border-t border-sc-border/60">
+              PriceCharting + 130point share the eBay-sold tape — counted as one family, so {realizedSources.length} marketplaces resolve to {agree} independent {agree === 1 ? 'source' : 'sources'}.
+            </div>
+          )}
         </div>
 
         {/* asking prices — listings that BOUND the range but never settle */}
@@ -362,7 +378,7 @@ function FreshnessChip({ source, timestamp }) {
 }
 
 function PlatformTag({ platform, muted }) {
-  const color = PLAT_COLOR[platform] || '#9ca3af';
+  const color = PLAT_COLOR[platformKey(platform)] || '#9ca3af';
   return (
     <span className={`text-[10px] font-bold uppercase tracking-wide ${muted ? 'opacity-70' : ''}`} style={{ color }}>
       {platform}
