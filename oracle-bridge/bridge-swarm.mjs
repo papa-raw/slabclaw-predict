@@ -2,7 +2,7 @@
 /// bridge-swarm.mjs — Swarm-powered oracle bridge.
 ///
 /// Replaces the single-source bridge.mjs with multi-agent consensus:
-///   1. Runs the full swarm (8 source agents + coordinator)
+///   1. Runs the full swarm (13 source agents + coordinator)
 ///   2. Reads consensus from MemWal
 ///   3. Proposes onchain resolution if quality gates pass
 ///   4. Uploads evidence to Walrus
@@ -15,12 +15,10 @@
 import { EbayAgent } from './agents/ebay-agent.mjs';
 import { CourtyardAgent } from './agents/courtyard-agent.mjs';
 import { TcgplayerAgent } from './agents/tcgplayer-agent.mjs';
-import { AltAgent } from './agents/alt-agent.mjs';
-import { CardmarketAgent } from './agents/cardmarket-agent.mjs';
 import { BeezieAgent } from './agents/beezie-agent.mjs';
 import { CollectorCryptAgent } from './agents/collector-crypt-agent.mjs';
-import { GoldinAgent } from './agents/goldin-agent.mjs';
 import { PricechartingAgent } from './agents/pricecharting-agent.mjs';
+import { createTinyfishAgents } from './tinyfish-agents.mjs';
 import { runCoordinator } from './agents/coordinator.mjs';
 import { getClient, proposeResolution } from './sui-client.mjs';
 import { uploadEvidence } from './walrus-evidence.mjs';
@@ -37,15 +35,30 @@ const CARD_IDS = DEMO_MARKETS.map((m) => m.productId);
 const GRADER = 'PSA';
 const GRADE = 10;
 const STATE = { 0: 'ACTIVE', 1: 'PROPOSED', 2: 'DISPUTED', 3: 'SETTLED' };
+// Full-confidence family count. Exactly 2 agreeing families settle via the coordinator's
+// thin_market flag (onchain ProtocolConfig.min_sources is now 2). Mirrors coordinator.mjs.
+const MIN_SOURCES = 3;
 
 const usd = (c) => '$' + (c / 100).toLocaleString('en-US', { maximumFractionDigits: 0 });
 
+// Mirrors swarm.mjs createAgents() so the served keeper sees the SAME 13-agent roster
+// (6 backend-fed + 7 independent venue-direct via TinyFish) and therefore the same
+// source/family counts the consensus is computed from. Diverging here silently
+// under-counts families for the same cards.
 function createAgents() {
   const cfg = { slabclawApi: CONFIG.slabclawApi, cardIds: CARD_IDS, grader: GRADER, grade: GRADE };
   return [
-    new EbayAgent(cfg), new CourtyardAgent(cfg), new TcgplayerAgent(cfg),
-    new AltAgent(cfg), new CardmarketAgent(cfg), new BeezieAgent(cfg),
-    new CollectorCryptAgent(cfg), new GoldinAgent(cfg), new PricechartingAgent(cfg),
+    // Backend-fed agents (eBay/PriceCharting are the eBay-sold origin)
+    new EbayAgent(cfg),
+    new CourtyardAgent(cfg),
+    new TcgplayerAgent(cfg),
+    new BeezieAgent(cfg),
+    new CollectorCryptAgent(cfg),
+    new PricechartingAgent(cfg),
+    // Genuinely-independent venues scraped directly via TinyFish (psa-apr, goldin,
+    // fanatics, alt, cardmarket, yahoo-jp, 130point) — these get a card to 3+
+    // independent families.
+    ...createTinyfishAgents(cfg),
   ];
 }
 
@@ -107,10 +120,14 @@ async function pass() {
     const price = c?.consensusPriceCents;
     const expired = mkt.expiryMs <= Date.now();
 
-    // Quality gates
+    // Quality gates. Settleable = 3+ agreeing sold-families (full confidence) OR a
+    // genuinely-rare card that cleared the coordinator's thin-market corroboration gate
+    // (exactly 2 agreeing families, rarity recorded). The coordinator already decided
+    // this; the keeper honors the thin_market flag rather than re-gating on a literal 3.
     const hasConsensus = price != null && price > 0;
-    const hasSources = (c?.sourceCount || 0) >= 3;
     const noDisagreement = !c?.flags?.includes('wide_disagreement');
+    const insufficient = c?.flags?.includes('insufficient_sources');
+    const hasSources = ((c?.sourceCount || 0) >= MIN_SOURCES || c?.flags?.includes('thin_market')) && !insufficient;
     const hasEvidence = !!walrusBlobId; // evidence gate: no Walrus blob → no proposal
     const canPropose = expired && mkt.state === 0 && hasConsensus && hasSources && noDisagreement && hasEvidence;
 
@@ -120,9 +137,11 @@ async function pass() {
     else if (mkt.state === 2) action = 'disputed';
     else if (!expired) action = 'live';
     else if (!hasConsensus) action = 'no consensus';
-    else if (!hasSources) action = `${c.sourceCount} sources (need 3)`;
+    else if (insufficient) action = `${c.sourceCount} families (insufficient)`;
     else if (!noDisagreement) action = 'BLOCKED: disagreement';
+    else if (!hasSources) action = `${c.sourceCount} sources (need ${MIN_SOURCES} or thin_market)`;
     else if (!hasEvidence) action = 'BLOCKED: no evidence';
+    else if (c?.flags?.includes('thin_market')) action = DRY ? 'would propose (thin_market)' : 'PROPOSING (thin_market)...';
     else action = DRY ? 'would propose' : 'PROPOSING...';
 
     console.log([

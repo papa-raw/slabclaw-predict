@@ -132,9 +132,10 @@ function StateBanner({ market }) {
   const outCls = above ? 'text-sc-yes' : 'text-sc-no';
   const outcome = above ? 'YES' : 'NO';
 
-  // PROPOSED — resolving, dispute window open
+  // PROPOSED — resolving, dispute window open. Use the ONCHAIN deadline (a thin/rare
+  // market gets an extended window), not a hardcoded 24h from proposal.
   if (market.state === 1) {
-    const deadlineMs = market.proposedAt ? market.proposedAt + 86_400_000 : null;
+    const deadlineMs = market.disputeDeadlineMs ?? (market.proposedAt ? market.proposedAt + 86_400_000 : null);
     return (
       <ResolutionStrip
         tone="amber" label="Resolving"

@@ -180,6 +180,19 @@
     p, .lead { max-width: 100% }
     .stats { flex-wrap: wrap }
   }
+  /* ─── Phones (≤480px) — keep every slide's content visible, never clipped ─── */
+  @media (max-width: 480px) {
+    .slide { justify-content: flex-start; padding: 56px 20px 64px; overflow-y: auto }
+    /* slide-3 venue table: stack each row's label above its venue roster and let the
+       venue names wrap instead of being pushed off-screen */
+    table.t td { display: block; padding: 7px 0; border-bottom: none }
+    table.t tr { display: block; border-bottom: 1px solid var(--line); padding: 8px 0 }
+    table.t tr:last-child { border-bottom: none }
+    table.t td:nth-child(2) { color: var(--ink); word-break: break-word }
+    table.t td[colspan] { padding-top: 6px }
+    /* footnotes that were pinned to one line on desktop must wrap on phones */
+    .footnote { white-space: normal !important }
+  }
   @media print {
     body { overflow: visible; background: #fff; color: #111 }
     .slide { position: relative; opacity: 1; visibility: visible; transform: none; page-break-after: always; height: 100vh }
@@ -246,9 +259,10 @@
         <div class="ek" style="font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px">13 agents · 11 independent venues</div>
         <table class="t">
           <tbody>
-            <tr><td><b class="green">Completed sales</b><br><span class="muted" style="font-size:11px">set the price</span></td><td>eBay · Goldin · Fanatics&nbsp;/&nbsp;PWCC · PSA&nbsp;APR · Yahoo&nbsp;Japan</td></tr>
+            <tr><td><b class="green">Completed sales</b><br><span class="muted" style="font-size:11px">set the price</span></td><td>eBay&nbsp;sold · Goldin · Fanatics&nbsp;/&nbsp;PWCC · PSA&nbsp;APR · Yahoo&nbsp;Japan · ALT</td></tr>
             <tr><td><b>Asking prices</b><br><span class="muted" style="font-size:11px">set the ceiling</span></td><td>Cardmarket · TCGPlayer · ALT · Courtyard · Beezie · Collector&nbsp;Crypt</td></tr>
             <tr><td colspan="2" style="padding-top:10px"><span class="teal">Sources that resell the same data count once</span> — so nobody can pad the numbers by quoting eBay five different ways.</td></tr>
+            <tr><td colspan="2" style="padding-top:8px;color:var(--ink-3);font-size:11px;line-height:1.5">The realized-vs-ask cut, not the full roster. Same-origin feeds (PriceCharting, 130point) fold into the eBay-sold vote, so the named venues run fewer than the 13 agents. ALT&nbsp;is venue-direct: it carries both a sold comp and a live ask, so it sits on both rows.</td></tr>
           </tbody>
         </table>
       </div>
@@ -456,24 +470,26 @@
         <p style="margin-top:14px; font-size:clamp(13px,1.25vw,15.5px); line-height:1.6; color:var(--ink-2)">
           Most price feeds just hand you a <strong>number and ask you to trust it</strong>. You can&rsquo;t see which sales went into it or what got thrown out, so if it&rsquo;s wrong (or someone gamed it) you only find out after the money&rsquo;s moved. Here a market can&rsquo;t settle until the full working is published to Walrus and pinned onchain: the sales it used, the weights, everything it rejected. So if you doubt a price, <span class="teal">you don&rsquo;t take our word for it&nbsp;— you pull the file and re-run the math yourself</span>. Walrus keeps the whole receipt cheaply and permanently; the chain just holds the one ID that proves nobody&rsquo;s touched&nbsp;it.
         </p>
-        <p class="footnote" style="margin-top:16px; white-space:nowrap">Package <a href="https://suiscan.xyz/testnet/object/0x9807050b60400d30c848dcf035a2038b615ffdb7d6d2ed46332959d39b14f115" target="_blank">0x9807050b…</a> · <a href="https://suiscan.xyz/testnet/object/0xd77d634059460679568e4370fe570b758a47841ebf35a479d88f5b05f617879c" target="_blank">market object ↗</a> carries <a href="https://walruscan.com/testnet/blob/Q2dlXakO8CMH3vL9BKJn60jL0Ac7uWN-jx8cSWosGRE" target="_blank">evidence blob ↗</a></p>
+        <p class="footnote" style="margin-top:16px; white-space:nowrap">Package <a href="https://suiscan.xyz/testnet/object/0x9807050b60400d30c848dcf035a2038b615ffdb7d6d2ed46332959d39b14f115" target="_blank">0x9807050b…</a> · <a href="https://suiscan.xyz/testnet/object/0xa291d583f9c2297b002298f033260ab7bc698af378539aa3564001254e72fdd7" target="_blank">market object ↗</a> carries <a href="https://walruscan.com/testnet/blob/2zQcELz2C5jSG2smR8Z9y5EKlPdRM0LpdKqZ7hFogsA" target="_blank">evidence blob ↗</a></p>
         <p class="footnote" style="margin-top:6px">And the settlement math itself is formally proven with the <a href="https://github.com/asymptotic-code/sui-prover" target="_blank">Sui Prover</a>&nbsp;— a winner can never be paid more than the pool&nbsp;holds.</p>
       </div>
       <div class="card" style="border-color:var(--line-s)">
-        <div class="ek">evidence bundle · stored on Walrus</div>
+        <div class="ek">evidence bundle · shape (illustrative)</div>
         <pre class="mono" style="color:var(--ink-2);font-size:11.5px;line-height:1.6;margin-top:10px;white-space:pre-wrap">{
   "card": "Karen's Umbreon · PSA 10",
+  "settle": "thin_market",
   "settlesAt": "$15,882",
-  "range": ["$15,882", "$15,882"],
-  "soldSources": {
-    "ebay": 0.64, "fanatics": 0.36
+  "soldFamilies": {
+    "ebay-sold": 0.52,
+    "fanatics-pwcc": 0.48
   },
   "rejected": [
-    { "fanatics_lot": "wrong variant" }
+    { "yahoo_jp_lot": "wrong variant" }
   ],
   "method": "trust-weighted median",
-  "evidenceOnWalrus": "Q2dlXakO…"
+  "disputeWindow": "3× (thin market)"
 }</pre>
+        <p class="footnote" style="margin-top:10px;white-space:normal">Two independent sold-families agree within tolerance → settles thin, with a 3× dispute window. The byte-exact onchain artifact is the <a href="https://api.slabclaw.com/predict/consensus" target="_blank">live consensus feed →</a>, each card carrying its own Walrus blob.</p>
       </div>
     </div>
   </section>

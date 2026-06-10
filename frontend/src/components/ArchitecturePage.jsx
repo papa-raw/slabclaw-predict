@@ -16,7 +16,7 @@ const WALRUSCAN = 'https://walruscan.com/testnet/blob';
 // The evidence bundle referenced ONCHAIN by the live PROPOSED market — the strongest
 // verification anchor: read market.evidence_blob_id on Suiscan, fetch this blob on
 // Walrus, re-run the math.
-const EVIDENCE_BLOB = 'Q2dlXakO8CMH3vL9BKJn60jL0Ac7uWN-jx8cSWosGRE';
+const EVIDENCE_BLOB = '2zQcELz2C5jSG2smR8Z9y5EKlPdRM0LpdKqZ7hFogsA';
 // Shared SwarmMemory object — the ONCHAIN pointer to the swarm's latest memory
 // snapshot on Walrus. The serving node restores from this, not from any disk.
 const SWARM_MEMORY_ID = '0x41dfc599a161c5ba620d56b051b3ac92ba1db189c83ed7ce4f863740ae54649d';
@@ -106,7 +106,10 @@ const TIERS = [
         <Term def="UMA-style: the proposed price is accepted unless someone challenges it with a bond inside 24 hours. Undisputed → auto-settles; disputed → escalates to staked community voting.">optimistic 24-hour dispute</Term>{' '}
         window lets anyone challenge with a bond. No market settles without a verifiable,{' '}
         <Term def="Walrus blobs are immutable — you can't delete them. So before publishing, seller names and personal data are stripped and replaced with salted-hash tokens (the seller-concentration signal is kept, the identity isn't). GDPR-safe by construction.">PII-redacted</Term>{' '}
-        Walrus evidence blob referenced onchain.
+        Walrus evidence blob referenced onchain. The settlement math itself is{' '}
+        <Term def="The payout arithmetic in market.move was proven by the Sui Prover (Z3 + Boogie): solvency (payout ≤ pool), no silent truncation on the u128→u64 cast, bounded probability, and overflow-safety — all machine-checked, not just tested. See docs/FORMAL-VERIFICATION.md.">machine-checked
+        by the Sui Prover</Term>{' '}
+        — a winner can never be paid more than the pool.
       </>
     ),
   },
@@ -117,6 +120,7 @@ const DOCS = [
   { title: 'Deck', desc: 'The full story — architecture, MemWal, observable learning, evidence.', href: '/deck/index.html' },
   { title: 'Source code', desc: 'Move contracts, oracle bridge, swarm, frontend — all open.', href: REPO },
   { title: 'Live evidence on Walrus', desc: 'The latest published consensus bundle — re-run the math yourself.', href: `${WALRUSCAN}/${EVIDENCE_BLOB}` },
+  { title: 'Formal verification', desc: 'Settlement math machine-checked by the Sui Prover (Z3 + Boogie) — solvency, no truncation, bounded, overflow-safe.', href: `${REPO}/blob/main/docs/FORMAL-VERIFICATION.md` },
 ];
 
 // Full system diagram: the SlabClaw scanner (data foundation) → 13 source agents

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /// swarm.mjs — Oracle Swarm runner.
 ///
-/// Orchestrates: 8 Tier 1 source agents (parallel) -> Tier 2 coordinator ->
+/// Orchestrates: 13 Tier 1 source agents (parallel) -> Tier 2 coordinator ->
 /// Tier 3 keeper (bridge). Reads from SlabClaw backend, writes consensus to
 /// MemWal, optionally proposes onchain resolution.
 ///
@@ -47,6 +47,10 @@ const CARD_IDS = DEMO_MARKETS.map((m) => m.productId);
 const GRADER = 'PSA';
 const GRADE = 10;
 const STATE_LABELS = { 0: 'ACTIVE', 1: 'PROPOSED', 2: 'DISPUTED', 3: 'SETTLED' };
+// Full-confidence family count. At/above this a card settles clean; exactly 2 agreeing
+// families settle via the coordinator's thin_market flag (onchain ProtocolConfig.min_sources
+// is now 2). Mirrors MIN_SOURCES in agents/coordinator.mjs.
+const MIN_SOURCES = 3;
 
 const usd = (c) => '$' + (c / 100).toLocaleString('en-US', { maximumFractionDigits: 0 });
 const pct = (n) => (n * 100).toFixed(1) + '%';
@@ -199,16 +203,24 @@ async function pass() {
 
       const expired = mkt.expiryMs <= Date.now();
       const hasEvidence = !!walrusBlobId; // evidence gate: no Walrus blob → no proposal
-      const canPropose = expired && mkt.state === 0 && c.sourceCount >= 3 && !c.flags.includes('wide_disagreement') && hasEvidence;
+      // Settleable = 3+ agreeing sold-families (full confidence) OR a genuinely-rare
+      // card that cleared the thin-market corroboration gate (2 agreeing families,
+      // rarity recorded — onchain ProtocolConfig.min_sources is now 2). The coordinator
+      // already decided this; the keeper must honor the thin_market flag, not re-gate on 3.
+      const hasSources = (c.sourceCount >= MIN_SOURCES || c.flags.includes('thin_market')) &&
+        !c.flags.includes('insufficient_sources') && !c.flags.includes('wide_disagreement');
+      const canPropose = expired && mkt.state === 0 && hasSources && hasEvidence;
 
       let action = '';
       if (mkt.state === 3) action = 'settled';
       else if (mkt.state === 1) action = 'in dispute window';
       else if (mkt.state === 2) action = 'disputed';
       else if (!expired) action = 'live';
-      else if (c.sourceCount < 3) action = `only ${c.sourceCount} sources`;
+      else if (c.flags.includes('insufficient_sources')) action = `only ${c.sourceCount} families (insufficient)`;
       else if (c.flags.includes('wide_disagreement')) action = 'BLOCKED: source disagreement';
+      else if (!hasSources) action = `only ${c.sourceCount} sources`;
       else if (!hasEvidence) action = 'BLOCKED: no evidence';
+      else if (c.flags.includes('thin_market')) action = DRY ? 'would propose (thin_market)' : 'PROPOSING (thin_market)...';
       else action = DRY ? 'would propose' : 'PROPOSING...';
 
       console.log(`  ${m.name.padEnd(16)} ${STATE_LABELS[mkt.state].padEnd(9)} consensus=${usd(c.consensusPriceCents)} strike=${usd(mkt.strikeCents)} -> ${action}`);

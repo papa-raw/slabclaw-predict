@@ -12,7 +12,7 @@
 
 ## The one-liner
 
-Anyone can trade YES/NO on whether a graded card exceeds a strike price by expiry. The market resolves against a **real price** — not a single feed, but a **swarm of 13 source-specialist agents across 11 independent venue families** that reads every major collectibles venue, **remember** each card's history and past manipulation attempts across sessions (persisted on **MemWal / Walrus Memory**), coordinate to a manipulation-resistant consensus, and store their evidence as verifiable artifacts on **Walrus**.
+Anyone can trade YES/NO on whether a graded card exceeds a strike price by expiry. The market resolves against a **real price** computed by a **swarm of 13 source-specialist agents across 11 independent venue families**. They read every major collectibles venue, **remember** each card's history and past manipulation attempts across sessions (persisted on **MemWal / Walrus Memory**), agree on a manipulation-resistant consensus, and publish their evidence as verifiable artifacts on **Walrus**.
 
 The prediction market is the showcase. **The agentic, memory-backed oracle is the product.**
 
@@ -35,7 +35,7 @@ Most hackathon contracts are *tested*. SlabClaw Predict's settlement math is **p
 - **No silent truncation** — the `u128 → u64` payout narrowing is proven lossless.
 - **Bounded probability** — the YES price is always a valid `[0–10000]` bps, and provably overflow-safe.
 
-Behind that: a 40-check security review with every finding root-caused and fixed, **28/28 Move tests green**, onchain version-gating for safe upgrades, and governance-tunable economic parameters. Full writeup in [`docs/FORMAL-VERIFICATION.md`](docs/FORMAL-VERIFICATION.md); reproduce with `cd contracts/slabclaw_predict_proofs && sui-prover`.
+Behind that: a 40-check security review with every finding root-caused and fixed, **30/30 Move tests green**, onchain version-gating for safe upgrades, and governance-tunable economic parameters. Full writeup in [`docs/FORMAL-VERIFICATION.md`](docs/FORMAL-VERIFICATION.md); reproduce with `cd contracts/slabclaw_predict_proofs && sui-prover`.
 
 ## Architecture
 
@@ -52,10 +52,13 @@ TIER 1: Source Specialists (13 agents, parallel)
          │ all signals → shared/agent-signals/latest.json
          ▼
 TIER 2: Coordinator (1 agent, sequential)
-  1. Source-count gate (≥3 independent sources)
+  1. Source-count gate (≥2 independent sold-families; ≥3 = full
+     confidence. Exactly 2 families whose medians agree within ±30%
+     settle as thin_market with a 3× dispute window; <2 families or
+     disagreement → insufficient_sources, blocked)
   2. MAD outlier rejection (modified Z-score, threshold 3.5)
   3. Confidence-weighted median (weight = confidence × reliability × recency)
-  4. Aggregator circuit breakers (disagreement >40% blocks proposal)
+  4. Cross-source anchor/plausibility gate + family corroboration within ±30%
   5. Evidence bundle → Walrus blob
 
          │ consensus → shared/consensus/latest.json
@@ -71,7 +74,7 @@ TIER 3: Bridge Keeper (conditional)
 2. **Trade** — buy YES or NO with **tUSD** (faucet-minted test USD); parimutuel pool.
 3. **Oracle swarm runs** — 13 agents fetch live marketplace data, coordinator aggregates, evidence uploads to Walrus.
 4. **Settle** — after expiry the bridge keeper proposes the consensus price onchain (if quality gates pass).
-5. **Dispute** — 24h window; anyone can challenge with a tUSD bond. Evidence on Walrus makes disputes nearly self-resolving.
+5. **Dispute** — 24h base window, 3× extended for thin_market (rare-card) settlements; anyone can challenge with a tUSD bond. Evidence on Walrus makes disputes nearly self-resolving.
 6. **Claim** — undisputed → auto-finalize; winners claim from the pool.
 
 ## What's live
@@ -79,7 +82,7 @@ TIER 3: Bridge Keeper (conditional)
 | Component | Status |
 |---|---|
 | Move contracts (`market`, `oracle`, `registry`, `test_usd`) on Sui testnet | ✅ deployed |
-| 4 PSA-10 markets seeded with positions | ✅ live |
+| 3 ACTIVE + 1 PROPOSED (Dark Raichu, evidence on Walrus) markets | ✅ live |
 | React dapp — browse, faucet tUSD, buy YES/NO, oracle-vs-strike chart, registry ladder, dispute/resolution flow | ✅ working |
 | **Oracle swarm** — 13 source agents (11 venue families) + coordinator + bridge keeper | ✅ working |
 | **MemWal persistence** — per-agent card memory, shared signals, reputation weights | ✅ working |
@@ -111,9 +114,9 @@ TIER 3: Bridge Keeper (conditional)
 
 ### MemWal Persistence on Walrus
 
-Agent memory doesn't just survive process restarts — it lives on Walrus. After every swarm run, the full memory state (78 files: per-card observations, reputation weights, anomaly history, consensus) is snapshotted to a Walrus blob. On cold start, the swarm restores from the latest snapshot automatically.
+Agent memory doesn't just survive process restarts — it lives on Walrus. After every swarm run, the full memory state — per-card observations, reputation weights, anomaly history, and consensus — is snapshotted to a Walrus blob. On cold start, the swarm restores from the latest snapshot automatically.
 
-The latest snapshot blob ID is in the live feed: [`/predict/health`](https://api.slabclaw.com/predict/health) · an onchain-referenced example: [`Q2dlXakO…`](https://walruscan.com/testnet/blob/Q2dlXakO8CMH3vL9BKJn60jL0Ac7uWN-jx8cSWosGRE)
+The latest snapshot blob ID is in the live feed: [`/predict/health`](https://api.slabclaw.com/predict/health) · an onchain-referenced example: [`2zQcELz2…`](https://walruscan.com/testnet/blob/2zQcELz2C5jSG2smR8Z9y5EKlPdRM0LpdKqZ7hFogsA)
 
 ### Evidence on Walrus
 
@@ -124,7 +127,7 @@ Every swarm run uploads a complete evidence bundle to Walrus containing:
 - Source reliability weights (evolving over rounds)
 - Card-by-card consensus with confidence intervals
 
-Each round's evidence blob ID ships inside [`/predict/consensus`](https://api.slabclaw.com/predict/consensus) (`evidence.blobId` per card); the one referenced ONCHAIN by the live PROPOSED market: [verify on Walruscan →](https://walruscan.com/testnet/blob/Q2dlXakO8CMH3vL9BKJn60jL0Ac7uWN-jx8cSWosGRE)
+Each round's evidence blob ID ships inside [`/predict/consensus`](https://api.slabclaw.com/predict/consensus) (`evidence.blobId` per card); the one referenced ONCHAIN by the live PROPOSED market: [verify on Walruscan →](https://walruscan.com/testnet/blob/2zQcELz2C5jSG2smR8Z9y5EKlPdRM0LpdKqZ7hFogsA)
 
 ### Learning over time
 
@@ -160,7 +163,7 @@ No autonomous settlement runs in production: consensus rounds are computed and p
 | Typhlosion (Neo Genesis, 1st Ed) | $4,000 | ACTIVE | [`0xf63f37a0…c1144ea`](https://suiscan.xyz/testnet/object/0xf63f37a07f61a38c78b3ea6d650315e903a6192b767c34cfc5a8a2266c1144ea) |
 | Karen's Umbreon (VS, 1st Ed) | $15,000 | ACTIVE | [`0x2da84029…02c9720`](https://suiscan.xyz/testnet/object/0x2da84029427ff70dfafadb8643d4f3a83f76f5344bd1de05c1902cff102c9720) |
 | Flareon (Jungle, 1st Ed) | $2,500 | ACTIVE | [`0x9700623a…c459b71`](https://suiscan.xyz/testnet/object/0x9700623a1e977a179b011908da25e7800d682e4bc8dd38929ac7bc121c459b71) |
-| Dark Raichu (Team Rocket, 1st Ed) | $6,000 | PROPOSED + [evidence on Walrus](https://walruscan.com/testnet/blob/Q2dlXakO8CMH3vL9BKJn60jL0Ac7uWN-jx8cSWosGRE) | [`0xd77d6340…617879c`](https://suiscan.xyz/testnet/object/0xd77d634059460679568e4370fe570b758a47841ebf35a479d88f5b05f617879c) |
+| Dark Raichu (Team Rocket, 1st Ed) | $6,000 | PROPOSED + [evidence on Walrus](https://walruscan.com/testnet/blob/2zQcELz2C5jSG2smR8Z9y5EKlPdRM0LpdKqZ7hFogsA) | [`0xa291d583…617879c`](https://suiscan.xyz/testnet/object/0xa291d583f9c2297b002298f033260ab7bc698af378539aa3564001254e72fdd7) |
 
 ## Run it
 
@@ -200,8 +203,8 @@ node bridge.mjs --dry            # status only
 node bridge.mjs --watch          # keeper daemon
 
 # Full lifecycle E2E — all 4 products through create → trade → expire →
-# propose (honest refusal below the source floor) → dispute/finalize → claim →
-# refund paths, on fresh testnet markets with real consensus + evidence (40 checks)
+# propose (honest refusal below the 2-family thin_market floor) → dispute/finalize →
+# claim → refund paths, on fresh testnet markets with real consensus + evidence (every stage, all 4 products)
 node e2e-lifecycle.mjs
 
 # Move contracts
@@ -226,6 +229,7 @@ oracle-bridge/
     goldin-agent.mjs             Goldin realized auction prices
     coordinator.mjs              Aggregation: families → MAD → weighted median → evidence
   tinyfish-agents.mjs            Venue-direct agents (PSA APR, Goldin, Fanatics, ALT, Cardmarket, Yahoo JP, 130point)
+  fanatics-scraper.mjs           Fanatics Collect / PWCC deterministic-DOM realized scraper
   point130.mjs                   130point sold-comps scraper (headed stealth browser)
   yahoo-jp-tinyfish.mjs          Yahoo Auctions JP closed-auction scraper
   swarm.mjs                      Orchestrator (all agents → coordinator → Walrus)
@@ -246,14 +250,14 @@ docs/                            Problem statements + formal verification + orac
 
 ## Manipulation resistance
 
-| Attack | Cost | Defense | Outcome |
+| Attack | Cost to attacker | Defense | Outcome |
 |---|---|---|---|
-| Single-source spoof | ~$6K fees | MAD rejection (1 of 11 families) | Caught & filtered |
-| Multi-source coordination | ~$23K+ fees | New signals lack reputation + CUSUM drift detection | Extremely expensive & detectable |
+| Single-source spoof | One fake listing, rejected by MAD | MAD rejection (1 of 11 families) | Caught & filtered |
+| Multi-source coordination | Requires faking realized sales across multiple independent real marketplaces simultaneously | New signals carry no earned reputation weight (EMA reliability, `coordinator.mjs:112-126`) + MAD outlier rejection (modified-z, threshold 3.5) + cross-source anchor/plausibility gate + one-vote-per-family collapse | Extremely expensive & detectable |
 | Agent compromise | Variable | Transparent aggregation on Walrus = anyone verifies | Provably detectable |
 | Coordinator compromise | Key access | Evidence blob = re-computable math | Provably fraudulent |
 
-The parimutuel market structure itself is self-correcting: wash trading is impossible (buying always increases pool), flash loans are neutralized (capital locked until resolution), and oracle manipulation requires simultaneously manipulating multiple independent real-world marketplaces.
+The parimutuel structure helps too: every buy grows the pool, so wash trading is pointless; capital is locked until resolution, so flash loans do nothing; and moving the settle price means faking several independent real marketplaces at once.
 
 ## Tech stack
 

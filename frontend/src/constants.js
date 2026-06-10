@@ -77,7 +77,7 @@ export const DEMO_MARKETS = [
     productId: 'jp-vs-091',
   },
   {
-    id: '0xd77d634059460679568e4370fe570b758a47841ebf35a479d88f5b05f617879c',
+    id: '0xa291d583f9c2297b002298f033260ab7bc698af378539aa3564001254e72fdd7',
     assetId: 'BASE5_1ST_83_PSA_1000',
     name: 'Dark Raichu',
     set: 'Team Rocket — 1st Edition',

@@ -3,8 +3,10 @@
 ///
 /// Runs the FULL swarm (9 base agents + 7 independent TinyFish venue agents),
 /// computes consensus, uploads the redacted evidence bundle to Walrus, and — only
-/// if a card legitimately clears the onchain MIN_SOURCES=3 gate with no wide
-/// disagreement — creates a fresh short-expiry market and proposes its resolution
+/// if a card legitimately clears the onchain ProtocolConfig.min_sources floor (now 2:
+/// full confidence at 3 families, thin_market settle at exactly 2 agreeing families via
+/// MIN_SOURCES_THIN) with no wide disagreement — creates a fresh short-expiry market
+/// and proposes its resolution
 /// with the REAL source count and the REAL Walrus blob id. No fabricated counts:
 /// if the swarm is thin right now, it reports that and leaves the 4 ACTIVE markets
 /// untouched (the gate doing its job is the manipulation-resistance feature).

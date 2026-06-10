@@ -343,6 +343,12 @@ module slabclaw_predict::market {
         // A market cannot settle without verifiable Walrus evidence.
         assert!(std::vector::length(&evidence_blob_id) > 0, EMissingEvidence);
 
+        // NOTE: the dispute window is the single global `registry::dispute_window_ms(config)`.
+        // The offchain coordinator recommends a 3x window for `thin_market` (rare-card,
+        // 2-family) settlements, but that multiplier is NOT enforced onchain — it is
+        // recorded in the Walrus evidence blob only. Onchain enforcement of a per-market
+        // extended window would require a `dispute_window_override_ms` arg here (validated
+        // `>= dispute_window_ms`) and a package redeploy; flagged as a manual operator item.
         let dispute_deadline_ms = now + registry::dispute_window_ms(config);
 
         market.state = MarketState::Proposed;
