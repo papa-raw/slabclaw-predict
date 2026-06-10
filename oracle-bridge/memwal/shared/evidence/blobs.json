@@ -3437,5 +3437,21 @@
     "size": 1812,
     "epochs": 53,
     "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/BLOB_RF"
+  },
+  {
+    "blobId": "KQ-yogPBItWWAfMtxbv2pOqU1E_RBZwgxecn-FlZ-jY",
+    "objectId": "0x1baa794ea7a5cad967805cf4d05b804c57335ba574083a0cb85d544d414948c5",
+    "verified": true,
+    "timestamp": "2026-06-10T08:29:12.691Z",
+    "cardIds": [
+      "neo1-1st-18",
+      "jp-vs-091",
+      "base5-1st-83",
+      "base2-1st-3"
+    ],
+    "roundId": "neo1-1st-18_1781080144068",
+    "size": 14545,
+    "epochs": 53,
+    "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/KQ-yogPBItWWAfMtxbv2pOqU1E_RBZwgxecn-FlZ-jY"
   }
 ]
