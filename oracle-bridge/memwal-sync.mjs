@@ -118,12 +118,75 @@ export async function snapshotToWalrus() {
   return entry;
 }
 
+/// Read the canonical memory pointer from the onchain SwarmMemory object.
+/// Read-only RPC — works on machines that hold no key at all (e.g. the
+/// production serving node). Returns null when unset/unreachable.
+export async function fetchOnchainPointer() {
+  const { CONFIG } = await import('./config.mjs');
+  if (!CONFIG.swarmMemoryId) return null;
+  try {
+    const resp = await fetch(CONFIG.rpcUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'sui_getObject',
+        params: [CONFIG.swarmMemoryId, { showContent: true }],
+      }),
+      signal: AbortSignal.timeout?.(READ_TIMEOUT_MS),
+    });
+    const fields = (await resp.json())?.result?.data?.content?.fields;
+    if (!fields?.latest_blob_id?.length) return null;
+    return {
+      blobId: Buffer.from(fields.latest_blob_id).toString(),
+      fileCount: Number(fields.file_count),
+      checkpointedAtMs: Number(fields.checkpointed_at_ms),
+      round: Number(fields.round),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/// Anchor a snapshot onchain (memory::checkpoint on the SwarmMemory object).
+/// Requires the oracle operator key — data-plane only; the serving node never
+/// signs. Imported lazily so keyless machines can still use restore.
+export async function checkpointOnchain(entry) {
+  const { CONFIG } = await import('./config.mjs');
+  if (!CONFIG.packageIdV2 || !CONFIG.swarmMemoryId || !entry?.blobId) return null;
+  const { Transaction } = await import('@mysten/sui/transactions');
+  const { getClient, executeTransaction } = await import('./sui-client.mjs');
+  const tx = new Transaction();
+  tx.moveCall({
+    target: `${CONFIG.packageIdV2}::memory::checkpoint`,
+    arguments: [
+      tx.object(CONFIG.oracleCapId),
+      tx.object(CONFIG.swarmMemoryId),
+      tx.pure.vector('u8', Array.from(Buffer.from(entry.blobId))),
+      tx.pure.u64(entry.fileCount || 0),
+      tx.object(CONFIG.clockId),
+    ],
+  });
+  const res = await executeTransaction(tx);
+  await getClient().waitForTransaction({ digest: res.digest });
+  return { digest: res.digest, blobId: entry.blobId };
+}
+
 export async function restoreFromWalrus(blobId) {
+  let source = 'explicit';
   if (!blobId) {
-    const log = loadSyncLog();
-    if (log.snapshots.length === 0) return null;
-    blobId = log.snapshots[log.snapshots.length - 1].blobId;
-    if (!blobId) return null;
+    // The ONCHAIN pointer is canonical — a fresh machine needs nothing but
+    // chain + Walrus. The local sync log is only a fallback for offline work.
+    const onchain = await fetchOnchainPointer();
+    if (onchain?.blobId) {
+      blobId = onchain.blobId;
+      source = 'onchain';
+    } else {
+      const log = loadSyncLog();
+      if (log.snapshots.length === 0) return null;
+      blobId = log.snapshots[log.snapshots.length - 1].blobId;
+      source = 'local-log';
+      if (!blobId) return null;
+    }
   }
 
   const resp = await fetch(`${AGGREGATOR}/v1/blobs/${blobId}`, {
@@ -146,7 +209,14 @@ export async function restoreFromWalrus(blobId) {
     restored++;
   }
 
-  return { blobId, restored, timestamp: snapshot.timestamp };
+  // Provenance marker for /predict/health — which blob this node's memory
+  // came from, and whether the pointer was resolved from chain.
+  writeFileSync(join(MEMWAL_ROOT, '.restore-state.json'), JSON.stringify({
+    blobId, source, restored, snapshotTimestamp: snapshot.timestamp,
+    restoredAt: new Date().toISOString(),
+  }, null, 2));
+
+  return { blobId, restored, timestamp: snapshot.timestamp, source };
 }
 
 export function getLatestSnapshotBlobId() {
@@ -169,6 +239,15 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       console.log(`  Files:   ${result.fileCount}`);
       console.log(`  Size:    ${(result.sizeBytes / 1024).toFixed(1)}KB`);
       console.log(`  View:    ${result.aggregatorUrl}`);
+      // --checkpoint anchors the pointer onchain (needs the oracle key)
+      if (process.argv.includes('--checkpoint')) {
+        try {
+          const cp = await checkpointOnchain(result);
+          console.log(`  Onchain: SwarmMemory advanced (tx ${cp.digest})`);
+        } catch (e) {
+          console.error(`  Onchain checkpoint failed: ${e.message}`);
+        }
+      }
     } else {
       console.log('  Nothing to snapshot (empty memory).');
     }
@@ -180,6 +259,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       if (result) {
         console.log(`  Restored: ${result.restored} files from ${result.timestamp}`);
         console.log(`  Blob:     ${result.blobId}`);
+        if (result.source) console.log(`  Pointer:  ${result.source === 'onchain' ? 'ONCHAIN SwarmMemory object' : result.source}`);
       } else {
         console.log('  No snapshot found.');
       }

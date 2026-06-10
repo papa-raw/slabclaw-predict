@@ -138,10 +138,10 @@ Three behaviors, all visible in the dapp's reliability chart (*the 10 bootstrap 
 
 The swarm runs as a two-node system with **Walrus as the memory bus**:
 
-- **Data-plane node** — runs the full swarm where its marketplaces are reachable, snapshots the agents' entire memory (price calibrations, source reputations, warm caches) to Walrus every round.
-- **Serving node** (independent infrastructure) — **restores that memory from Walrus** (`memwal-sync.mjs restore`) before each 6-hour consensus round, re-aggregates, and serves the result publicly at [`/predict/consensus`](https://api.slabclaw.com/predict/consensus) with honest freshness reporting at [`/predict/health`](https://api.slabclaw.com/predict/health).
+- **Data-plane node** — runs the full swarm where its marketplaces are reachable, snapshots the agents' entire memory (price calibrations, source reputations, warm caches) to Walrus every round, and **anchors the blob id onchain** (`memory::checkpoint` on the shared [`SwarmMemory`](https://suiscan.xyz/testnet/object/0x41dfc599a161c5ba620d56b051b3ac92ba1db189c83ed7ce4f863740ae54649d) object — the same trust pattern as settlement evidence, applied to memory itself).
+- **Serving node** (independent infrastructure, holds **no key**) — resolves the pointer **from chain** and restores the memory from Walrus before each 6-hour round, then serves [`/predict/consensus`](https://api.slabclaw.com/predict/consensus). [`/predict/health`](https://api.slabclaw.com/predict/health) reports `restoredFromBlobId` + `pointerSource: "onchain"` — verify it with one curl.
 
-Kill either machine and the other rebuilds the swarm's accumulated knowledge from the blob — *memory that outlives its operator*. The dapp at [slabclaw.com](https://slabclaw.com) ships a build-time snapshot and atomically upgrades to the live feed when reachable; every oracle panel labels itself `live` or `snapshot`.
+Kill either machine and the other rebuilds the swarm's accumulated knowledge from chain + Walrus alone — *memory that outlives its operator*. Don't take it on faith: `node oracle-bridge/prove-memory-loop.mjs` destroys the local memory, restores it from the onchain pointer, and proves the consensus comes back identical. The dapp at [slabclaw.com](https://slabclaw.com) ships a build-time snapshot and atomically upgrades to the live feed when reachable; every oracle panel labels itself `live` or `snapshot`.
 
 No autonomous settlement runs in production: consensus rounds are computed and published continuously, but onchain proposals remain operator-signed — the optimistic dispute window is the safety net, not a substitute for one.
 
@@ -152,6 +152,7 @@ No autonomous settlement runs in production: consensus rounds are computed and p
 | Package (hardened + formally verified) | [`0x9807050b…b14f115`](https://suiscan.xyz/testnet/object/0x9807050b60400d30c848dcf035a2038b615ffdb7d6d2ed46332959d39b14f115) |
 | AssetRegistry | [`0x18c19b19…fc108a`](https://suiscan.xyz/testnet/object/0x18c19b198a263421ff7882af139ce3645bc1a94c7d4f6ab715e318dd44fc108a) |
 | ProtocolConfig (governance) | [`0xecbaca29…e64bc3`](https://suiscan.xyz/testnet/object/0xecbaca290e63b931dce3014cb71d85bad2af75083625331942b0a72a23e64bc3) |
+| SwarmMemory (onchain memory pointer, v2 `memory` module) | [`0x41dfc599…54649d`](https://suiscan.xyz/testnet/object/0x41dfc599a161c5ba620d56b051b3ac92ba1db189c83ed7ce4f863740ae54649d) |
 | tUSD Faucet | [`0xa1e2ca66…6c8870`](https://suiscan.xyz/testnet/object/0xa1e2ca665f6d2b8aa11d5a6caf0d3cc4d88da68b942991a007c87d0b516c8870) |
 
 | Market (PSA 10) | Strike | State | Market ID |

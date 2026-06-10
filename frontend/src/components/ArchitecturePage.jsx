@@ -17,6 +17,9 @@ const WALRUSCAN = 'https://walruscan.com/testnet/blob';
 // verification anchor: read market.evidence_blob_id on Suiscan, fetch this blob on
 // Walrus, re-run the math.
 const EVIDENCE_BLOB = 'Q2dlXakO8CMH3vL9BKJn60jL0Ac7uWN-jx8cSWosGRE';
+// Shared SwarmMemory object — the ONCHAIN pointer to the swarm's latest memory
+// snapshot on Walrus. The serving node restores from this, not from any disk.
+const SWARM_MEMORY_ID = '0x41dfc599a161c5ba620d56b051b3ac92ba1db189c83ed7ce4f863740ae54649d';
 const PREDICT_API = 'https://api.slabclaw.com/predict';
 
 const obj = (id) => `${EXPLORER_URL}/object/${id}`;
@@ -144,10 +147,12 @@ export default function ArchitecturePage() {
       <div className="bg-sc-card border border-sc-border rounded-xl p-4 mb-10">
         <p className="text-[12px] leading-relaxed text-sc-dim mb-3">
           The swarm runs in two places, and <span className="text-sc-text font-medium">Walrus is the memory bus between them</span>.
-          A data-plane node runs the full swarm where its marketplaces are reachable and snapshots the agents&rsquo;
-          entire memory to Walrus every round. A serving node on independent infrastructure{' '}
-          <Term def="node memwal-sync.mjs restore — fetches the latest memory snapshot blob from a Walrus aggregator and rebuilds the swarm's MemWal state from it. The serving node never needs the data-plane machine to be online.">restores
-          that memory from Walrus</Term>{' '}
+          A data-plane node runs the full swarm where its marketplaces are reachable, snapshots the agents&rsquo;
+          entire memory to Walrus every round, and{' '}
+          <Term def="memory::checkpoint on the shared SwarmMemory object — the blob id of the latest memory snapshot, anchored onchain by the oracle operator. The same trust pattern as market evidence (evidence_blob_id), applied to the agents' memory itself.">anchors
+          the blob id onchain</Term>. A keyless serving node on independent infrastructure{' '}
+          <Term def="memwal-sync.mjs restore — reads the SwarmMemory object on Sui for the latest blob id, fetches that blob from a Walrus aggregator, and rebuilds the swarm's full MemWal state. No file ever moves between the machines; /predict/health reports restoredFromBlobId + pointerSource so you can check.">resolves
+          that pointer from chain and restores the memory from Walrus</Term>{' '}
           before each 6-hour consensus round and serves the result as a public feed. Kill either machine and the
           other rebuilds the swarm&rsquo;s accumulated knowledge — price calibrations, source reputations, warm
           caches — from the blob. The dapp you&rsquo;re reading ships a build-time snapshot and{' '}
@@ -198,8 +203,10 @@ export default function ArchitecturePage() {
             <RegistryRow key={m.id} label={`Market · ${m.name}`} id={m.id} href={obj(m.id)}
               note={`${m.grader} ${m.grade} · strike $${(m.strikeUsdCents / 100000).toFixed(1)}k`} />
           ))}
+          <RegistryRow label="SwarmMemory · onchain memory pointer" id={SWARM_MEMORY_ID} href={obj(SWARM_MEMORY_ID)}
+            note="latest MemWal snapshot blob, anchored onchain each round" />
           <RegistryRow label="Evidence blob" id={EVIDENCE_BLOB} href={`${WALRUSCAN}/${EVIDENCE_BLOB}`}
-            note="latest consensus bundle on Walrus" walrus />
+            note="referenced onchain by the PROPOSED market" walrus />
         </div>
       </div>
 
