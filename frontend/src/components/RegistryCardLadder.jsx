@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from 'react';
 import { usd } from '../lib/format';
-import { popForGrade } from '../lib/registry';
+import { popForGrade, isSurfaceableListing } from '../lib/registry';
 
 const VISIBLE = 12;
 
@@ -46,6 +46,8 @@ export default function RegistryCardLadder({ card, grader = 'PSA', grade = 10, o
         if (norm(l.grader) !== G) continue;          // exact grader
         if (gradeNumOf(l) !== Number(grade)) continue; // exact grade
         if ((l.platform || '').toLowerCase() === 'pricecharting') continue; // never surface aggregator rows
+        // Exclude auction bids and implausible/dead rows (wrong-grade/variant).
+        if (!isSurfaceableListing(l, b.oracle_anchor?.price)) continue;
         flat.push({ ...l, oracle_anchor: b.oracle_anchor });
       }
     }
