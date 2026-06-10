@@ -454,7 +454,7 @@
           <strong>A market cannot settle without its evidence blob.</strong> The contract aborts. Pull the blob, re-run the math&nbsp;— the price either checks out or it&nbsp;doesn't.
         </p>
         <p style="margin-top:14px; font-size:clamp(13px,1.25vw,15.5px); line-height:1.6; color:var(--ink-2)">
-          Every other price feed&nbsp;— Chainlink, a marketplace average, an appraiser&nbsp;— hands you a <strong>number you have to trust</strong>. You never see which sales it used or what it threw out, so a wrong or gamed price only surfaces after someone&rsquo;s been paid. We make the <span class="teal">proof a precondition of the price</span>: the full derivation is committed onchain and stored permanently on Walrus, so a disagreement isn&rsquo;t an argument&nbsp;— it&rsquo;s a re-run anyone can do. That&rsquo;s only practical because Walrus holds the whole receipt cheaply and forever, while the chain holds the one ID that makes it&nbsp;tamper-proof.
+          Most price feeds just hand you a <strong>number and ask you to trust it</strong>. You can&rsquo;t see which sales went into it or what got thrown out, so if it&rsquo;s wrong (or someone gamed it) you only find out after the money&rsquo;s moved. Here a market can&rsquo;t settle until the full working is published to Walrus and pinned onchain: the sales it used, the weights, everything it rejected. So if you doubt a price, <span class="teal">you don&rsquo;t take our word for it&nbsp;— you pull the file and re-run the math yourself</span>. Walrus keeps the whole receipt cheaply and permanently; the chain just holds the one ID that proves nobody&rsquo;s touched&nbsp;it.
         </p>
         <p class="footnote" style="margin-top:16px; white-space:nowrap">Package <a href="https://suiscan.xyz/testnet/object/0x9807050b60400d30c848dcf035a2038b615ffdb7d6d2ed46332959d39b14f115" target="_blank">0x9807050b…</a> · <a href="https://suiscan.xyz/testnet/object/0xd77d634059460679568e4370fe570b758a47841ebf35a479d88f5b05f617879c" target="_blank">market object ↗</a> carries <a href="https://walruscan.com/testnet/blob/Q2dlXakO8CMH3vL9BKJn60jL0Ac7uWN-jx8cSWosGRE" target="_blank">evidence blob ↗</a></p>
       </div>
@@ -484,7 +484,7 @@
     <div class="split" style="margin-top:24px">
       <div>
         <p class="lead" style="font-size:clamp(14px,1.4vw,17.5px)">
-          Winners get paid out of a shared pool. One overflow or rounding slip and the pool comes up short&nbsp;— someone doesn&rsquo;t get their winnings. Tests only check the cases you think&nbsp;of; we had the payout math <span class="teal">proven correct for every possible input</span>.
+          Winners get paid out of a shared pool, so a single overflow or rounding slip leaves someone unpaid. Almost everyone ships on tests, which only cover the cases you thought to write&nbsp;— and at a hackathon, nobody proves the math. We did: the payout code is <span class="teal">mathematically checked to hold for every possible input</span>, the bar usually saved for protocols holding&nbsp;millions.
         </p>
         <ul class="list" style="margin-top:18px">
           <li>Winners can never claim more than the pool actually&nbsp;holds.</li>
