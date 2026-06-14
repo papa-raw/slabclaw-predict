@@ -105,6 +105,23 @@ TIER 3: Bridge Keeper (conditional)
 | **Walrus memory bus** — serving node restores full agent memory from Walrus before every round | ✅ live |
 | **Live consensus feed** — [`/predict/consensus`](https://api.slabclaw.com/predict/consensus) + honest [`/predict/health`](https://api.slabclaw.com/predict/health) | ✅ live |
 
+## Use the oracle from any agent (MCP)
+
+Most Walrus-track entries are memory you *store*. Our oracle is also a primitive any AI agent can *consume*. [`oracle-bridge/mcp-server.mjs`](oracle-bridge/mcp-server.mjs) is a Model Context Protocol server — point Claude Desktop, Cursor, or any MCP client at it and an agent can ask *"what's a PSA 10 Dark Raichu worth?"* and get a manipulation-resistant, onchain-verifiable price with the Walrus evidence to check it.
+
+| Tool | Returns |
+|---|---|
+| `get_card_price(card)` | consensus price + confidence band + per-source learned trust + evidence blob |
+| `list_markets()` | the live prediction markets (strike, consensus, onchain object) |
+| `get_market(card)` | one market: strike, implied YES/NO, onchain state, evidence |
+| `verify_evidence(blobId)` | re-runs the aggregation on the Walrus blob — *don't trust, verify* |
+
+```json
+{ "mcpServers": { "slabclaw-oracle": { "command": "node", "args": ["/abs/path/oracle-bridge/mcp-server.mjs"] } } }
+```
+
+Reads the public `/predict/consensus` feed — no keys, works against live testnet.
+
 ## Key deliverables
 
 ### Oracle Swarm (Walrus track)
