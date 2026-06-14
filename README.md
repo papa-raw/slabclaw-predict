@@ -37,6 +37,16 @@ Most hackathon contracts are *tested*. SlabClaw Predict's settlement math is **p
 
 Behind that: a 40-check security review with every finding root-caused and fixed, **30/30 Move tests green**, onchain version-gating for safe upgrades, and governance-tunable economic parameters. Full writeup in [`docs/FORMAL-VERIFICATION.md`](docs/FORMAL-VERIFICATION.md); reproduce with `cd contracts/slabclaw_predict_proofs && sui-prover`.
 
+## What's new for this hackathon
+
+SlabClaw is an existing collectibles app, so to be clear about what predates the May 7 – Jun 21 window: the only pre-existing pieces are the **product registry** (the 5,167-card catalog with cross-grader normalization) and a single-source **PriceCharting-average + eBay-fallback** price feed. Everything that makes this a Sui + Walrus project — and everything that makes the oracle an *oracle* — was built during the hackathon:
+
+- **The independent multi-source oracle swarm** — the 13 source-specialist agents, including 7 venue-direct agents we integrated this window (PSA APR, Goldin, Fanatics, ALT, Cardmarket, Yahoo Auctions JP, 130point), plus the coordinator's family-independence counting, MAD + anchor gates, thin_market settlement, cross-session memory, and reputation weighting. The old feed was one averaged source; the manipulation-resistant, memory-backed consensus is new.
+- **All Move contracts** — `market`, `oracle`, `resolution`, `registry`, `test_usd`, `ProtocolConfig` — plus **Sui Prover formal verification** of the settlement math and a 40-check security review (30/30 Move tests).
+- **MemWal / Walrus Memory persistence** — per-agent card memory, the kill-and-restore memory loop, and the two-node production topology with **Walrus as the memory bus**.
+- **The Walrus evidence layer** — every consensus round uploaded as a verifiable, onchain-anchored blob.
+- **The full React prediction-market dapp** — browse, faucet, trade YES/NO, oracle-vs-strike charts, the registry ladder, and the dispute/resolution flow.
+
 ## Architecture
 
 ```
@@ -136,6 +146,24 @@ Three behaviors, all visible in the dapp's reliability chart (*the 10 bootstrap 
 1. **Source reliability divergence** — Round 1: all sources weight 1.0. Round 10: eBay 96%, collector-crypt 49%. The swarm learns which sources to trust.
 2. **Confidence interval narrowing** — Round 1: ±25%. Round 10: ±4%. More data = tighter consensus.
 3. **Anomaly memory** — Round 5: manipulation detected (fake 4x price signal). Round 6+: that source is pre-weighted down. The swarm remembers attacks.
+
+Each source row in the dapp shows its *learned* trust — e.g. "41% trust · learned over 158 rounds" — so the memory is legible, not a static number.
+
+### The memory has a job: catching manipulation (reproducible proof)
+
+Our memory isn't an audit log that piles up — it *does work*. [`prove-learning-loop.mjs`](oracle-bridge/prove-learning-loop.mjs) runs the real pipeline through a four-beat perturbation-response arc on one card:
+
+```
+0. BASELINE   honest round → consensus $7,987, goldin trust 41.9%
+1. ATTACK     goldin posts a 3× shill ($23,790), 4 rounds:
+              every spoof REJECTED (MAD z=9.20) · consensus never moves (0.0%)
+              trust erodes 41.9 → 40.9 → 40.0 → 39.0 → 38.1%
+2. MEMORY     goldin behaves again — but is trusted LESS than before it lied
+3. PERSIST    snapshot → Walrus → destroy memory → restore from the blob alone
+              the grudge survived: 38.3% trust came back from Walrus
+```
+
+PASS = manipulation caught **and** trust dropped **and** consensus held **and** the lesson round-tripped through Walrus. Headless invariants in [`test/learning-loop.test.mjs`](oracle-bridge/test/learning-loop.test.mjs). This is the difference between memory that *remembers* and memory that *learns*: kill the process, and the swarm still knows who tried to manipulate it.
 
 ## Running in production
 

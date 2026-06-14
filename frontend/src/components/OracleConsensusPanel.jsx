@@ -291,7 +291,13 @@ function ConfidenceBand({ lower, upper, mid }) {
 
 function SourceRow({ s, maxWeight, consensus }) {
   const barPct = Math.min(100, ((s.weight || 0) / maxWeight) * 100);
-  const rel = s.reliability != null ? `${Math.round(s.reliability * 100)}% reliable` : null;
+  // Trust is LEARNED, not assigned: when the swarm has history on a source, say so —
+  // "41% trust · learned over 158 rounds" — so the memory is visible, not a static number.
+  const rel = s.reliability != null
+    ? (s.roundsObserved > 0
+        ? `${Math.round(s.reliability * 100)}% trust · learned over ${s.roundsObserved} round${s.roundsObserved === 1 ? '' : 's'}`
+        : `${Math.round(s.reliability * 100)}% reliable`)
+    : null;
   const dev = consensus > 0 && s.priceCents != null ? ((s.priceCents - consensus) / consensus) * 100 : null;
   const devColor = dev == null ? 'text-sc-muted'
     : Math.abs(dev) < 5 ? 'text-sc-yes' : Math.abs(dev) < 15 ? 'text-sc-amber' : 'text-sc-no';

@@ -22,7 +22,9 @@
           "reliability": 0.9048163312974751,
           "weight": 0.6268256271393149,
           "source": "pc_sold",
-          "compCount": 3
+          "compCount": 3,
+          "roundsObserved": 120,
+          "agreements": 109
         },
         {
           "platform": "fanatics",
@@ -33,7 +35,9 @@
           "reliability": 0.2965958862930651,
           "weight": 0.4626528603839904,
           "source": "fanatics-pwcc",
-          "compCount": 4
+          "compCount": 4,
+          "roundsObserved": 94,
+          "agreements": 31
         },
         {
           "platform": "psa-apr",
@@ -44,7 +48,9 @@
           "reliability": 0.19339032600124212,
           "weight": 0.28469499168642043,
           "source": "psa-apr",
-          "compCount": 3
+          "compCount": 3,
+          "roundsObserved": 81,
+          "agreements": 15
         },
         {
           "platform": "point130",
@@ -55,7 +61,9 @@
           "reliability": 0.07828793437379107,
           "weight": 0.027676767984342158,
           "source": "point130-sold",
-          "compCount": 2
+          "compCount": 2,
+          "roundsObserved": 28,
+          "agreements": 2
         },
         {
           "platform": "ebay",
@@ -66,7 +74,9 @@
           "reliability": 0.6622206641504386,
           "weight": 0,
           "source": "ebay_active",
-          "compCount": 4
+          "compCount": 4,
+          "roundsObserved": 158,
+          "agreements": 103
         },
         {
           "platform": "alt",
@@ -77,7 +87,9 @@
           "reliability": 0.2891989172746705,
           "weight": 0,
           "source": "alt-ask",
-          "compCount": 1
+          "compCount": 1,
+          "roundsObserved": 121,
+          "agreements": 34
         }
       ],
       "rejectedSources": [],
@@ -106,7 +118,9 @@
           "reliability": 0.9056329335772766,
           "weight": 1.822407255154964,
           "source": "pc_sold",
-          "compCount": 5
+          "compCount": 5,
+          "roundsObserved": 120,
+          "agreements": 109
         },
         {
           "platform": "fanatics",
@@ -117,7 +131,9 @@
           "reliability": 0.3043633812725349,
           "weight": 0.5308080921705944,
           "source": "fanatics-pwcc",
-          "compCount": 5
+          "compCount": 5,
+          "roundsObserved": 94,
+          "agreements": 31
         },
         {
           "platform": "ebay",
@@ -128,7 +144,9 @@
           "reliability": 0.6593113605354541,
           "weight": 0,
           "source": "ebay_active",
-          "compCount": 5
+          "compCount": 5,
+          "roundsObserved": 158,
+          "agreements": 103
         },
         {
           "platform": "cardmarket",
@@ -139,7 +157,9 @@
           "reliability": 0.6713453604947097,
           "weight": 0,
           "source": "cardmarket-eu-ask",
-          "compCount": 2
+          "compCount": 2,
+          "roundsObserved": 41,
+          "agreements": 28
         }
       ],
       "rejectedSources": [
@@ -175,7 +195,9 @@
           "reliability": 0.4143889610998084,
           "weight": 0.33148569151538765,
           "source": "goldin-auctions",
-          "compCount": 1
+          "compCount": 1,
+          "roundsObserved": 77,
+          "agreements": 32
         },
         {
           "platform": "pricecharting",
@@ -186,7 +208,9 @@
           "reliability": 0.9064356427850473,
           "weight": 0.9120113000140805,
           "source": "pc_sold",
-          "compCount": 5
+          "compCount": 5,
+          "roundsObserved": 120,
+          "agreements": 109
         },
         {
           "platform": "fanatics",
@@ -197,7 +221,9 @@
           "reliability": 0.31196118829480396,
           "weight": 0.3440928881179827,
           "source": "fanatics-pwcc",
-          "compCount": 2
+          "compCount": 2,
+          "roundsObserved": 94,
+          "agreements": 31
         },
         {
           "platform": "point130",
@@ -208,7 +234,9 @@
           "reliability": 0.07533823216398916,
           "weight": 0.04697442852530976,
           "source": "point130-sold",
-          "compCount": 3
+          "compCount": 3,
+          "roundsObserved": 28,
+          "agreements": 2
         },
         {
           "platform": "ebay",
@@ -219,7 +247,9 @@
           "reliability": 0.6554857158529439,
           "weight": 0,
           "source": "ebay_active",
-          "compCount": 1
+          "compCount": 1,
+          "roundsObserved": 158,
+          "agreements": 103
         },
         {
           "platform": "alt",
@@ -230,7 +260,9 @@
           "reliability": 0.28675967518240114,
           "weight": 0,
           "source": "alt-ask",
-          "compCount": 1
+          "compCount": 1,
+          "roundsObserved": 121,
+          "agreements": 34
         }
       ],
       "rejectedSources": [
@@ -263,7 +295,9 @@
           "reliability": 0.41905353043520566,
           "weight": 0.33521706019775277,
           "source": "goldin-auctions",
-          "compCount": 1
+          "compCount": 1,
+          "roundsObserved": 77,
+          "agreements": 32
         },
         {
           "platform": "pricecharting",
@@ -274,7 +308,9 @@
           "reliability": 0.907224810482573,
           "weight": 1.5421605162419183,
           "source": "pc_sold",
-          "compCount": 4
+          "compCount": 4,
+          "roundsObserved": 120,
+          "agreements": 109
         },
         {
           "platform": "fanatics",
@@ -285,7 +321,9 @@
           "reliability": 0.31939480810134435,
           "weight": 0.557022819330751,
           "source": "fanatics-pwcc",
-          "compCount": 5
+          "compCount": 5,
+          "roundsObserved": 94,
+          "agreements": 31
         },
         {
           "platform": "ebay",
@@ -296,7 +334,9 @@
           "reliability": 0.6514227848195774,
           "weight": 0,
           "source": "ebay_active",
-          "compCount": 6
+          "compCount": 6,
+          "roundsObserved": 158,
+          "agreements": 103
         }
       ],
       "rejectedSources": [

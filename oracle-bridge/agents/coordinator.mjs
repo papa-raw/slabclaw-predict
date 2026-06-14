@@ -271,6 +271,10 @@ export function aggregate(cardId, allSignals, reputationWeights) {
       priceCents: s.priceCents,
       confidence: s.confidence,
       reliability,
+      // Learned trust is EARNED over rounds — surface the history so the UI can show
+      // "trusted 41% across 158 rounds", not a static number. This is the memory at work.
+      roundsObserved: rep[s.platform]?.rounds || 0,
+      agreements: rep[s.platform]?.hits || 0,
       weight,
       source: s.source,
       compCount: s.compCount || 0,
@@ -286,6 +290,8 @@ export function aggregate(cardId, allSignals, reputationWeights) {
       priceCents: s.priceCents,
       confidence: s.confidence,
       reliability: rep[s.platform]?.reliability || 1.0,
+      roundsObserved: rep[s.platform]?.rounds || 0,
+      agreements: rep[s.platform]?.hits || 0,
       weight: 0,
       source: s.source,
       compCount: s.compCount || 0,
