@@ -2,7 +2,7 @@
   "name": "slabclaw-oracle-bridge",
   "version": "1.0.0",
   "type": "module",
-  "description": "Off-chain bridge: SlabClaw 10-platform oracle \u2192 Sui on-chain prediction markets",
+  "description": "Off-chain bridge: SlabClaw 10-platform oracle → Sui on-chain prediction markets",
   "scripts": {
     "test": "node --test \"test/**/*.test.mjs\"",
     "bridge": "node bridge.mjs",
@@ -26,6 +26,7 @@
     "e2e": "node e2e-lifecycle.mjs"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@mysten/sui": "^1.20.0"
   }
 }

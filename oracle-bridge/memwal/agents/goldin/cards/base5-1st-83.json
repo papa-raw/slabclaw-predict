@@ -217,6 +217,27 @@
       "confidence": 0.8,
       "comps": 1,
       "source": "goldin-auctions"
+    },
+    {
+      "date": "2026-06-14T09:37:50.820Z",
+      "priceCents": 793000,
+      "confidence": 0.8,
+      "comps": 1,
+      "source": "goldin-auctions"
+    },
+    {
+      "date": "2026-06-14T09:39:31.053Z",
+      "priceCents": 793000,
+      "confidence": 0.8,
+      "comps": 1,
+      "source": "goldin-auctions"
+    },
+    {
+      "date": "2026-06-14T10:26:40.118Z",
+      "priceCents": 793000,
+      "confidence": 0.8,
+      "comps": 1,
+      "source": "goldin-auctions"
     }
   ],
   "anomalies": []

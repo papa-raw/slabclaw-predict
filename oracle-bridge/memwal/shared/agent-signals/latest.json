@@ -1,55 +1,47 @@
 {
   "ebay": {
-    "timestamp": "2026-06-10T14:53:58.971Z",
+    "timestamp": "2026-06-14T10:26:34.366Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
         "platform": "ebay",
-        "priceCents": 600000,
-        "priceUsd": 6000,
+        "priceCents": 670300,
+        "priceUsd": 6703,
         "confidence": 0.5,
         "source": "ebay_active",
         "compCount": 4,
         "comps": [
           {
-            "price": 6000,
-            "url": "https://www.ebay.com/itm/287232988396?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item42e06b94ec:g:oogAAeSwdylpxG~E"
-          },
-          {
-            "price": 6670,
+            "price": 6703,
             "url": "https://www.ebay.com/itm/147267648727?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item2249d5fcd7:g:PuEAAeSwBb1p5V8l"
           },
           {
-            "price": 6800,
-            "url": "https://www.ebay.com/itm/306934866447?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item4776be620f:g:~TQAAeSwaERqA3vb"
+            "price": 6975,
+            "url": "https://www.ebay.com/itm/287215053795?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item42df59ebe3:g:Cb8AAeSwk6RpuuFH"
+          },
+          {
+            "price": 7000,
+            "url": "https://www.ebay.com/itm/306845750591?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item47716e953f:g:pc8AAeSwQCppxeel"
           },
           {
             "price": 6999.99,
             "url": "https://www.ebay.com/itm/318122855037?_skw=%22Typhlosion%22+neo+genesis+pokemon&hash=item4a11998a7d:g:4G4AAeSwPZBp1pgY"
           }
         ],
-        "observedAt": "2026-06-10T14:53:58.875Z",
+        "observedAt": "2026-06-14T10:26:34.182Z",
         "flags": []
       },
       {
         "cardId": "jp-vs-091",
         "platform": "ebay",
-        "priceCents": 1850000,
-        "priceUsd": 18500,
-        "confidence": 0.6,
+        "priceCents": 1966444,
+        "priceUsd": 19664.44,
+        "confidence": 0.375,
         "source": "ebay_active",
-        "compCount": 5,
+        "compCount": 3,
         "comps": [
           {
-            "price": 18500,
-            "url": "https://www.ebay.com/itm/397027380270?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item5c70ad0c2e:g:xWQAAeSwM01ogcEB"
-          },
-          {
-            "price": 19000,
-            "url": "https://www.ebay.com/itm/178193959567?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item297d300a8f:g:PMUAAeSwpl1qIi4a"
-          },
-          {
-            "price": 19606.65,
+            "price": 19664.44,
             "url": "https://www.ebay.com/itm/206212089106?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item300332c512:g:xaIAAeSwB9Zp35Re"
           },
           {
@@ -61,7 +53,7 @@
             "url": "https://www.ebay.com/itm/157907348885?_skw=%22Karen%27s+Umbreon%22+vs+japanese+pokemon&hash=item24c402ed95:g:O2YAAeSwMdJplShd"
           }
         ],
-        "observedAt": "2026-06-10T14:53:58.934Z",
+        "observedAt": "2026-06-14T10:26:34.309Z",
         "flags": []
       },
       {
@@ -78,25 +70,25 @@
             "url": "https://www.ebay.com/itm/188060533997?_skw=%22Dark+Raichu%22+team+rocket+pokemon&hash=item2bc94804ed:g:oO8AAeSwaaVpkMUZ"
           }
         ],
-        "observedAt": "2026-06-10T14:53:58.966Z",
+        "observedAt": "2026-06-14T10:26:34.348Z",
         "flags": []
       },
       {
         "cardId": "base2-1st-3",
         "platform": "ebay",
-        "priceCents": 795000,
-        "priceUsd": 7950,
+        "priceCents": 788800,
+        "priceUsd": 7888,
         "confidence": 0.6,
         "source": "ebay_active",
         "compCount": 6,
         "comps": [
           {
-            "price": 7950,
-            "url": "https://www.ebay.com/itm/168307349198?_skw=%22Flareon%22+jungle+pokemon&hash=item272fe656ce:g:cwoAAeSw6z9p3a-b"
+            "price": 7888,
+            "url": "https://www.ebay.com/itm/306951538433?_skw=%22Flareon%22+jungle+pokemon&hash=item4777bcc701:g:rwgAAeSwYudqDjyk"
           },
           {
-            "price": 8000,
-            "url": "https://www.ebay.com/itm/306951538433?_skw=%22Flareon%22+jungle+pokemon&hash=item4777bcc701:g:rwgAAeSwYudqDjyk"
+            "price": 8250,
+            "url": "https://www.ebay.com/itm/117188292573?_skw=%22Flareon%22+jungle+pokemon&hash=item1b48f76fdd:g:kgwAAeSwzMJpjgat"
           },
           {
             "price": 8800,
@@ -115,30 +107,30 @@
             "url": "https://www.ebay.com/itm/287168706835?_skw=%22Flareon%22+jungle+pokemon&hash=item42dc96b913:g:XGoAAeSw~~1pod~W"
           }
         ],
-        "observedAt": "2026-06-10T14:53:58.971Z",
+        "observedAt": "2026-06-14T10:26:34.365Z",
         "flags": []
       }
     ]
   },
   "courtyard": {
-    "timestamp": "2026-06-10T14:53:58.963Z",
+    "timestamp": "2026-06-14T10:26:34.253Z",
     "signals": []
   },
   "tcgplayer": {
-    "timestamp": "2026-06-10T14:53:58.948Z",
+    "timestamp": "2026-06-14T10:26:34.284Z",
     "signals": []
   },
   "alt": {
-    "timestamp": "2026-06-10T14:53:59.441Z",
+    "timestamp": "2026-06-14T10:26:40.619Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
-        "priceCents": 383700,
+        "priceCents": 665000,
         "confidence": 0.4,
         "compCount": 1,
         "source": "alt-ask",
         "platform": "alt",
-        "observedAt": "2026-06-10T14:53:58.666Z"
+        "observedAt": "2026-06-14T10:26:35.579Z"
       },
       {
         "cardId": "base5-1st-83",
@@ -147,21 +139,21 @@
         "compCount": 1,
         "source": "alt-ask",
         "platform": "alt",
-        "observedAt": "2026-06-10T14:53:59.440Z"
+        "observedAt": "2026-06-14T10:26:38.710Z"
       },
       {
         "cardId": "base2-1st-3",
-        "priceCents": 252000,
+        "priceCents": 470000,
         "confidence": 0.4,
         "compCount": 1,
         "source": "alt-ask",
         "platform": "alt",
-        "observedAt": "2026-06-10T14:53:59.441Z"
+        "observedAt": "2026-06-14T10:26:40.618Z"
       }
     ]
   },
   "cardmarket": {
-    "timestamp": "2026-06-10T14:53:58.863Z",
+    "timestamp": "2026-06-14T10:26:34.161Z",
     "signals": [
       {
         "cardId": "jp-vs-091",
@@ -170,20 +162,20 @@
         "compCount": 2,
         "source": "cardmarket-eu-ask",
         "platform": "cardmarket",
-        "observedAt": "2026-06-10T14:53:58.863Z"
+        "observedAt": "2026-06-14T10:26:34.158Z"
       }
     ]
   },
   "beezie": {
-    "timestamp": "2026-06-10T14:53:58.955Z",
+    "timestamp": "2026-06-14T10:26:34.336Z",
     "signals": []
   },
   "collector-crypt": {
-    "timestamp": "2026-06-10T14:53:58.939Z",
+    "timestamp": "2026-06-14T10:26:34.356Z",
     "signals": []
   },
   "goldin": {
-    "timestamp": "2026-06-10T14:54:00.188Z",
+    "timestamp": "2026-06-14T10:26:41.705Z",
     "signals": [
       {
         "cardId": "base5-1st-83",
@@ -192,21 +184,21 @@
         "compCount": 1,
         "source": "goldin-auctions",
         "platform": "goldin",
-        "observedAt": "2026-06-10T14:54:00.187Z"
+        "observedAt": "2026-06-14T10:26:40.118Z"
       },
       {
         "cardId": "base2-1st-3",
-        "priceCents": 555100,
+        "priceCents": 42500,
         "confidence": 0.8,
         "compCount": 1,
         "source": "goldin-auctions",
         "platform": "goldin",
-        "observedAt": "2026-06-10T14:54:00.187Z"
+        "observedAt": "2026-06-14T10:26:41.704Z"
       }
     ]
   },
   "pricecharting": {
-    "timestamp": "2026-06-10T14:53:58.959Z",
+    "timestamp": "2026-06-14T10:26:34.371Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
@@ -216,7 +208,7 @@
         "confidence": 0.8,
         "source": "pc_sold",
         "compCount": 3,
-        "observedAt": "2026-06-10T14:53:58.894Z",
+        "observedAt": "2026-06-14T10:26:34.265Z",
         "flags": []
       },
       {
@@ -227,7 +219,7 @@
         "confidence": 0.9,
         "source": "pc_sold",
         "compCount": 5,
-        "observedAt": "2026-06-10T14:53:58.926Z",
+        "observedAt": "2026-06-14T10:26:34.326Z",
         "flags": []
       },
       {
@@ -238,7 +230,7 @@
         "confidence": 0.9,
         "source": "pc_sold",
         "compCount": 5,
-        "observedAt": "2026-06-10T14:53:58.943Z",
+        "observedAt": "2026-06-14T10:26:34.343Z",
         "flags": []
       },
       {
@@ -249,13 +241,13 @@
         "confidence": 0.8500000000000001,
         "source": "pc_sold",
         "compCount": 4,
-        "observedAt": "2026-06-10T14:53:58.958Z",
+        "observedAt": "2026-06-14T10:26:34.370Z",
         "flags": []
       }
     ]
   },
   "fanatics": {
-    "timestamp": "2026-06-10T14:53:58.666Z",
+    "timestamp": "2026-06-14T10:28:02.032Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
@@ -264,16 +256,16 @@
         "compCount": 4,
         "source": "fanatics-pwcc",
         "platform": "fanatics",
-        "observedAt": "2026-06-10T14:53:58.665Z"
+        "observedAt": "2026-06-14T10:26:40.489Z"
       },
       {
         "cardId": "jp-vs-091",
-        "priceCents": 1440000,
+        "priceCents": 1500000,
         "confidence": 0.78,
         "compCount": 5,
         "source": "fanatics-pwcc",
         "platform": "fanatics",
-        "observedAt": "2026-06-10T14:53:58.666Z"
+        "observedAt": "2026-06-14T10:27:18.794Z"
       },
       {
         "cardId": "base5-1st-83",
@@ -282,7 +274,7 @@
         "compCount": 2,
         "source": "fanatics-pwcc",
         "platform": "fanatics",
-        "observedAt": "2026-06-10T14:53:58.666Z"
+        "observedAt": "2026-06-14T10:27:24.973Z"
       },
       {
         "cardId": "base2-1st-3",
@@ -291,12 +283,12 @@
         "compCount": 5,
         "source": "fanatics-pwcc",
         "platform": "fanatics",
-        "observedAt": "2026-06-10T14:53:58.666Z"
+        "observedAt": "2026-06-14T10:28:02.030Z"
       }
     ]
   },
   "psa-apr": {
-    "timestamp": "2026-06-10T14:53:59.465Z",
+    "timestamp": "2026-06-14T10:26:44.876Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
@@ -305,7 +297,7 @@
         "compCount": 3,
         "source": "psa-apr",
         "platform": "psa-apr",
-        "observedAt": "2026-06-10T14:53:58.663Z"
+        "observedAt": "2026-06-14T10:26:37.015Z"
       },
       {
         "cardId": "base5-1st-83",
@@ -314,7 +306,7 @@
         "compCount": 3,
         "source": "psa-apr",
         "platform": "psa-apr",
-        "observedAt": "2026-06-10T14:53:59.464Z"
+        "observedAt": "2026-06-14T10:26:41.911Z"
       },
       {
         "cardId": "base2-1st-3",
@@ -323,12 +315,12 @@
         "compCount": 3,
         "source": "psa-apr",
         "platform": "psa-apr",
-        "observedAt": "2026-06-10T14:53:59.464Z"
+        "observedAt": "2026-06-14T10:26:44.875Z"
       }
     ]
   },
   "yahoo-jp": {
-    "timestamp": "2026-06-10T14:53:58.864Z",
+    "timestamp": "2026-06-14T10:27:16.021Z",
     "signals": [
       {
         "cardId": "jp-vs-091",
@@ -337,30 +329,39 @@
         "compCount": 1,
         "source": "yahoo-jp-sold",
         "platform": "yahoo-jp",
-        "observedAt": "2026-06-10T14:53:58.863Z"
+        "observedAt": "2026-06-14T10:27:16.019Z"
       }
     ]
   },
   "point130": {
-    "timestamp": "2026-06-10T14:54:46.575Z",
+    "timestamp": "2026-06-14T10:27:53.049Z",
     "signals": [
       {
         "cardId": "neo1-1st-18",
         "priceCents": 362500,
-        "confidence": 0.5,
-        "compCount": 2,
+        "confidence": 0.72,
+        "compCount": 4,
         "source": "point130-sold",
         "platform": "point130",
-        "observedAt": "2026-06-10T14:53:58.668Z"
+        "observedAt": "2026-06-14T10:26:58.309Z"
       },
       {
         "cardId": "base5-1st-83",
-        "priceCents": 589000,
+        "priceCents": 605000,
         "confidence": 0.72,
         "compCount": 3,
         "source": "point130-sold",
         "platform": "point130",
-        "observedAt": "2026-06-10T14:54:22.928Z"
+        "observedAt": "2026-06-14T10:27:29.356Z"
+      },
+      {
+        "cardId": "base2-1st-3",
+        "priceCents": 600000,
+        "confidence": 0.72,
+        "compCount": 11,
+        "source": "point130-sold",
+        "platform": "point130",
+        "observedAt": "2026-06-14T10:27:53.048Z"
       }
     ]
   }

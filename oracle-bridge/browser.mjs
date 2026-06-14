@@ -14,11 +14,14 @@ const BK = '/Users/pat/Desktop/1_projects/slabclaw/slabclaw-app/backend/node_mod
 // challenges that headless fingerprints trip — the 130point lesson).
 const _pool = { headless: null, headed: null };
 
-// Concurrency limiter: the swarm fires ~12 agents in parallel, but a single
-// browser can't run 8 interactive scrapes at once — they thrash and time out.
-// Cap concurrent page work so each scrape gets the browser's attention. Queued
-// calls wait their turn rather than failing.
-const MAX_CONCURRENT = Number(process.env.BROWSER_CONCURRENCY) || 2;
+// Concurrency limiter: the swarm fires ~13 agents in parallel, but a single
+// browser can't run several interactive scrapes at once — they thrash and time out.
+// SERIALIZE by default (1): the slow interactive searches (Fanatics' sold-history
+// polls ~22s for rows to render) get STARVED even at 2 — that silently dropped
+// Umbreon's independent Fanatics/PWCC family in a swarm run while it worked fine
+// standalone. Reliability > speed for a once-a-cycle data-plane scan. Override with
+// BROWSER_CONCURRENCY=N for faster, less-reliable parallel scrapes.
+const MAX_CONCURRENT = Number(process.env.BROWSER_CONCURRENCY) || 1;
 let _active = 0;
 const _waiters = [];
 async function acquire() {

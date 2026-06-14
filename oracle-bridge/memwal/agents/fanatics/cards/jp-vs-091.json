@@ -126,6 +126,20 @@
       "confidence": 0.78,
       "comps": 5,
       "source": "fanatics-pwcc"
+    },
+    {
+      "date": "2026-06-14T09:38:31.405Z",
+      "priceCents": 1500000,
+      "confidence": 0.78,
+      "comps": 5,
+      "source": "fanatics-pwcc"
+    },
+    {
+      "date": "2026-06-14T10:27:18.794Z",
+      "priceCents": 1500000,
+      "confidence": 0.78,
+      "comps": 5,
+      "source": "fanatics-pwcc"
     }
   ],
   "anomalies": []

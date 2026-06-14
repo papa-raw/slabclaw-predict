@@ -196,6 +196,27 @@
       "confidence": 0.8,
       "comps": 1,
       "source": "goldin-auctions"
+    },
+    {
+      "date": "2026-06-14T09:37:52.408Z",
+      "priceCents": 42500,
+      "confidence": 0.3,
+      "comps": 1,
+      "source": "goldin-auctions"
+    },
+    {
+      "date": "2026-06-14T09:39:32.346Z",
+      "priceCents": 42500,
+      "confidence": 0.8,
+      "comps": 1,
+      "source": "goldin-auctions"
+    },
+    {
+      "date": "2026-06-14T10:26:41.704Z",
+      "priceCents": 42500,
+      "confidence": 0.8,
+      "comps": 1,
+      "source": "goldin-auctions"
     }
   ],
   "anomalies": [
@@ -213,6 +234,14 @@
         "price_jump"
       ],
       "priceCents": 555100,
+      "detail": "price_jump"
+    },
+    {
+      "date": "2026-06-14T09:37:52.408Z",
+      "flags": [
+        "price_jump"
+      ],
+      "priceCents": 42500,
       "detail": "price_jump"
     }
   ]
