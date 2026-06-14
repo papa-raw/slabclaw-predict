@@ -14,6 +14,20 @@
       "confidence": 0.6,
       "comps": 1,
       "source": "yahoo-jp-sold"
+    },
+    {
+      "date": "2026-06-14T09:40:40.926Z",
+      "priceCents": 366700,
+      "confidence": 0.6,
+      "comps": 1,
+      "source": "yahoo-jp-sold"
+    },
+    {
+      "date": "2026-06-14T10:27:16.021Z",
+      "priceCents": 366700,
+      "confidence": 0.6,
+      "comps": 1,
+      "source": "yahoo-jp-sold"
     }
   ],
   "anomalies": []
