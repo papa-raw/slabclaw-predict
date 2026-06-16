@@ -1,7 +1,7 @@
 {
   "_seed": false,
-  "roundId": "live-1781432890495",
-  "timestamp": 1781432890495,
+  "roundId": "live-1781601615915",
+  "timestamp": 1781601615915,
   "consensus": {
     "neo1-1st-18": {
       "productId": "neo1-1st-18",
@@ -17,10 +17,10 @@
           "kind": "realized",
           "priceCents": 535000,
           "confidence": 0.8,
-          "reliability": 0.9137705038023396,
-          "roundsObserved": 128,
-          "agreements": 117,
-          "weight": 0.632986872816459,
+          "reliability": 0.9146740058936204,
+          "roundsObserved": 140,
+          "agreements": 128,
+          "weight": 0.6335830749407048,
           "source": "pc_sold",
           "compCount": 3
         },
@@ -30,10 +30,10 @@
           "kind": "realized",
           "priceCents": 504000,
           "confidence": 0.78,
-          "reliability": 0.3735409021205015,
-          "roundsObserved": 101,
-          "agreements": 38,
-          "weight": 0.5826452104128752,
+          "reliability": 0.4250027603761921,
+          "roundsObserved": 110,
+          "agreements": 47,
+          "weight": 0.6610140539264192,
           "source": "fanatics-pwcc",
           "compCount": 4
         },
@@ -43,10 +43,10 @@
           "kind": "realized",
           "priceCents": 337500,
           "confidence": 0.85,
-          "reliability": 0.17328179773298996,
-          "roundsObserved": 87,
-          "agreements": 15,
-          "weight": 0.25507707162265586,
+          "reliability": 0.16646359829948498,
+          "roundsObserved": 96,
+          "agreements": 16,
+          "weight": 0.24502875587224351,
           "source": "psa-apr",
           "compCount": 3
         },
@@ -56,10 +56,10 @@
           "kind": "realized",
           "priceCents": 362500,
           "confidence": 0.72,
-          "reliability": 0.06338990727679475,
-          "roundsObserved": 32,
+          "reliability": 0.050562296705230034,
+          "roundsObserved": 40,
           "agreements": 2,
-          "weight": 0.045635921897091404,
+          "weight": 0.036399348411883456,
           "source": "point130-sold",
           "compCount": 4
         },
@@ -67,11 +67,11 @@
           "platform": "ebay",
           "family": "ebay-sold",
           "kind": "ask",
-          "priceCents": 670300,
+          "priceCents": 600000,
           "confidence": 0.5,
-          "reliability": 0.6323434921522788,
-          "roundsObserved": 166,
-          "agreements": 105,
+          "reliability": 0.60650462678469,
+          "roundsObserved": 178,
+          "agreements": 108,
           "weight": 0,
           "source": "ebay_active",
           "compCount": 4
@@ -82,8 +82,8 @@
           "kind": "ask",
           "priceCents": 665000,
           "confidence": 0.4,
-          "reliability": 0.2729467133660897,
-          "roundsObserved": 125,
+          "reliability": 0.2545543142939334,
+          "roundsObserved": 134,
           "agreements": 34,
           "weight": 0,
           "source": "alt-ask",
@@ -91,7 +91,7 @@
         }
       ],
       "rejectedSources": [],
-      "updatedAt": "2026-06-14T10:28:10.495Z",
+      "updatedAt": "2026-06-16T09:20:15.915Z",
       "evidence": {
         "blobId": "Nxikhz8tNwv9rlcySyxGlz556O5RzC4MflYbzgHbuzA",
         "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/Nxikhz8tNwv9rlcySyxGlz556O5RzC4MflYbzgHbuzA"
@@ -172,7 +172,8 @@
       "evidence": {
         "blobId": "Nxikhz8tNwv9rlcySyxGlz556O5RzC4MflYbzgHbuzA",
         "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/Nxikhz8tNwv9rlcySyxGlz556O5RzC4MflYbzgHbuzA"
-      }
+      },
+      "carriedForward": true
     },
     "base5-1st-83": {
       "productId": "base5-1st-83",
@@ -274,7 +275,8 @@
       "evidence": {
         "blobId": "Nxikhz8tNwv9rlcySyxGlz556O5RzC4MflYbzgHbuzA",
         "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/Nxikhz8tNwv9rlcySyxGlz556O5RzC4MflYbzgHbuzA"
-      }
+      },
+      "carriedForward": true
     },
     "base2-1st-3": {
       "productId": "base2-1st-3",
@@ -369,7 +371,8 @@
       "evidence": {
         "blobId": "Nxikhz8tNwv9rlcySyxGlz556O5RzC4MflYbzgHbuzA",
         "aggregatorUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/Nxikhz8tNwv9rlcySyxGlz556O5RzC4MflYbzgHbuzA"
-      }
+      },
+      "carriedForward": true
     }
   }
 }
