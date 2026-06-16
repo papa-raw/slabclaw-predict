@@ -24,7 +24,6 @@ export default function MarketCard({ market, meta, onSelect }) {
   const { data: feed, source: feedSource } = useLiveConsensus();
   const cons = feed?.consensus?.[meta?.productId];
   const oracleSources = cons?.contributingSources?.length ?? null;
-  const learnedRounds = cons ? Math.max(0, ...cons.contributingSources.map((s) => s.roundsObserved || 0)) : 0;
 
   const totalShares = market.totalYes + market.totalNo;
   const yesPct = totalShares > 0 ? Math.round((market.totalYes / totalShares) * 100) : 50;
@@ -126,18 +125,14 @@ export default function MarketCard({ market, meta, onSelect }) {
         <Sparkline points={series} strike={strikeDollars} height={40} />
       </div>
 
-      {/* Oracle provenance — the swarm + its memory, visible on the tile */}
+      {/* Oracle provenance — source count + live/snapshot dot */}
       {oracleSources != null && (
         <div className="mt-2 flex items-center gap-1.5 text-[10px]">
           <span
             className={`w-1 h-1 rounded-full shrink-0 ${feedSource === 'live' ? 'bg-sc-yes' : 'bg-sc-dim'}`}
             title={feedSource === 'live' ? 'live feed' : 'baked snapshot'}
           />
-          <span className="text-sc-accent">◇</span>
           <span className="text-sc-muted tnum">{oracleSources}-source oracle</span>
-          {learnedRounds > 0 && (
-            <span className="text-sc-dim tnum">· learned over {learnedRounds} rounds</span>
-          )}
         </div>
       )}
     </button>
