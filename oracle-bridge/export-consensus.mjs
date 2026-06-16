@@ -59,11 +59,17 @@ export function settles(card) {
  */
 export function buildFrontendConsensus(consensus, blobId, prev = {}) {
   const updatedAt = new Date().toISOString();
-  const evidence = { blobId: blobId || null, aggregatorUrl: aggregatorUrl(blobId) };
+  const roundEvidence = blobId ? { blobId, aggregatorUrl: aggregatorUrl(blobId) } : null;
   const out = {};
 
   for (const m of DEMO_MARKETS) {
     const c = consensus?.[m.productId];
+    const last = prev?.[m.productId];
+    // A keeper (memory-only) round uploads no fresh blob. Keep the card's
+    // last-known evidence pointer instead of nulling a live "verify on Walrus"
+    // link; only a real round with its own blob replaces it.
+    const evidence = roundEvidence
+      || (last?.evidence?.blobId ? last.evidence : { blobId: null, aggregatorUrl: null });
     const fresh = c ? {
       productId: m.productId,
       consensusPriceCents: c.consensusPriceCents ?? null,
@@ -77,7 +83,6 @@ export function buildFrontendConsensus(consensus, blobId, prev = {}) {
       evidence,
     } : null;
 
-    const last = prev?.[m.productId];
     if (settles(fresh)) {
       out[m.productId] = fresh;                       // good fresh round — publish it
     } else if (settles(last)) {
