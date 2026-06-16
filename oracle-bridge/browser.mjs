@@ -13,7 +13,10 @@ const require = createRequire(import.meta.url);
 // SlabClaw backend's install if it happens to be present (the data-plane box).
 // If neither resolves, the venue-direct fallback is simply unavailable and
 // those agents skip — the swarm degrades to its restored MemWal memory.
-const BACKEND_NM = '/Users/pat/Desktop/1_projects/slabclaw/slabclaw-app/backend/node_modules';
+// Optional second source for the browser, for a machine that has the SlabClaw
+// backend installed (set SLABCLAW_BACKEND_NM to its node_modules path). Empty by
+// default — a fresh clone resolves patchright/playwright from this package first.
+const BACKEND_NM = process.env.SLABCLAW_BACKEND_NM || '';
 function tryRequire(...ids) {
   for (const id of ids) { try { return require(id); } catch { /* next */ } }
   return null;

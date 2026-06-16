@@ -1,6 +1,7 @@
 /// PortfolioPage — the user's positions across every market + activity history.
 /// The "Portfolio tab" pattern from Polymarket/Kalshi (their weak spot → our edge).
 
+import { useState, useEffect } from 'react';
 import { useCurrentAccount, useSignAndExecuteTransaction, useSuiClientQuery } from '@mysten/dapp-kit';
 import { DEMO_MARKETS, PACKAGE_ID, EXPLORER_URL } from '../constants';
 import { useMultipleMarkets } from '../hooks/useMarket';
@@ -15,6 +16,13 @@ export default function PortfolioPage({ onOpenMarket }) {
   const { balance: tusd, isLoading: balLoading } = useTusdBalance();
   const { markets } = useMultipleMarkets(DEMO_MARKETS.map((m) => m.id));
   const enriched = markets.map((m) => ({ ...m, meta: DEMO_MARKETS.find((d) => d.id === m.id) }));
+
+  // Each PositionRow self-hides when the wallet holds nothing there; track which
+  // markets have reported so we can show a real empty state vs a half-loaded page.
+  const [held, setHeld] = useState({});
+  const reportState = (id, has) => setHeld((h) => (h[id] === has ? h : { ...h, [id]: has }));
+  const allReported = enriched.length > 0 && enriched.every((m) => m.id in held);
+  const noneHeld = allReported && !enriched.some((m) => held[m.id]);
 
   return (
     <main className="max-w-3xl mx-auto px-4 lg:px-6 py-7 pb-32">
@@ -39,10 +47,13 @@ export default function PortfolioPage({ onOpenMarket }) {
           <div className="space-y-2.5 mb-9">
             {enriched.length === 0
               ? <SkeletonRows />
-              : enriched.map((m) => <PositionRow key={m.id} market={m} onOpen={onOpenMarket} />)}
-            <div className="text-[11px] text-sc-muted text-center pt-1">
-              Positions you hold show above. No position in a market = nothing to show for it.
-            </div>
+              : enriched.map((m) => <PositionRow key={m.id} market={m} onOpen={onOpenMarket} onState={reportState} />)}
+            {noneHeld && (
+              <div className="bg-sc-card border border-sc-border rounded-xl py-10 px-6 text-center">
+                <div className="text-sc-dim text-sm font-semibold mb-1">No open positions yet</div>
+                <div className="text-sc-muted text-xs">Open a market and buy YES or NO — your position and potential payout will show here.</div>
+              </div>
+            )}
           </div>
 
           <h3 className="text-sm font-semibold uppercase tracking-wide text-white mb-3">Activity</h3>
@@ -53,9 +64,12 @@ export default function PortfolioPage({ onOpenMarket }) {
   );
 }
 
-function PositionRow({ market, onOpen }) {
+function PositionRow({ market, onOpen, onState }) {
   const pos = usePosition(market);
   const { mutateAsync, isPending } = useSignAndExecuteTransaction();
+  useEffect(() => {
+    if (!pos.isLoading) onState(market.id, pos.hasPosition);
+  }, [pos.isLoading, pos.hasPosition, market.id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!pos.hasPosition) return null;
 
   const settled = market.state === 3;

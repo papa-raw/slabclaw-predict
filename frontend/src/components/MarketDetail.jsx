@@ -38,7 +38,7 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
   const settlePrice = consensusCents != null ? consensusCents / 100 : (oracle?.price ?? null);
 
   const dist = settlePrice != null ? distanceToStrike(settlePrice, market.strikeUsdCents) : null;
-  const oracleAbove = settlePrice != null && settlePrice >= strikeDollars;
+  const oracleAbove = settlePrice != null && settlePrice > strikeDollars; // contract settles YES on strict >
 
   const totalShares = market.totalYes + market.totalNo;
   const yesPct = totalShares > 0 ? Math.round((market.totalYes / totalShares) * 100) : 50;
@@ -615,8 +615,8 @@ function TradeBox({ market, meta, settlePrice, strikeDollars, onTxSuccess }) {
       {settlePrice != null && (
         <div className="text-[11px] text-sc-muted mb-3 tnum">
           Oracle {usd(settlePrice)} ·{' '}
-          <span className={settlePrice >= strikeDollars ? 'text-sc-yes' : 'text-sc-no'}>
-            {settlePrice >= strikeDollars ? 'above' : 'below'} strike {usd(strikeDollars)}
+          <span className={settlePrice > strikeDollars ? 'text-sc-yes' : 'text-sc-no'}>
+            {settlePrice > strikeDollars ? 'above' : 'below'} strike {usd(strikeDollars)}
           </span>
         </div>
       )}
@@ -638,13 +638,21 @@ function TradeBox({ market, meta, settlePrice, strikeDollars, onTxSuccess }) {
           {position.yesShares > 0 && (
             <div className="flex items-center justify-between text-[12px] tnum">
               <span><span className="text-sc-yes font-semibold">YES</span> · {sui(position.yesShares)} tUSD</span>
-              <span className="text-sc-muted">to win <span className="text-white font-semibold">{usd(position.toWinYes / 1e9)}</span></span>
+              {settled
+                ? (market.outcome === true
+                    ? <span className="text-sc-muted">won <span className="text-white font-semibold">{usd(position.toWinYes / 1e9)}</span></span>
+                    : <span className="text-sc-no">did not win</span>)
+                : <span className="text-sc-muted">to win <span className="text-white font-semibold">{usd(position.toWinYes / 1e9)}</span></span>}
             </div>
           )}
           {position.noShares > 0 && (
             <div className="flex items-center justify-between text-[12px] tnum mt-1">
               <span><span className="text-sc-no font-semibold">NO</span> · {sui(position.noShares)} tUSD</span>
-              <span className="text-sc-muted">to win <span className="text-white font-semibold">{usd(position.toWinNo / 1e9)}</span></span>
+              {settled
+                ? (market.outcome === false
+                    ? <span className="text-sc-muted">won <span className="text-white font-semibold">{usd(position.toWinNo / 1e9)}</span></span>
+                    : <span className="text-sc-no">did not win</span>)
+                : <span className="text-sc-muted">to win <span className="text-white font-semibold">{usd(position.toWinNo / 1e9)}</span></span>}
             </div>
           )}
           {active && <div className="text-[10px] text-sc-dim mt-1.5 leading-snug">Locked until the market resolves; if your side wins you claim your share of the pool.</div>}

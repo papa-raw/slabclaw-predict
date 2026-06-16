@@ -206,7 +206,7 @@ Each source row in the dapp shows its *learned* trust—e.g. "41% trust · learn
               the grudge survived: ~87% trust came back from Walrus
 ```
 
-PASS requires all four conditions: the spoof is rejected, the source's trust drops, consensus is unchanged, and the lowered trust survives a snapshot/restore through Walrus. The invariants are checked in [`test/learning-loop.test.mjs`](oracle-bridge/test/learning-loop.test.mjs).
+PASS requires all four conditions: the spoof is rejected, the source's trust drops, consensus is unchanged, and the lowered trust survives a snapshot/restore through Walrus. The invariants are checked in [`test/learning-loop.test.mjs`](oracle-bridge/test/learning-loop.test.mjs). (The proofs read the committed MemWal state, so run them from a clean checkout to reproduce the exact figures above.)
 
 ## Running in production
 

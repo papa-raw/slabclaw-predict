@@ -14,7 +14,9 @@ const require = createRequire(import.meta.url);
 // Resolve patchright/playwright portably: this package's node_modules first
 // (`npm i patchright`), the SlabClaw backend's install as a fallback, else the
 // agent simply skips (130point is a credit-free cross-check, not load-bearing).
-const BACKEND_NM = '/Users/pat/Desktop/1_projects/slabclaw/slabclaw-app/backend/node_modules';
+// Optional second source (set SLABCLAW_BACKEND_NM to a backend node_modules path);
+// empty by default — a fresh clone resolves patchright from this package first.
+const BACKEND_NM = process.env.SLABCLAW_BACKEND_NM || '';
 function tryRequire(...ids) {
   for (const id of ids) { try { return require(id); } catch { /* next */ } }
   return null;
