@@ -175,3 +175,28 @@ test('buildFrontendConsensus carries a null evidence pointer when no blob exists
   const artifact = buildFrontendConsensus(sampleConsensus(), null);
   assert.deepEqual(artifact[productId].evidence, { blobId: null, aggregatorUrl: null });
 });
+
+test('sticky consensus: a fetch-miss round does NOT erase a settling price', () => {
+  const id = DEMO_MARKETS[0].productId;
+  // previously published: this card was settling at $5,040
+  const prev = {
+    [id]: { productId: id, consensusPriceCents: 504000, sourceCount: 3, flags: [],
+      contributingSources: [], rejectedSources: [], updatedAt: '2026-01-01T00:00:00.000Z',
+      evidence: { blobId: 'old', aggregatorUrl: null } },
+  };
+  // this round failed to fetch and would report insufficient_sources
+  const degraded = { [id]: { consensusPriceCents: 504000, sourceCount: 1, flags: ['insufficient_sources'] } };
+  const out = buildFrontendConsensus(degraded, 'newblob', prev);
+  assert.ok(!out[id].flags.includes('insufficient_sources'), 'degraded flag must not survive');
+  assert.equal(out[id].consensusPriceCents, 504000, 'last-good price carried forward');
+  assert.equal(out[id].carriedForward, true, 'tagged as carried-forward');
+});
+
+test('sticky consensus: a genuinely-better round still replaces a carried-forward price', () => {
+  const id = DEMO_MARKETS[0].productId;
+  const prev = { [id]: { productId: id, consensusPriceCents: 504000, sourceCount: 2, flags: ['thin_market'], contributingSources: [], rejectedSources: [], evidence: {} } };
+  const fresh = { [id]: { consensusPriceCents: 510000, sourceCount: 4, flags: [], contributingSources: [], rejectedSources: [] } };
+  const out = buildFrontendConsensus(fresh, 'b', prev);
+  assert.equal(out[id].consensusPriceCents, 510000, 'good fresh round wins');
+  assert.ok(!out[id].carriedForward, 'not carried forward when fresh settles');
+});
