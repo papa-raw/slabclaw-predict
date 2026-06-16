@@ -48,3 +48,6 @@ frontend/UX-AUDIT.md
 # regenerated runtime byproducts (consensus/evidence round history)
 oracle-bridge/memwal/shared/consensus/history/
 oracle-bridge/memwal/shared/evidence/history/
+
+# local submission upload media (kept out of the repo)
+slabclaw-submission-media/
