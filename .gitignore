@@ -43,3 +43,7 @@ DEBUG-LOG.md
 NEXT-SESSION.md
 TODO.md
 frontend/UX-AUDIT.md
+
+# regenerated runtime byproducts (consensus/evidence round history)
+oracle-bridge/memwal/shared/consensus/history/
+oracle-bridge/memwal/shared/evidence/history/

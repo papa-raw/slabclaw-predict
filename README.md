@@ -56,7 +56,7 @@ Behind that: a 40-check security review with every finding root-caused and fixed
 SlabClaw is an existing collectibles app, so to be clear about what predates the May 7 – Jun 21 window: the only pre-existing pieces are the **product registry** (the 5,167-card catalog with cross-grader normalization) and a single-source **PriceCharting-average + eBay-fallback** price feed. Everything that makes this a Sui + Walrus project — and everything that makes the oracle an *oracle* — was built during the hackathon:
 
 - **The independent multi-source oracle swarm** — the 13 source-specialist agents, including 7 venue-direct agents we integrated this window (PSA APR, Goldin, Fanatics, ALT, Cardmarket, Yahoo Auctions JP, 130point), plus the coordinator's family-independence counting, MAD + anchor gates, thin_market settlement, cross-session memory, and reputation weighting. The old feed was one averaged source; the manipulation-resistant, memory-backed consensus is new.
-- **All Move contracts** — `market`, `oracle`, `resolution`, `registry`, `test_usd`, `ProtocolConfig` — plus **Sui Prover formal verification** of the settlement math and a 40-check security review (30/30 Move tests).
+- **All Move contracts** — `market` (with the dispute/resolution flow), `oracle`, `registry`, `memory` (the onchain SwarmMemory anchor), `test_usd`, and the governance `ProtocolConfig` — plus **Sui Prover formal verification** of the settlement math and a 40-check security review (30/30 Move tests).
 - **MemWal / Walrus Memory persistence** — per-agent card memory, the kill-and-restore memory loop, and the two-node production topology with **Walrus as the memory bus**.
 - **The Walrus evidence layer** — every consensus round uploaded as a verifiable, onchain-anchored blob.
 - **The full React prediction-market dapp** — browse, faucet, trade YES/NO, oracle-vs-strike charts, the registry ladder, and the dispute/resolution flow.
@@ -115,7 +115,7 @@ TIER 3: Bridge Keeper (conditional)
 
 | Component | Status |
 |---|---|
-| Move contracts (`market`, `oracle`, `registry`, `test_usd`) on Sui testnet | ✅ deployed |
+| Move contracts (`market`, `oracle`, `registry`, `memory`, `test_usd`) on Sui testnet | ✅ deployed |
 | 3 ACTIVE + 1 DISPUTED (Dark Raichu — challenged onchain, evidence on Walrus) markets | ✅ live |
 | React dapp — browse, faucet tUSD, buy YES/NO, oracle-vs-strike chart, registry ladder, dispute/resolution flow | ✅ working |
 | **Oracle swarm** — 13 source agents (11 venue families) + coordinator + bridge keeper | ✅ working |
@@ -287,7 +287,7 @@ cd contracts/slabclaw_predict && sui move test
 ## Project structure
 
 ```
-contracts/slabclaw_predict/      Move: market · oracle · registry · test_usd
+contracts/slabclaw_predict/      Move: market · oracle · registry · memory · test_usd
 oracle-bridge/
   agents/                        source agents + coordinator
     base-agent.mjs               MemWal I/O, circuit breakers, signal normalization
