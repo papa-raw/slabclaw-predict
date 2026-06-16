@@ -26,7 +26,8 @@ CLAUDE.md
 contracts/slabclaw_predict/Published.toml.pre-evidence-backup
 memwal.pre-proof-backup/
 
-# recording aids (source of truth is VIDEO-SCRIPT.md)
+# recording aids (kept local — demo is recorded)
+VIDEO-SCRIPT.md
 VIDEO-SCRIPT.docx
 VIDEO-SCRIPT.pdf
 
