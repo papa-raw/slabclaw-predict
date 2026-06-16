@@ -55,11 +55,15 @@ export default function WalletButton() {
 
   return (
     <div className="relative" ref={ref}>
-      <button onClick={() => setOpen((o) => !o)} className={PILL} aria-haspopup="menu" aria-expanded={open} aria-label="Wallet account menu">
+      <div className="inline-flex items-center gap-2 rounded-[5px] bg-sc-accent text-black text-[12px] leading-none px-3 py-[7px]">
         <TestnetTag />
-        <span className="font-mono">{shortAddr(account.address)}</span>
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${open ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9" /></svg>
-      </button>
+        <a href="#portfolio" className="font-bold hover:text-black/60 transition">Positions</a>
+        <span className="w-px h-3 bg-black/25" aria-hidden />
+        <button onClick={() => setOpen((o) => !o)} className="inline-flex items-center gap-1.5 font-bold hover:text-black/60 active:scale-[.97] transition" aria-haspopup="menu" aria-expanded={open} aria-label="Wallet account menu">
+          <span className="font-mono">{shortAddr(account.address)}</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${open ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9" /></svg>
+        </button>
+      </div>
 
       {open && (
         <div className="absolute right-0 mt-1.5 w-56 rounded-lg border border-sc-border bg-sc-surface overflow-hidden z-[70]">

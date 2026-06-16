@@ -632,7 +632,9 @@ function TradeBox({ market, meta, settlePrice, strikeDollars, onTxSuccess }) {
 
       {account && position.hasPosition && (
         <div className="mb-3 rounded-lg bg-sc-surface/40 border border-sc-border px-3 py-2.5">
-          <div className="text-[9px] text-sc-muted uppercase tracking-wide mb-1.5">Your position</div>
+          <a href="#portfolio" className="inline-flex items-center gap-1 text-[9px] text-sc-muted uppercase tracking-wide mb-1.5 hover:text-sc-accent transition">
+            Your position <span aria-hidden>↗</span>
+          </a>
           {position.yesShares > 0 && (
             <div className="flex items-center justify-between text-[12px] tnum">
               <span><span className="text-sc-yes font-semibold">YES</span> · {sui(position.yesShares)} tUSD</span>

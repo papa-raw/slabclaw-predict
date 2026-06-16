@@ -51,7 +51,6 @@ export default function Header() {
         {/* Right: nav + testnet tag + compact connect */}
         <div className="flex items-center gap-3 shrink-0 ml-auto md:ml-0">
           <nav className="hidden sm:flex items-center gap-3 text-[12px] font-medium">
-            <a href="#portfolio" className="text-sc-dim hover:text-sc-accent transition">Portfolio</a>
             <a href="#architecture" className="text-sc-dim hover:text-sc-accent transition">Docs</a>
             <a href="#deck" className="text-sc-dim hover:text-sc-accent transition">Deck</a>
             <a
