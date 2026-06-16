@@ -5,6 +5,7 @@ import Header from './components/Header';
 import MarketCard from './components/MarketCard';
 import MemoryStrip from './components/MemoryStrip';
 import MarketDetail from './components/MarketDetail';
+import PortfolioPage from './components/PortfolioPage';
 import ArchitecturePage from './components/ArchitecturePage';
 import LegalPage from './components/LegalPage';
 import Footer from './components/Footer';
@@ -14,6 +15,7 @@ const hashView = () => {
   if (h === '#architecture') return 'architecture';
   if (h === '#legal') return 'legal';
   if (h === '#deck') return 'deck';
+  if (h === '#portfolio') return 'portfolio';
   return 'markets';
 };
 
@@ -81,6 +83,8 @@ export default function App() {
 
       {view === 'architecture' ? (
         <ArchitecturePage />
+      ) : view === 'portfolio' ? (
+        <PortfolioPage onOpenMarket={(id) => { window.location.hash = ''; openMarket(id); }} />
       ) : view === 'legal' ? (
         <LegalPage />
       ) : view === 'deck' ? (

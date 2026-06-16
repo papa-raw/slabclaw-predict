@@ -683,6 +683,9 @@ function TradeBox({ market, meta, settlePrice, strikeDollars, onTxSuccess }) {
               {status === 'signing' ? 'Confirm in wallet…' : `Buy ${side.toUpperCase()} — ${amount} tUSD`}
             </button>
           )}
+          <div className="text-[10px] text-sc-muted text-center mt-2 leading-snug">
+            Parimutuel pool — your stake is locked until the market resolves. No early exit; you claim your share of the pool if your side wins.
+          </div>
         </>
       ) : (
         <div className="text-center text-sc-muted text-sm py-4">Market is {MARKET_STATE[market.state]?.toLowerCase()}</div>
