@@ -53,7 +53,7 @@ const TIERS = [
         Same-origin feeds collapse into one voting family (eBay + PriceCharting + 130point = one eBay-sold vote),
         so correlated tapes never inflate the source count. Every observation is tagged{' '}
         <Term def="Realized = a completed sale. Ask = a live listing. Asks sit above the clearing price, so they bound the range but never vote in the settle.">realized sale vs live ask</Term>{' '}
-        and written to MemWal. It gets sharper each run because three memories refine in MemWal:{' '}
+        and written to MemWal. Three memories accumulate in MemWal and refine each run:{' '}
         <Term def="Per-card baselines — the card's typical realized price and its grade-to-grade price ratios — held as exponentially-weighted averages. Cold-start global bands converge to card-specific ones, so false-positive flags fall as the card is learned.">a per-card price calibration</Term>,{' '}
         <Term def="An EMA of how often each source agreed with the final consensus. A chronically-noisy venue loses weight over time.">a reputation score per source</Term>, and{' '}
         <Term def="The last good price per venue. A transient scrape miss reuses it (down-weighted by age) instead of dropping the source entirely.">a warm-cache of each venue's last good price</Term>.
@@ -107,7 +107,7 @@ const TIERS = [
         window lets anyone challenge with a bond. No market settles without a verifiable,{' '}
         <Term def="Walrus blobs are immutable — you can't delete them. So before publishing, seller names and personal data are stripped and replaced with salted-hash tokens (the seller-concentration signal is kept, the identity isn't). GDPR-safe by construction.">PII-redacted</Term>{' '}
         Walrus evidence blob referenced onchain. The settlement math itself is{' '}
-        <Term def="The payout arithmetic in market.move was proven by the Sui Prover (Z3 + Boogie): solvency (payout ≤ pool), no silent truncation on the u128→u64 cast, bounded probability, and overflow-safety — all machine-checked, not just tested. See docs/FORMAL-VERIFICATION.md.">machine-checked
+        <Term def="The payout arithmetic in market.move was proven by the Sui Prover (Z3 + Boogie): solvency (payout ≤ pool), no silent truncation on the u128→u64 cast, bounded probability, and overflow-safety — all machine-checked. See docs/FORMAL-VERIFICATION.md.">machine-checked
         by the Sui Prover</Term>{' '}
         — a winner can never be paid more than the pool.
       </>
@@ -119,7 +119,7 @@ const TIERS = [
 const DOCS = [
   { title: 'Deck', desc: 'The full story — architecture, MemWal, observable learning, evidence.', href: '/deck/index.html' },
   { title: 'Source code', desc: 'Move contracts, oracle bridge, swarm, frontend — all open.', href: REPO },
-  { title: 'Live evidence on Walrus', desc: 'The latest published consensus bundle — re-run the math yourself.', href: `${WALRUSCAN}/${EVIDENCE_BLOB}` },
+  { title: 'Live evidence on Walrus', desc: 'The latest published consensus bundle; re-run the aggregation to check the price.', href: `${WALRUSCAN}/${EVIDENCE_BLOB}` },
   { title: 'Formal verification', desc: 'Settlement math machine-checked by the Sui Prover (Z3 + Boogie) — solvency, no truncation, bounded, overflow-safe.', href: `${REPO}/blob/main/docs/FORMAL-VERIFICATION.md` },
 ];
 
@@ -264,7 +264,7 @@ export default function ArchitecturePage() {
       </div>
 
       {/* Running in production — the MemWal bootstrap is the live system, not a slide */}
-      <SectionTitle>Running in production · memory that outlives its operator</SectionTitle>
+      <SectionTitle>Running in production · two-node topology</SectionTitle>
       <div className="bg-sc-card border border-sc-border rounded-xl p-4 mb-10">
         <p className="text-[12px] leading-relaxed text-sc-dim mb-3">
           The swarm runs in two places, and <span className="text-sc-text font-medium">Walrus is the memory bus between them</span>.
@@ -277,7 +277,7 @@ export default function ArchitecturePage() {
           on cold start, then serves the rounds the data-plane node publishes as a public feed. Kill either machine and the
           other rebuilds the swarm&rsquo;s accumulated knowledge — price calibrations, source reputations, warm
           caches — from the blob. The dapp you&rsquo;re reading ships a build-time snapshot and{' '}
-          <Term def="useLiveConsensus: the page fetches the production feed at load and swaps it in only if the full payload validates for every market — a partial or malformed payload is discarded whole, and the panel honestly labels itself 'live' or 'snapshot'.">upgrades
+          <Term def="useLiveConsensus: the page fetches the production feed at load and swaps it in only if the full payload validates for every market — a partial or malformed payload is discarded whole, and the panel labels itself 'live' or 'snapshot'.">upgrades
           to the live feed</Term>{' '}
           when it&rsquo;s reachable — each oracle panel tells you which one you&rsquo;re seeing.
         </p>
@@ -314,7 +314,7 @@ export default function ArchitecturePage() {
       </div>
 
       {/* Onchain registry — verify it yourself */}
-      <SectionTitle>Verify it yourself · onchain</SectionTitle>
+      <SectionTitle>Onchain objects</SectionTitle>
       <div className="bg-sc-card border border-sc-border rounded-xl overflow-hidden mb-10">
         <div className="px-3 py-2 border-b border-sc-border flex items-center justify-between">
           <span className="text-[10px] font-semibold text-sc-dim uppercase tracking-wide">Sui testnet objects</span>

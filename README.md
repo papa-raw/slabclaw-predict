@@ -29,7 +29,7 @@
 
 Anyone can trade YES/NO on whether a graded card exceeds a strike price by expiry. The market resolves against a **real price** computed by a **swarm of 13 source-specialist agents across 11 independent venue families**. They read every major collectibles venue, **remember** each card's history and past manipulation attempts across sessions (persisted on **MemWal / Walrus Memory**), agree on a manipulation-resistant consensus, and publish their evidence as verifiable artifacts on **Walrus**.
 
-The prediction market is the showcase. **The agentic, memory-backed oracle is the product.**
+The prediction market is the user-facing application; the memory-backed oracle swarm is the system that settles it.
 
 ## Why this is a Walrus project
 
@@ -40,17 +40,17 @@ The Walrus track asks for *AI agents / agentic workflows with long-term memory (
 - **Coordinated**—agents reconcile heterogeneous inputs (sold comps, active listings, auction results, tokenized FMV) into one consensus via **confidence-weighted median + MAD outlier rejection**, with circuit breakers that block proposals when sources disagree.
 - **Artifact-driven**—every consensus round emits an evidence bundle on **Walrus** containing all inputs, weights, rejections, and aggregation math. Disputes are nearly self-resolving: download the blob, re-run the computation, verify.
 
-It's durable, multi-agent memory applied to a real $2B+/yr market that's never had a trustworthy onchain price.
+This is durable, multi-agent memory applied to the graded-card secondary market (order of magnitude $2B/yr), which has had no onchain price reference.
 
-## Provably solvent—the settlement contract is formally verified
+## Settlement contract — formal verification
 
-Most hackathon contracts are *tested*. SlabClaw Predict's settlement math is **proven**: the two functions that move money are machine-checked by the [Sui Prover](https://github.com/asymptotic-code/sui-prover) (Z3 + Boogie) to hold for *every* input, not just the cases a unit test happens to try.
+The two settlement functions (`compute_payout` and `yes_price_bps`) are verified with the [Sui Prover](https://github.com/asymptotic-code/sui-prover) (Z3 + Boogie), which checks the following properties for all inputs in their domain:
 
-- **Solvency**—a winner's payout is always `≤` the pool. No claim can ever overdraw the market.
-- **No silent truncation**—the `u128 → u64` payout narrowing is proven lossless.
-- **Bounded probability**—the YES price is always a valid `[0–10000]` bps, and provably overflow-safe.
+- **Solvency** — a winner's payout is always `≤` the pool.
+- **No truncation** — the `u128 → u64` payout narrowing is lossless.
+- **Bounded probability** — the YES price stays within `[0, 10000]` bps, with no arithmetic overflow.
 
-Behind that: a 40-check security review with every finding root-caused and fixed, **30/30 Move tests green**, onchain version-gating for safe upgrades, and governance-tunable economic parameters. Full writeup in [`docs/FORMAL-VERIFICATION.md`](docs/FORMAL-VERIFICATION.md); reproduce with `cd contracts/slabclaw_predict_proofs && sui-prover`.
+The contract also has a 40-item security review (all findings addressed), 30/30 Move tests, onchain version gating for upgrades, and governance-set economic parameters (dispute bond, dispute window, source floor). Write-up: [`docs/FORMAL-VERIFICATION.md`](docs/FORMAL-VERIFICATION.md). Reproduce: `cd contracts/slabclaw_predict_proofs && sui-prover`.
 
 ## What's new for this hackathon
 
@@ -130,24 +130,22 @@ TIER 3: Bridge Keeper (conditional)
 | Swarm-powered bridge (`bridge-swarm.mjs`)—replaces single-source with multi-agent consensus | ✅ working |
 | **Production deployment**—[slabclaw.com](https://slabclaw.com) + a data-plane node running the full swarm, publishing consensus to an independent serving node | ✅ live |
 | **Walrus memory bus**—serving node restores full agent memory from Walrus before every round | ✅ live |
-| **Live consensus feed**—[`/predict/consensus`](https://api.slabclaw.com/predict/consensus) + honest [`/predict/health`](https://api.slabclaw.com/predict/health) | ✅ live |
+| **Live consensus feed**—[`/predict/consensus`](https://api.slabclaw.com/predict/consensus) + [`/predict/health`](https://api.slabclaw.com/predict/health) | ✅ live |
 
-## Use the oracle from any agent (MCP)
+## MCP server — query the oracle from any agent
 
-Most Walrus-track entries are memory you *store*. Our oracle is also a primitive any AI agent can *consume*. [`oracle-bridge/mcp-server.mjs`](oracle-bridge/mcp-server.mjs) is a Model Context Protocol server—point Claude Desktop, Cursor, or any MCP client at it and an agent can ask *"what's a PSA 10 Dark Raichu worth?"* and get a manipulation-resistant, onchain-verifiable price with the Walrus evidence to check it.
+[`oracle-bridge/mcp-server.mjs`](oracle-bridge/mcp-server.mjs) is a Model Context Protocol server that exposes the oracle to any MCP client (Claude Desktop, Cursor, etc.). A connected agent can query a card's consensus price, list the live markets, or re-verify a Walrus evidence blob. It reads the public `/predict/consensus` feed and needs no keys.
 
 | Tool | Returns |
 |---|---|
 | `get_card_price(card)` | consensus price + confidence band + per-source learned trust + evidence blob |
 | `list_markets()` | the live prediction markets (strike, consensus, onchain object) |
 | `get_market(card)` | one market: strike, implied YES/NO, onchain state, evidence |
-| `verify_evidence(blobId)` | re-runs the aggregation on the Walrus blob—*don't trust, verify* |
+| `verify_evidence(blobId)` | re-runs the aggregation on the Walrus blob and returns the recomputed price |
 
 ```json
 { "mcpServers": { "slabclaw-oracle": { "command": "node", "args": ["/abs/path/oracle-bridge/mcp-server.mjs"] } } }
 ```
-
-Reads the public `/predict/consensus` feed—no keys, works against live testnet.
 
 ## Key deliverables
 
@@ -168,7 +166,7 @@ Reads the public `/predict/consensus` feed—no keys, works against live testnet
 
 ### MemWal Persistence on Walrus
 
-Agent memory doesn't just survive process restarts—it lives on Walrus. After every swarm run, the full memory state—per-card observations, reputation weights, anomaly history, and consensus—is snapshotted to a Walrus blob. On cold start, the swarm restores from the latest snapshot automatically.
+After every swarm run, the full memory state (per-card observations, reputation weights, anomaly history, and the consensus) is snapshotted to a Walrus blob. On cold start the swarm restores from the latest snapshot.
 
 The latest snapshot blob ID is in the live feed: [`/predict/health`](https://api.slabclaw.com/predict/health) · an onchain-referenced example: [`2zQcELz2…`](https://walruscan.com/testnet/blob/2zQcELz2C5jSG2smR8Z9y5EKlPdRM0LpdKqZ7hFogsA)
 
@@ -193,9 +191,9 @@ Three behaviors, all visible in the dapp's reliability chart (*the 10 bootstrap 
 
 Each source row in the dapp shows its *learned* trust—e.g. "41% trust · learned over 158 rounds"—so the memory is legible, not a static number.
 
-### The memory has a job: catching manipulation (reproducible proof)
+### Manipulation handling — reproducible proof
 
-Our memory isn't an audit log that piles up—it *does work*. [`prove-learning-loop.mjs pricecharting neo1-1st-18 --rounds=8`](oracle-bridge/prove-learning-loop.mjs) runs the real pipeline through a four-beat perturbation-response arc against a **live, still-active market** (Typhlosion—you can't game a settlement that's already locked, so the attack targets one that hasn't):
+[`prove-learning-loop.mjs pricecharting neo1-1st-18 --rounds=8`](oracle-bridge/prove-learning-loop.mjs) runs the pipeline through a baseline → attack → memory → persist sequence on an active market (Typhlosion):
 
 ```
 0. BASELINE   honest round → Typhlosion consensus $5,040, PriceCharting trust 91.7%
@@ -208,18 +206,18 @@ Our memory isn't an audit log that piles up—it *does work*. [`prove-learning-l
               the grudge survived: ~87% trust came back from Walrus
 ```
 
-PASS = manipulation caught **and** trust dropped **and** consensus held **and** the lesson round-tripped through Walrus. Headless invariants in [`test/learning-loop.test.mjs`](oracle-bridge/test/learning-loop.test.mjs). This is the difference between memory that *remembers* and memory that *learns*: kill the process, and the swarm still knows who tried to manipulate it.
+PASS requires all four conditions: the spoof is rejected, the source's trust drops, consensus is unchanged, and the lowered trust survives a snapshot/restore through Walrus. The invariants are checked in [`test/learning-loop.test.mjs`](oracle-bridge/test/learning-loop.test.mjs).
 
 ## Running in production
 
 The swarm runs as a two-node system with **Walrus as the memory bus**:
 
-- **Data-plane node**—runs the full swarm where its marketplaces are reachable, snapshots the agents' entire memory (price calibrations, source reputations, warm caches) to Walrus every round, and **anchors the blob id onchain** (`memory::checkpoint` on the shared [`SwarmMemory`](https://suiscan.xyz/testnet/object/0x41dfc599a161c5ba620d56b051b3ac92ba1db189c83ed7ce4f863740ae54649d) object—the same trust pattern as settlement evidence, applied to memory itself).
-- **Serving node** (independent infrastructure, holds **no key**)—resolves the pointer **from chain** and restores the full agent memory from Walrus on cold start, then serves the rounds the data-plane publishes at [`/predict/consensus`](https://api.slabclaw.com/predict/consensus). [`/predict/health`](https://api.slabclaw.com/predict/health) reports `restoredFromBlobId` + `pointerSource: "onchain"`—verify it with one curl.
+- **Data-plane node** — runs the full swarm where its marketplaces are reachable (a residential IP), snapshots the agents' memory (price calibrations, source reputations, warm caches) to Walrus each round, and writes the snapshot blob id onchain (`memory::checkpoint` on the shared [`SwarmMemory`](https://suiscan.xyz/testnet/object/0x41dfc599a161c5ba620d56b051b3ac92ba1db189c83ed7ce4f863740ae54649d) object, the same mechanism used for settlement evidence).
+- **Serving node** (separate machine, holds no Sui key) — resolves the pointer from chain, restores the agent memory from Walrus, and serves the published rounds at [`/predict/consensus`](https://api.slabclaw.com/predict/consensus). A keeper on this node recomputes consensus from the restored memory on a schedule (no scraping), so the feed stays current even when the data-plane node is offline. [`/predict/health`](https://api.slabclaw.com/predict/health) reports `memory.restoredFromBlobId` and `memory.pointerSource: "onchain"`.
 
-Kill either machine and the other rebuilds the swarm's accumulated knowledge from chain + Walrus alone—*memory that outlives its operator*. Don't take it on faith: `node oracle-bridge/prove-memory-loop.mjs` snapshots the swarm's memory to Walrus, destroys the local copy, rebuilds it from that blob, and proves the consensus returns byte-identical—and it prints production's onchain memory pointer as it goes. (It's sandboxed: your tree is left clean.) The operator-independent onchain restore is the `memory.pointerSource: "onchain"` you can curl right now at [`/predict/health`](https://api.slabclaw.com/predict/health). The dapp at [slabclaw.com](https://slabclaw.com) ships a build-time snapshot and atomically upgrades to the live feed when reachable; every oracle panel labels itself `live` or `snapshot`.
+Because the memory is recoverable from chain plus Walrus, either node can rebuild the swarm's state if the other is lost. `node oracle-bridge/prove-memory-loop.mjs` demonstrates this: it snapshots the memory to Walrus, deletes the local copy, restores it from the blob, and checks that consensus is byte-identical (it also prints the onchain memory pointer; the script is sandboxed and leaves the working tree unchanged). The dapp at [slabclaw.com](https://slabclaw.com) ships a build-time snapshot and switches to the live feed when reachable; each oracle panel is labelled `live` or `snapshot`.
 
-No autonomous settlement runs in production: consensus rounds are computed and published continuously, but onchain proposals remain operator-signed—the optimistic dispute window is the safety net, not a substitute for one.
+Settlement is not autonomous: consensus rounds are computed and published continuously, but onchain resolution proposals are operator-signed. The optimistic dispute window remains in place regardless.
 
 ## Live testnet deployment
 
@@ -332,17 +330,17 @@ docs/                            Walrus problem statement · the pivot journey �
 ## Manipulation resistance
 
 <p align="center">
-  <img src="docs/assets/manipulation.png" width="820" alt="Thin markets are easy to spoof; SlabClaw makes it expensive and pointless" />
+  <img src="docs/assets/manipulation.png" width="820" alt="Manipulation defenses at each source, in aggregation, and onchain" />
 </p>
 
 | Attack | Cost to attacker | Defense | Outcome |
 |---|---|---|---|
 | Single-source spoof | One fake listing, rejected by MAD | MAD rejection (1 of 11 families) | Caught & filtered |
-| Multi-source coordination | Requires faking realized sales across multiple independent real marketplaces simultaneously | New signals carry no earned reputation weight (EMA reliability, `coordinator.mjs:112-126`) + MAD outlier rejection (modified-z, threshold 3.5) + cross-source anchor/plausibility gate + one-vote-per-family collapse | Extremely expensive & detectable |
+| Multi-source coordination | Requires faking realized sales across multiple independent marketplaces at once | New signals carry no earned reputation weight (EMA reliability, `coordinator.mjs:112-126`) + MAD outlier rejection (modified-z, threshold 3.5) + cross-source anchor/plausibility gate + one-vote-per-family collapse | High cost, detectable |
 | Agent compromise | Variable | Transparent aggregation on Walrus = anyone verifies | Provably detectable |
 | Coordinator compromise | Key access | Evidence blob = re-computable math | Provably fraudulent |
 
-The parimutuel structure helps too: every buy grows the pool, so wash trading is pointless; capital is locked until resolution, so flash loans do nothing; and moving the settle price means faking several independent real marketplaces at once.
+The parimutuel structure adds constraints: every buy grows the pool (so wash trading does not move the odds in the trader's favour), capital is locked until resolution (no flash-loan attack), and the settlement price can only be moved by faking realized sales across several independent marketplaces at once.
 
 ## Tech stack
 
