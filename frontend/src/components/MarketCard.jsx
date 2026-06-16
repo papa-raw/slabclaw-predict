@@ -91,7 +91,18 @@ export default function MarketCard({ market, meta, onSelect }) {
 
           {/* Oracle / settle vs strike — inline with identity */}
           <div className="mt-2">
-            <div className="text-[9px] text-sc-muted uppercase tracking-wide">{headLabel}</div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[9px] text-sc-muted uppercase tracking-wide">{headLabel}</span>
+              {oracleSources != null && (
+                <span className="flex items-center gap-1 text-[9px] text-sc-muted tnum">
+                  <span
+                    className={`w-1 h-1 rounded-full shrink-0 ${feedSource === 'live' ? 'bg-sc-yes' : 'bg-sc-dim'}`}
+                    title={feedSource === 'live' ? 'live feed' : 'baked snapshot'}
+                  />
+                  {oracleSources}-sources
+                </span>
+              )}
+            </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-[15px] font-semibold tnum text-white">{headValue != null ? usd(headValue) : '—'}</span>
               {headDist != null && (
@@ -125,16 +136,6 @@ export default function MarketCard({ market, meta, onSelect }) {
         <Sparkline points={series} strike={strikeDollars} height={40} />
       </div>
 
-      {/* Oracle provenance — source count + live/snapshot dot */}
-      {oracleSources != null && (
-        <div className="mt-2 flex items-center gap-1.5 text-[10px]">
-          <span
-            className={`w-1 h-1 rounded-full shrink-0 ${feedSource === 'live' ? 'bg-sc-yes' : 'bg-sc-dim'}`}
-            title={feedSource === 'live' ? 'live feed' : 'baked snapshot'}
-          />
-          <span className="text-sc-muted tnum">{oracleSources}-source oracle</span>
-        </div>
-      )}
     </button>
   );
 }
