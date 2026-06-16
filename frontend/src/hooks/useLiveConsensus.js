@@ -58,3 +58,48 @@ export function useLiveConsensus() {
   }, []);
   return state;
 }
+
+/// useMemoryProvenance — the live proof that the serving node rebuilt its agent
+/// memory from Walrus. Reads /predict/health.memory; returns null unless the live
+/// node answers (we never fake this — it's a "don't trust, verify" element).
+const HEALTH_URL = (import.meta.env.VITE_PREDICT_API_URL || 'https://api.slabclaw.com/predict/consensus')
+  .replace(/\/consensus$/, '/health');
+
+let healthPromise = null;
+function getMemoryProvenance() {
+  if (!healthPromise) {
+    healthPromise = (async () => {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+      try {
+        const res = await fetch(HEALTH_URL, { signal: ctrl.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const j = await res.json();
+        const m = j.memory;
+        if (!m || !m.restoredFromBlobId) return null;
+        return {
+          blobId: m.restoredFromBlobId,
+          pointerSource: m.pointerSource,
+          files: m.files,
+          restoredAt: m.restoredAt,
+          consensusAgeMs: j.consensusAgeMs,
+        };
+      } catch {
+        return null; // offline / unreachable — strip simply doesn't render
+      } finally {
+        clearTimeout(timer);
+      }
+    })();
+  }
+  return healthPromise;
+}
+
+export function useMemoryProvenance() {
+  const [state, setState] = useState(null);
+  useEffect(() => {
+    let mounted = true;
+    getMemoryProvenance().then((s) => { if (mounted) setState(s); });
+    return () => { mounted = false; };
+  }, []);
+  return state;
+}

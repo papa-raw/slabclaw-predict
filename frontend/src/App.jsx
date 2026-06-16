@@ -3,6 +3,7 @@ import { useMultipleMarkets } from './hooks/useMarket';
 import { DEMO_MARKETS } from './constants';
 import Header from './components/Header';
 import MarketCard from './components/MarketCard';
+import MemoryStrip from './components/MemoryStrip';
 import MarketDetail from './components/MarketDetail';
 import ArchitecturePage from './components/ArchitecturePage';
 import LegalPage from './components/LegalPage';
@@ -94,20 +95,18 @@ export default function App() {
       ) : (
       <main className="max-w-6xl mx-auto px-4 lg:px-6 py-7 pb-32">
         {/* Hero */}
-        <div className="mb-6">
+        <div className="mb-4">
           <h2 className="text-xl lg:text-2xl font-bold text-white">Prediction markets for graded collectibles</h2>
           <p className="text-sc-dim mt-1.5 text-sm max-w-2xl">
-            Trade YES/NO on whether a graded card exceeds a strike price by expiry — priced by a
-            memory-backed multi-agent oracle swarm across real card marketplaces and a live history of sold comps.
-            Settled on{' '}
-            <a href="https://sui.io" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">Sui</a>,
-            with every settlement published as a verifiable blob on{' '}
-            <a href="https://www.walrus.xyz" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">Walrus</a>.
-            Each market shows the oracle value over time, the strike line, and every recent sold comp — so you trade with data, not vibes.
-            Mint test USD from the faucet below, buy YES or NO, and at expiry the oracle proposes the price.
-            After a 24h dispute window, winners claim. <a href="#architecture" className="text-sc-accent hover:underline">See how it works ↗</a>
+            Trade YES/NO on a graded card’s price by expiry — settled by a memory-backed oracle swarm across real
+            marketplaces, with every price published as a verifiable blob on{' '}
+            <a href="https://www.walrus.xyz" target="_blank" rel="noopener noreferrer" className="text-sc-accent hover:underline">Walrus</a>.{' '}
+            <a href="#architecture" className="text-sc-accent hover:underline">See how it works ↗</a>
           </p>
         </div>
+
+        {/* Live proof: the swarm rebuilt its memory from Walrus */}
+        <MemoryStrip />
 
         {/* Markets */}
         {isLoading ? (
