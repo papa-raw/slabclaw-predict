@@ -38,6 +38,9 @@ function parseMarketFields(fields) {
     description: toStr(fields.description),
     proposedSources: fields.proposed_sources ? Number(fields.proposed_sources) : null,
     evidenceBlobId: toStr(fields.evidence_blob_id) || null,
+    // The positions Table's object id — used to read a given trader's Position
+    // (yes_shares / no_shares / claimed) as a dynamic field keyed by address.
+    positionsTableId: fields.positions?.fields?.id?.id ?? null,
   };
 }
 

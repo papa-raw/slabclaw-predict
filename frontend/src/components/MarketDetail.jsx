@@ -7,6 +7,7 @@ import { buildBuyYes, buildBuyNo, buildClaim, buildDispute, buildFinalize } from
 import { MARKET_STATE, EXPLORER_URL } from '../constants';
 import { useCard } from '../hooks/useRegistry';
 import { useTusdBalance } from '../hooks/useTusd';
+import { usePosition } from '../hooks/usePosition';
 import { useLiveConsensus } from '../hooks/useLiveConsensus';
 import {
   oracleForGrade, priceSeries, smoothOracleHistory, distanceToStrike, sourceLabel,
@@ -566,6 +567,7 @@ function TradeBox({ market, meta, settlePrice, strikeDollars, onTxSuccess }) {
   const account = useCurrentAccount();
   const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
   const { balance: tusd, isLoading: balLoading } = useTusdBalance();
+  const position = usePosition(market);
   const [side, setSide] = useState('yes');
   const [amount, setAmount] = useState('100');
   const [status, setStatus] = useState(null);
@@ -577,6 +579,13 @@ function TradeBox({ market, meta, settlePrice, strikeDollars, onTxSuccess }) {
   const totalShares = market.totalYes + market.totalNo;
   const yesPct = totalShares > 0 ? Math.round((market.totalYes / totalShares) * 100) : 50;
   const broke = account && !balLoading && tusd <= 0;
+
+  // Live "to win" preview: a parimutuel stake on `side` claims its pro-rata share
+  // of the resulting pool if that side wins → amt / (sideTotal + amt) × (pool + amt).
+  const DEC = 1e9;
+  const amtMist = (parseFloat(amount) || 0) * DEC;
+  const sideMist = side === 'yes' ? market.totalYes : market.totalNo;
+  const previewPayout = amtMist > 0 ? (amtMist / (sideMist + amtMist)) * (market.poolBalance + amtMist) / DEC : 0;
 
   async function run(buildTx, okMsg) {
     if (!account) return;
@@ -621,6 +630,26 @@ function TradeBox({ market, meta, settlePrice, strikeDollars, onTxSuccess }) {
         </div>
       )}
 
+      {account && position.hasPosition && (
+        <div className="mb-3 rounded-lg bg-sc-surface/40 border border-sc-border px-3 py-2.5">
+          <div className="text-[9px] text-sc-muted uppercase tracking-wide mb-1.5">Your position</div>
+          {position.yesShares > 0 && (
+            <div className="flex items-center justify-between text-[12px] tnum">
+              <span><span className="text-sc-yes font-semibold">YES</span> · {sui(position.yesShares)} tUSD</span>
+              <span className="text-sc-muted">to win <span className="text-white font-semibold">{usd(position.toWinYes / 1e9)}</span></span>
+            </div>
+          )}
+          {position.noShares > 0 && (
+            <div className="flex items-center justify-between text-[12px] tnum mt-1">
+              <span><span className="text-sc-no font-semibold">NO</span> · {sui(position.noShares)} tUSD</span>
+              <span className="text-sc-muted">to win <span className="text-white font-semibold">{usd(position.toWinNo / 1e9)}</span></span>
+            </div>
+          )}
+          {active && <div className="text-[10px] text-sc-dim mt-1.5 leading-snug">Locked until the market resolves; if your side wins you claim your share of the pool.</div>}
+          {settled && position.claimed && <div className="text-[10px] text-sc-dim mt-1.5">Winnings claimed.</div>}
+        </div>
+      )}
+
       {!account ? (
         <div className="text-center text-sc-muted text-sm py-4">Connect wallet to trade</div>
       ) : settled ? (
@@ -641,6 +670,11 @@ function TradeBox({ market, meta, settlePrice, strikeDollars, onTxSuccess }) {
                 className="flex-1 py-2 text-xs font-mono bg-sc-surface border border-sc-border rounded hover:border-sc-accent/50 active:scale-[.97] transition">{v}</button>
             ))}
           </div>
+          {previewPayout > 0 && (
+            <div className="text-[11px] text-sc-dim mb-3 tnum text-center">
+              If <span className={side === 'yes' ? 'text-sc-yes font-semibold' : 'text-sc-no font-semibold'}>{side.toUpperCase()}</span> wins · win ≈ <span className="text-white font-semibold">{usd(previewPayout)}</span>
+            </div>
+          )}
           {broke ? (
             <div className="text-center text-[12px] text-sc-amber py-2">Out of tUSD — grab some from the faucet below ↓</div>
           ) : (
