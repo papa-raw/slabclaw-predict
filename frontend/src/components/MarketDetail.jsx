@@ -170,7 +170,7 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
 
         {/* dispute/resolution banner for non-active markets */}
         {market.state !== 0 && (
-          <DisputePanel market={market} meta={meta} strikeDollars={strikeDollars} onTxSuccess={onTxSuccess} />
+          <DisputePanel market={market} meta={meta} strikeDollars={strikeDollars} settlePrice={settlePrice} onTxSuccess={onTxSuccess} />
         )}
 
         {/* chart (with tabs) + trade, side by side */}
@@ -212,7 +212,7 @@ export default function MarketDetail({ market, meta, onClose, onTxSuccess }) {
 // Full-width banner showing the current resolution state + dispute flow steps + participation CTAs.
 const MIN_DISPUTE_BOND = 10_000; // tUSD (matches contract MIN_DISPUTE_BOND / 1e9)
 
-function DisputePanel({ market, meta, strikeDollars, onTxSuccess }) {
+function DisputePanel({ market, meta, strikeDollars, settlePrice, onTxSuccess }) {
   const account = useCurrentAccount();
   const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
   const [status, setStatus] = useState(null); // null | 'signing' | 'success' | 'error'
@@ -223,6 +223,9 @@ function DisputePanel({ market, meta, strikeDollars, onTxSuccess }) {
   const proposedDollars = market.proposedPrice ? market.proposedPrice / 100 : null;
   const proposedAbove = proposedDollars != null && proposedDollars > strikeDollars;
   const proposedOutcome = proposedAbove ? 'YES' : 'NO';
+  // Live swarm reading vs strike (contract settles YES on strict >). Passed from
+  // the parent where the consensus is resolved; used in the DISPUTED explainer.
+  const oracleAbove = settlePrice != null && settlePrice > strikeDollars;
   const isDisputed = market.state === 2;
   const isProposed = market.state === 1;
   const isSettled = market.state === 3;

@@ -212,7 +212,7 @@ PASS requires all four conditions: the spoof is rejected, the source's trust dro
 
 The swarm runs as a two-node system with **Walrus as the memory bus**:
 
-- **Data-plane node** — runs the full swarm where its marketplaces are reachable (a residential IP), snapshots the agents' memory (price calibrations, source reputations, warm caches) to Walrus each round, and writes the snapshot blob id onchain (`memory::checkpoint` on the shared [`SwarmMemory`](https://suiscan.xyz/testnet/object/0x41dfc599a161c5ba620d56b051b3ac92ba1db189c83ed7ce4f863740ae54649d) object, the same mechanism used for settlement evidence).
+- **Data-plane node** — runs the full swarm where its marketplaces are reachable (a residential IP), snapshots the agents' memory (price calibrations, source reputations, warm caches) to Walrus each round, and writes the snapshot blob id onchain (`memory::checkpoint` on the shared [`SwarmMemory`](https://suiscan.xyz/testnet/object/0xf31c41b1b68b6607fa68ef504e9332b129825957d21294f9483e6805214c8883) object, the same mechanism used for settlement evidence).
 - **Serving node** (separate machine, holds no Sui key) — resolves the pointer from chain, restores the agent memory from Walrus, and serves the published rounds at [`/predict/consensus`](https://api.slabclaw.com/predict/consensus). A keeper on this node recomputes consensus from the restored memory on a schedule (no scraping), so the feed stays current even when the data-plane node is offline. [`/predict/health`](https://api.slabclaw.com/predict/health) reports `memory.restoredFromBlobId` and `memory.pointerSource: "onchain"`.
 
 Because the memory is recoverable from chain plus Walrus, either node can rebuild the swarm's state if the other is lost. `node oracle-bridge/prove-memory-loop.mjs` demonstrates this: it snapshots the memory to Walrus, deletes the local copy, restores it from the blob, and checks that consensus is byte-identical (it also prints the onchain memory pointer; the script is sandboxed and leaves the working tree unchanged). The dapp at [slabclaw.com](https://slabclaw.com) ships a build-time snapshot and switches to the live feed when reachable; each oracle panel is labelled `live` or `snapshot`.
@@ -223,18 +223,18 @@ Settlement is not autonomous: consensus rounds are computed and published contin
 
 | | |
 |---|---|
-| Package (hardened + formally verified) | [`0x9807050b…b14f115`](https://suiscan.xyz/testnet/object/0x9807050b60400d30c848dcf035a2038b615ffdb7d6d2ed46332959d39b14f115) |
-| AssetRegistry | [`0x18c19b19…fc108a`](https://suiscan.xyz/testnet/object/0x18c19b198a263421ff7882af139ce3645bc1a94c7d4f6ab715e318dd44fc108a) |
-| ProtocolConfig (governance) | [`0xecbaca29…e64bc3`](https://suiscan.xyz/testnet/object/0xecbaca290e63b931dce3014cb71d85bad2af75083625331942b0a72a23e64bc3) |
-| SwarmMemory (onchain memory pointer, v2 `memory` module) | [`0x41dfc599…54649d`](https://suiscan.xyz/testnet/object/0x41dfc599a161c5ba620d56b051b3ac92ba1db189c83ed7ce4f863740ae54649d) |
-| tUSD Faucet | [`0xa1e2ca66…6c8870`](https://suiscan.xyz/testnet/object/0xa1e2ca665f6d2b8aa11d5a6caf0d3cc4d88da68b942991a007c87d0b516c8870) |
+| Package (hardened + formally verified) | [`0x616ef59e…ce2bd76`](https://suiscan.xyz/testnet/object/0x616ef59e783935b976db451f4a7087e89ac1c76190c3f91e929226ba3ce2bd76) |
+| AssetRegistry | [`0x3295fe9c…7829859`](https://suiscan.xyz/testnet/object/0x3295fe9c7c40f4dbe7560f4d988c3bf1bb7e7f4ea5c8cc9c862b97b1b7829859) |
+| ProtocolConfig (governance) | [`0xa88ad739…fb26956`](https://suiscan.xyz/testnet/object/0xa88ad739248cbea400254ad91c63d0b8551e470e76d98fa3bd9ec3034fb26956) |
+| SwarmMemory (onchain memory pointer, v2 `memory` module) | [`0xf31c41b1…214c8883`](https://suiscan.xyz/testnet/object/0xf31c41b1b68b6607fa68ef504e9332b129825957d21294f9483e6805214c8883) |
+| tUSD Faucet | [`0x430c1d7e…f7f3b8b`](https://suiscan.xyz/testnet/object/0x430c1d7ed1c5ab589b73530db09122b7820a4767a9329db3044143fb9f7f3b8b) |
 
 | Market (PSA 10) | Strike | State | Market ID |
 |---|---|---|---|
-| Typhlosion (Neo Genesis, 1st Ed) | $4,000 | ACTIVE | [`0xf63f37a0…c1144ea`](https://suiscan.xyz/testnet/object/0xf63f37a07f61a38c78b3ea6d650315e903a6192b767c34cfc5a8a2266c1144ea) |
-| Karen's Umbreon (VS, 1st Ed) | $15,000 | ACTIVE | [`0x2da84029…02c9720`](https://suiscan.xyz/testnet/object/0x2da84029427ff70dfafadb8643d4f3a83f76f5344bd1de05c1902cff102c9720) |
-| Flareon (Jungle, 1st Ed) | $2,500 | ACTIVE | [`0x9700623a…c459b71`](https://suiscan.xyz/testnet/object/0x9700623a1e977a179b011908da25e7800d682e4bc8dd38929ac7bc121c459b71) |
-| Dark Raichu (Team Rocket, 1st Ed) | $6,000 | DISPUTED + [evidence on Walrus](https://walruscan.com/testnet/blob/2zQcELz2C5jSG2smR8Z9y5EKlPdRM0LpdKqZ7hFogsA) | [`0xa291d583…617879c`](https://suiscan.xyz/testnet/object/0xa291d583f9c2297b002298f033260ab7bc698af378539aa3564001254e72fdd7) |
+| Typhlosion (Neo Genesis, 1st Ed) | $4,000 | ACTIVE | [`0xa0d4021e…8c001ae`](https://suiscan.xyz/testnet/object/0xa0d4021e89140c8d1fe6ccacca596e1c72e22281fa49fff22bbff54ac8c001ae) |
+| Karen's Umbreon (VS, 1st Ed) | $15,000 | ACTIVE | [`0x3cb150d1…d3c0bad`](https://suiscan.xyz/testnet/object/0x3cb150d18f5a7cc1764c1ec52eac41d2905bfc47cde2bb075d217ef49d3c0bad) |
+| Flareon (Jungle, 1st Ed) | $2,500 | ACTIVE | [`0x1750bdd1…6d503788`](https://suiscan.xyz/testnet/object/0x1750bdd11a60f777716a15d54e48caff8ae4d6baca94124c5bf0223a6d503788) |
+| Dark Raichu (Team Rocket, 1st Ed) | $6,000 | DISPUTED + [evidence on Walrus](https://walruscan.com/testnet/blob/2zQcELz2C5jSG2smR8Z9y5EKlPdRM0LpdKqZ7hFogsA) | [`0xb8f87516…374af12`](https://suiscan.xyz/testnet/object/0xb8f8751687f1f71eb6f81a7122bdb13a9db7fa0da036203355385d6f4374af12) |
 
 ## Run it
 

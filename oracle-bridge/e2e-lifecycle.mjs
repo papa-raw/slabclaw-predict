@@ -200,10 +200,10 @@ for (const p of PRODUCTS) {
 }
 
 // Snapshot demo-market state for the leave-no-trace check at the end.
-const DEMO_IDS = ['0xf63f37a07f61a38c78b3ea6d650315e903a6192b767c34cfc5a8a2266c1144ea',
-  '0x2da84029427ff70dfafadb8643d4f3a83f76f5344bd1de05c1902cff102c9720',
-  '0x9700623a1e977a179b011908da25e7800d682e4bc8dd38929ac7bc121c459b71',
-  '0xa291d583f9c2297b002298f033260ab7bc698af378539aa3564001254e72fdd7'];
+const DEMO_IDS = ['0xa0d4021e89140c8d1fe6ccacca596e1c72e22281fa49fff22bbff54ac8c001ae',
+  '0x3cb150d18f5a7cc1764c1ec52eac41d2905bfc47cde2bb075d217ef49d3c0bad',
+  '0x1750bdd11a60f777716a15d54e48caff8ae4d6baca94124c5bf0223a6d503788',
+  '0xb8f8751687f1f71eb6f81a7122bdb13a9db7fa0da036203355385d6f4374af12'];
 const demoBefore = [];
 for (const id of DEMO_IDS) demoBefore.push(await readMarket(id));
 

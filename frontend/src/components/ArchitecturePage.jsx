@@ -19,7 +19,7 @@ const WALRUSCAN = 'https://walruscan.com/testnet/blob';
 const EVIDENCE_BLOB = '2zQcELz2C5jSG2smR8Z9y5EKlPdRM0LpdKqZ7hFogsA';
 // Shared SwarmMemory object — the ONCHAIN pointer to the swarm's latest memory
 // snapshot on Walrus. The serving node restores from this, not from any disk.
-const SWARM_MEMORY_ID = '0x41dfc599a161c5ba620d56b051b3ac92ba1db189c83ed7ce4f863740ae54649d';
+const SWARM_MEMORY_ID = '0xf31c41b1b68b6607fa68ef504e9332b129825957d21294f9483e6805214c8883';
 const PREDICT_API = 'https://api.slabclaw.com/predict';
 
 const obj = (id) => `${EXPLORER_URL}/object/${id}`;
