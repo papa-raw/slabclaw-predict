@@ -318,7 +318,7 @@ frontend/                        React + Vite + @mysten/dapp-kit
     OracleConsensusPanel.jsx     Swarm consensus visualization (realized vs asks, evidence links)
     MarketDetail.jsx             Market detail with Oracle Swarm tab
   src/hooks/useLiveConsensus.js  Live production feed with atomic baked-snapshot fallback
-docs/                            Problem statements + formal verification + oracle-source research
+docs/                            Walrus problem statement · the pivot journey · formal verification · oracle-source research
 ```
 
 ## Manipulation resistance
