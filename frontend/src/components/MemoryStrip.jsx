@@ -28,13 +28,13 @@ export default function MemoryStrip() {
       className="group mb-5 flex items-center gap-2 rounded-lg border border-sc-border bg-sc-card/60 px-3 py-2 hover:border-sc-accent/40 transition-colors"
     >
       <span className="w-1.5 h-1.5 rounded-full bg-sc-yes shrink-0 animate-pulse" />
-      <span className="text-[11px] text-sc-dim leading-snug">
+      <span className="min-w-0 text-[11px] text-sc-dim leading-snug">
         <span className="text-white font-medium">Agent memory restored from Walrus</span>
         {' — '}{mem.files} files
         {mem.pointerSource === 'onchain' && <> · pointer resolved onchain</>}
         {when && <> · {when}</>}
       </span>
-      <span className="ml-auto flex items-center gap-1 text-[10px] font-mono text-sc-muted group-hover:text-sc-accent shrink-0">
+      <span className="ml-auto hidden sm:flex items-center gap-1 text-[10px] font-mono text-sc-muted group-hover:text-sc-accent shrink-0">
         {short} <span aria-hidden>↗</span>
       </span>
     </a>
