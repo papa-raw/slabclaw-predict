@@ -405,9 +405,11 @@ function DisputePanel({ market, meta, strikeDollars, onTxSuccess }) {
         {isDisputed && (
           <div className="mt-3 pt-3 border-t border-sc-border/40 text-[11px] text-sc-dim leading-relaxed">
             <span className="text-sc-no font-semibold">Dispute active.</span>{' '}
-            The oracle proposed <span className="text-white font-semibold">{usd(proposedDollars)}</span> which would make{' '}
-            <span className={proposedAbove ? 'text-sc-yes font-semibold' : 'text-sc-no font-semibold'}>{proposedOutcome}</span> the winning side.
-            A disputer has challenged this with a <span className="text-white">{sui(market.disputeBond)} tUSD</span> bond.
+            The oracle proposed <span className="text-white font-semibold">{usd(proposedDollars)}</span> at expiry, which would make{' '}
+            <span className={proposedAbove ? 'text-sc-yes font-semibold' : 'text-sc-no font-semibold'}>{proposedOutcome}</span> the winning side{settlePrice != null && (
+              <> — but the swarm's live reading has since moved to <span className="text-white font-semibold">{usd(settlePrice)}</span> ({oracleAbove ? 'above' : 'below'} strike)</>
+            )}.
+            A disputer staked a <span className="text-white">{sui(market.disputeBond)} tUSD</span> bond to challenge the proposal.
             The admin reviews evidence and resolves with the correct price. If the dispute was valid, the bond is returned;
             if frivolous, it's added to the pool. In v2, resolution moves to{' '}
             <a href="https://docs.uma.xyz/protocol-overview/how-does-umas-oracle-work" target="_blank" rel="noopener noreferrer"
