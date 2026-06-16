@@ -13,7 +13,7 @@ import { PACKAGE_ID, REGISTRY_ID, FAUCET_ID, EXPLORER_URL, DEMO_MARKETS } from '
 
 const REPO = 'https://github.com/papa-raw/slabclaw-predict';
 const WALRUSCAN = 'https://walruscan.com/testnet/blob';
-// The evidence bundle referenced ONCHAIN by the live PROPOSED market — the strongest
+// The evidence bundle referenced ONCHAIN by the live DISPUTED market — the strongest
 // verification anchor: read market.evidence_blob_id on Suiscan, fetch this blob on
 // Walrus, re-run the math.
 const EVIDENCE_BLOB = '2zQcELz2C5jSG2smR8Z9y5EKlPdRM0LpdKqZ7hFogsA';
@@ -274,7 +274,7 @@ export default function ArchitecturePage() {
           the blob id onchain</Term>. A keyless serving node on independent infrastructure{' '}
           <Term def="memwal-sync.mjs restore — reads the SwarmMemory object on Sui for the latest blob id, fetches that blob from a Walrus aggregator, and rebuilds the swarm's full MemWal state. No file ever moves between the machines; /predict/health reports restoredFromBlobId + pointerSource so you can check.">resolves
           that pointer from chain and restores the memory from Walrus</Term>{' '}
-          before each 6-hour consensus round and serves the result as a public feed. Kill either machine and the
+          on cold start, then serves the rounds the data-plane node publishes as a public feed. Kill either machine and the
           other rebuilds the swarm&rsquo;s accumulated knowledge — price calibrations, source reputations, warm
           caches — from the blob. The dapp you&rsquo;re reading ships a build-time snapshot and{' '}
           <Term def="useLiveConsensus: the page fetches the production feed at load and swaps it in only if the full payload validates for every market — a partial or malformed payload is discarded whole, and the panel honestly labels itself 'live' or 'snapshot'.">upgrades
@@ -331,7 +331,7 @@ export default function ArchitecturePage() {
           <RegistryRow label="SwarmMemory · onchain memory pointer" id={SWARM_MEMORY_ID} href={obj(SWARM_MEMORY_ID)}
             note="latest MemWal snapshot blob, anchored onchain each round" />
           <RegistryRow label="Evidence blob" id={EVIDENCE_BLOB} href={`${WALRUSCAN}/${EVIDENCE_BLOB}`}
-            note="referenced onchain by the PROPOSED market" walrus />
+            note="referenced onchain by the DISPUTED market" walrus />
         </div>
       </div>
 

@@ -92,7 +92,7 @@ TIER 3: Bridge Keeper (conditional)
 | Component | Status |
 |---|---|
 | Move contracts (`market`, `oracle`, `registry`, `test_usd`) on Sui testnet | ✅ deployed |
-| 3 ACTIVE + 1 PROPOSED (Dark Raichu, evidence on Walrus) markets | ✅ live |
+| 3 ACTIVE + 1 DISPUTED (Dark Raichu — challenged onchain, evidence on Walrus) markets | ✅ live |
 | React dapp — browse, faucet tUSD, buy YES/NO, oracle-vs-strike chart, registry ladder, dispute/resolution flow | ✅ working |
 | **Oracle swarm** — 13 source agents (11 venue families) + coordinator + bridge keeper | ✅ working |
 | **MemWal persistence** — per-agent card memory, shared signals, reputation weights | ✅ working |
@@ -101,7 +101,7 @@ TIER 3: Bridge Keeper (conditional)
 | **Seeded history** — 10 rounds demonstrating learning (reliability divergence, CI narrowing, manipulation detection) | ✅ working |
 | Single-source oracle bridge (`bridge.mjs`) + offline snapshot fallback | ✅ working |
 | Swarm-powered bridge (`bridge-swarm.mjs`) — replaces single-source with multi-agent consensus | ✅ working |
-| **Production deployment** — [slabclaw.com](https://slabclaw.com) + 6-hour swarm rounds on a serving node | ✅ live |
+| **Production deployment** — [slabclaw.com](https://slabclaw.com) + a data-plane node running the full swarm, publishing consensus to an independent serving node | ✅ live |
 | **Walrus memory bus** — serving node restores full agent memory from Walrus before every round | ✅ live |
 | **Live consensus feed** — [`/predict/consensus`](https://api.slabclaw.com/predict/consensus) + honest [`/predict/health`](https://api.slabclaw.com/predict/health) | ✅ live |
 
@@ -154,7 +154,7 @@ Every swarm run uploads a complete evidence bundle to Walrus containing:
 - Source reliability weights (evolving over rounds)
 - Card-by-card consensus with confidence intervals
 
-Each round's evidence blob ID ships inside [`/predict/consensus`](https://api.slabclaw.com/predict/consensus) (`evidence.blobId` per card); the one referenced ONCHAIN by the live PROPOSED market: [verify on Walruscan →](https://walruscan.com/testnet/blob/2zQcELz2C5jSG2smR8Z9y5EKlPdRM0LpdKqZ7hFogsA)
+Each round's evidence blob ID ships inside [`/predict/consensus`](https://api.slabclaw.com/predict/consensus) (`evidence.blobId` per card); the one referenced ONCHAIN by the live DISPUTED market (challenged against this very evidence): [verify on Walruscan →](https://walruscan.com/testnet/blob/2zQcELz2C5jSG2smR8Z9y5EKlPdRM0LpdKqZ7hFogsA)
 
 ### Learning over time
 
@@ -168,16 +168,17 @@ Each source row in the dapp shows its *learned* trust — e.g. "41% trust · lea
 
 ### The memory has a job: catching manipulation (reproducible proof)
 
-Our memory isn't an audit log that piles up — it *does work*. [`prove-learning-loop.mjs`](oracle-bridge/prove-learning-loop.mjs) runs the real pipeline through a four-beat perturbation-response arc on one card:
+Our memory isn't an audit log that piles up — it *does work*. [`prove-learning-loop.mjs pricecharting neo1-1st-18 --rounds=8`](oracle-bridge/prove-learning-loop.mjs) runs the real pipeline through a four-beat perturbation-response arc against a **live, still-active market** (Typhlosion — you can't game a settlement that's already locked, so the attack targets one that hasn't):
 
 ```
-0. BASELINE   honest round → consensus $7,987, goldin trust 41.9%
-1. ATTACK     goldin posts a 3× shill ($23,790), 4 rounds:
-              every spoof REJECTED (MAD z=9.20) · consensus never moves (0.0%)
-              trust erodes 41.9 → 40.9 → 40.0 → 39.0 → 38.1%
-2. MEMORY     goldin behaves again — but is trusted LESS than before it lied
+0. BASELINE   honest round → Typhlosion consensus $5,040, PriceCharting trust 91.9%
+1. ATTACK     PriceCharting — the swarm's MOST-trusted source — posts a 3× wash
+              trade ($16,050), 8 rounds:
+              every spoof REJECTED (MAD z=9.49) · consensus never moves (0.0%)
+              trust erodes 91.9 → 87.2% — even the most-trusted source is penalized
+2. MEMORY     PriceCharting behaves again — but is trusted LESS than before it lied
 3. PERSIST    snapshot → Walrus → destroy memory → restore from the blob alone
-              the grudge survived: 38.3% trust came back from Walrus
+              the grudge survived: ~87% trust came back from Walrus
 ```
 
 PASS = manipulation caught **and** trust dropped **and** consensus held **and** the lesson round-tripped through Walrus. Headless invariants in [`test/learning-loop.test.mjs`](oracle-bridge/test/learning-loop.test.mjs). This is the difference between memory that *remembers* and memory that *learns*: kill the process, and the swarm still knows who tried to manipulate it.
@@ -187,7 +188,7 @@ PASS = manipulation caught **and** trust dropped **and** consensus held **and** 
 The swarm runs as a two-node system with **Walrus as the memory bus**:
 
 - **Data-plane node** — runs the full swarm where its marketplaces are reachable, snapshots the agents' entire memory (price calibrations, source reputations, warm caches) to Walrus every round, and **anchors the blob id onchain** (`memory::checkpoint` on the shared [`SwarmMemory`](https://suiscan.xyz/testnet/object/0x41dfc599a161c5ba620d56b051b3ac92ba1db189c83ed7ce4f863740ae54649d) object — the same trust pattern as settlement evidence, applied to memory itself).
-- **Serving node** (independent infrastructure, holds **no key**) — resolves the pointer **from chain** and restores the memory from Walrus before each 6-hour round, then serves [`/predict/consensus`](https://api.slabclaw.com/predict/consensus). [`/predict/health`](https://api.slabclaw.com/predict/health) reports `restoredFromBlobId` + `pointerSource: "onchain"` — verify it with one curl.
+- **Serving node** (independent infrastructure, holds **no key**) — resolves the pointer **from chain** and restores the full agent memory from Walrus on cold start, then serves the rounds the data-plane publishes at [`/predict/consensus`](https://api.slabclaw.com/predict/consensus). [`/predict/health`](https://api.slabclaw.com/predict/health) reports `restoredFromBlobId` + `pointerSource: "onchain"` — verify it with one curl.
 
 Kill either machine and the other rebuilds the swarm's accumulated knowledge from chain + Walrus alone — *memory that outlives its operator*. Don't take it on faith: `node oracle-bridge/prove-memory-loop.mjs` destroys the local memory, restores it from the onchain pointer, and proves the consensus comes back identical. The dapp at [slabclaw.com](https://slabclaw.com) ships a build-time snapshot and atomically upgrades to the live feed when reachable; every oracle panel labels itself `live` or `snapshot`.
 
@@ -208,7 +209,7 @@ No autonomous settlement runs in production: consensus rounds are computed and p
 | Typhlosion (Neo Genesis, 1st Ed) | $4,000 | ACTIVE | [`0xf63f37a0…c1144ea`](https://suiscan.xyz/testnet/object/0xf63f37a07f61a38c78b3ea6d650315e903a6192b767c34cfc5a8a2266c1144ea) |
 | Karen's Umbreon (VS, 1st Ed) | $15,000 | ACTIVE | [`0x2da84029…02c9720`](https://suiscan.xyz/testnet/object/0x2da84029427ff70dfafadb8643d4f3a83f76f5344bd1de05c1902cff102c9720) |
 | Flareon (Jungle, 1st Ed) | $2,500 | ACTIVE | [`0x9700623a…c459b71`](https://suiscan.xyz/testnet/object/0x9700623a1e977a179b011908da25e7800d682e4bc8dd38929ac7bc121c459b71) |
-| Dark Raichu (Team Rocket, 1st Ed) | $6,000 | PROPOSED + [evidence on Walrus](https://walruscan.com/testnet/blob/2zQcELz2C5jSG2smR8Z9y5EKlPdRM0LpdKqZ7hFogsA) | [`0xa291d583…617879c`](https://suiscan.xyz/testnet/object/0xa291d583f9c2297b002298f033260ab7bc698af378539aa3564001254e72fdd7) |
+| Dark Raichu (Team Rocket, 1st Ed) | $6,000 | DISPUTED + [evidence on Walrus](https://walruscan.com/testnet/blob/2zQcELz2C5jSG2smR8Z9y5EKlPdRM0LpdKqZ7hFogsA) | [`0xa291d583…617879c`](https://suiscan.xyz/testnet/object/0xa291d583f9c2297b002298f033260ab7bc698af378539aa3564001254e72fdd7) |
 
 ## Run it
 

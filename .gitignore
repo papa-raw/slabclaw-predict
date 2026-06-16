@@ -29,3 +29,9 @@ memwal.pre-proof-backup/
 # recording aids (source of truth is VIDEO-SCRIPT.md)
 VIDEO-SCRIPT.docx
 VIDEO-SCRIPT.pdf
+
+# local submission/recording aids
+SUBMISSION-ANSWERS.html
+VIDEO-SCRIPT.html
+Walrus_Harbor_Workshop*.txt
+*.webloc

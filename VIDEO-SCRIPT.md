@@ -8,10 +8,10 @@
 
 **Have these open and ready (don't fumble on camera):**
 
-- **Browser tab 1** — `https://slabclaw.com` (the dapp), already on the **Dark Raichu** market. Confirm it reads **PROPOSED / "Resolving"** with an open dispute window (it's staged with a ~110-day window). If it's not, ping me to re-stage before you shoot.
+- **Browser tab 1** — `https://slabclaw.com` on the **Typhlosion** market — **ACTIVE** (the one you'll trade *and* attack). Keep **Dark Raichu** one click away too: it's **PROPOSED / "Resolving"** with onchain evidence, for the verify beat.
 - **Browser tab 2** — `https://slabclaw.com/deck`, on **slide 4 "Who it's for"** (for the market beat) and **slide 1** to open on.
 - **Terminal** — in `oracle-bridge/`, font size bumped up (18–22pt), dark theme. Pre-type these two commands but **don't run them yet**:
-  - `node prove-learning-loop.mjs goldin base5-1st-83`
+  - `node prove-learning-loop.mjs pricecharting neo1-1st-18 --rounds=8`
   - `node prove-memory-loop.mjs`
 - **One dry run of each script** right before recording so the Walrus calls are warm (first call can be slow).
 
@@ -43,16 +43,16 @@
 
 ## 1:05 – 1:45 · The market (the showcase)
 
-**On screen:** the Dark Raichu market on slabclaw.com. Point to the strike, the YES/NO, then the oracle panel: **"Settles at $7,987."**
+**On screen:** the **Typhlosion** market on slabclaw.com (**ACTIVE**). Point to the strike, the YES/NO bar, then the oracle panel: **"Settles at $5,040."**
 
 **Say:**
-> Here's a live market on testnet: *will this Dark Raichu close above the strike by expiry?* You take YES or NO with test USD, parimutuel pool.
+> Here's a live market on testnet: *will this 1st-edition Typhlosion close above the strike by October?* You take YES or NO with test USD — a parimutuel pool.
 >
-> But the interesting part isn't the bet — it's how it settles. This price, $7,987, isn't from one feed. It's the agreement of a swarm of agents, and every one of them is shown right here: what they reported, how far they sit from consensus, and — this is the part that matters — *how much the swarm trusts each one.*
+> But the interesting part isn't the bet — it's how it'll settle. This price, $5,040, isn't from one feed. It's the agreement of a swarm of agents, and every one is shown right here: what they reported, how far they sit from consensus, and — this is the part that matters — *how much the swarm trusts each one.*
 
-**On screen:** hover a source row showing **"41% trust · learned over 158 rounds."**
+**On screen:** hover a source row showing its **learned trust** — e.g. **"88% trust · learned over 105 rounds."**
 
-> See that? "Forty-one percent trust, learned over 158 rounds." Trust here is *earned*, not assigned. Which brings me to the actual product.
+> See that? Each source carries a trust score the swarm *earned* over hundreds of rounds — not a number we assigned. Which brings me to the actual product.
 
 ---
 
@@ -69,16 +69,16 @@
 
 ## 2:20 – 3:10 · The memory has a job: catching manipulation ★ (the star beat)
 
-**On screen:** switch to the terminal. Run `node prove-learning-loop.mjs goldin base5-1st-83`. Let the four beats print live.
+**On screen:** switch to the terminal. Run `node prove-learning-loop.mjs pricecharting neo1-1st-18 --rounds=8`. Let the four beats print live.
 
 **Say (over the output):**
-> Let me prove that memory does real work. This runs the actual pipeline. Baseline: consensus, $7,987.
+> So how do we know that settlement price can't be gamed? Let me attack it. Typhlosion is live — it settles in October — and right now the swarm prices it at $5,040.
 >
-> Now I attack it — one source starts posting a price three times too high, a classic shill, four rounds straight.
+> Here's the classic attack on a thin market: a wash trade. I take the swarm's *most-trusted* source and feed it a fake sale at three times the real price — eight rounds straight, trying to drag the settlement up before it locks.
 
-**On screen:** the rejection rows + the trust column ticking down 41.9 → 40.9 → 40.0 → 39.0 → 38.1%.
+**On screen:** the rejection rows + the trust column ticking down 91.9 → … → 87.2%, consensus frozen at $5,040.
 
-> Every spoof — rejected. The consensus never moves, not by a cent. And watch the trust column: the liar's reputation erodes, round after round. The swarm caught it, and it *remembered* who lied.
+> Every fake — rejected. The settlement price never moves, not by a cent. And watch the trust column: even our *most-trusted* source loses standing the instant it lies, round after round. The swarm caught it — and it *remembered* who lied.
 
 **On screen:** the PERSIST beat — snapshot to Walrus, memory destroyed, restored from the blob.
 
@@ -97,10 +97,10 @@
 
 ## 3:40 – 4:10 · Don't trust us — verify
 
-**On screen:** back to the dapp. Click **"Verify evidence on Walrus."** Show the blob. Then the market object on the explorer (the onchain `evidence_blob_id`).
+**On screen:** switch to the **Dark Raichu** market — it's already **settled**. Click **"Verify evidence on Walrus."** Show the blob, then the market object on the explorer (the onchain `evidence_blob_id`).
 
 **Say:**
-> And none of this asks for your trust. Every settlement ships its full evidence to Walrus — every input, every weight, every rejection. Here's the blob; anyone can re-run the math and get the same number. The market references that blob's ID onchain, so the receipt and the settlement are bound together. On top of that, the contract that moves the money is *formally verified* — the Sui Prover proves it can never pay out more than the pool holds, for every possible input.
+> And when a market *does* settle, none of it asks for your trust. Here's a different one — Dark Raichu, already resolved. Every settlement ships its full evidence to Walrus — every input, every weight, every rejection. Here's the blob; anyone can re-run the math and get the same number. The market references that blob's ID onchain, so the receipt and the settlement are bound together. On top of that, the contract that moves the money is *formally verified* — the Sui Prover proves it can never pay out more than the pool holds, for every possible input.
 
 ---
 
@@ -120,10 +120,10 @@
 ### Reference — exact artifacts to point at
 
 - **Live dapp:** slabclaw.com · **Deck:** slabclaw.com/deck
-- **Dark Raichu market** settles at **$7,987**; PROPOSED with an open dispute window.
-- **Learned-trust line:** "41% trust · learned over 158 rounds" (Goldin row).
-- **Manipulation proof:** `prove-learning-loop.mjs` — spoof rejected (MAD z≈9.2), trust 41.9→38.1%, survives Walrus kill/restore.
-- **Memory proof:** `prove-memory-loop.mjs` — destroy → restore from onchain pointer + Walrus → identical consensus.
+- **Typhlosion** (ACTIVE, settles Oct 1) → trade + manipulation beats, consensus **$5,040**. **Dark Raichu** (PROPOSED/resolving, onchain evidence) → verify beat, settled at **$7,987**.
+- **Learned-trust line:** each source row shows e.g. "88% trust · learned over 105 rounds" — numbers drift as the swarm runs, so don't read exact figures aloud.
+- **Manipulation proof:** `prove-learning-loop.mjs pricecharting neo1-1st-18 --rounds=8` — most-trusted source spoofs, rejected every round (MAD z≈9.5), consensus frozen at $5,040, trust 91.9→87.2%, survives Walrus kill/restore. **Active market** — attacking a settlement that hasn't locked.
+- **Memory proof:** `prove-memory-loop.mjs` — destroy → restore from onchain pointer + Walrus → identical consensus on all four cards.
 - **Walrus evidence blob** referenced onchain by the market's `evidence_blob_id`.
 - **Formal verification:** Sui Prover — solvency, no truncation, bounded probability, overflow-safe.
 - **Package:** `0x9807050b…` (hardened, formally verified) · memory module v2 `0x2bfc147c…` · SwarmMemory `0x41dfc599…`.

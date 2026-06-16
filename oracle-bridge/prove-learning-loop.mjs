@@ -32,6 +32,7 @@ const ROOT = new URL('.', import.meta.url).pathname;
 const SHARED = join(ROOT, 'memwal', 'shared');
 const SIGNALS = join(SHARED, 'agent-signals', 'latest.json');
 const REPUTATION = join(SHARED, 'reputation', 'weights.json');
+const CONSENSUS = join(SHARED, 'consensus', 'latest.json');
 
 const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const NO_WALRUS = process.argv.includes('--no-walrus');
@@ -68,7 +69,11 @@ function findTargetSignal(signals, platform, cardId) {
 }
 
 async function coordPass() {
-  const { consensus, reputation } = await runCoordinator(CARDS);
+  // Score ONLY the attacked card. The coordinator updates source reputation per
+  // card it runs; if we ran all four, the target's honest votes on the OTHER
+  // cards would offset its spoof here and muddy the trust signal. Isolating the
+  // attacked card makes the erosion clean and attributable to the lie.
+  const { consensus, reputation } = await runCoordinator([CARD]);
   return { c: consensus[CARD], rep: reputation };
 }
 
@@ -91,6 +96,7 @@ console.log(`   card: ${cardName} (${CARD})   ·   target source: ${TARGET}\n`);
 
 sandbox(SIGNALS);
 sandbox(REPUTATION);
+sandbox(CONSENSUS);   // single-card runs rewrite this; restore the full 4-card consensus after
 
 const liveSignals = readJson(SIGNALS);
 if (!liveSignals) { console.error('No agent-signals/latest.json — run the swarm once first.'); process.exit(1); }
