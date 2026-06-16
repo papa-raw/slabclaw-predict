@@ -51,3 +51,6 @@ oracle-bridge/memwal/shared/evidence/history/
 
 # local submission upload media (kept out of the repo)
 slabclaw-submission-media/
+
+# sui-prover run logs
+contracts/slabclaw_predict_proofs/sui-prover.log*
