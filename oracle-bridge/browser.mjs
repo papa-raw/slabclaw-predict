@@ -8,7 +8,16 @@
 
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const BK = '/Users/pat/Desktop/1_projects/slabclaw/slabclaw-app/backend/node_modules';
+// Resolve the browser from wherever it's installed: this package's own
+// node_modules first (a fresh clone that ran `npm i playwright`), then the
+// SlabClaw backend's install if it happens to be present (the data-plane box).
+// If neither resolves, the venue-direct fallback is simply unavailable and
+// those agents skip — the swarm degrades to its restored MemWal memory.
+const BACKEND_NM = '/Users/pat/Desktop/1_projects/slabclaw/slabclaw-app/backend/node_modules';
+function tryRequire(...ids) {
+  for (const id of ids) { try { return require(id); } catch { /* next */ } }
+  return null;
+}
 
 // Two pools: headless (fast, fine for most venues) and HEADED (clears Cloudflare
 // challenges that headless fingerprints trip — the 130point lesson).
@@ -41,13 +50,14 @@ async function getBrowser(headed = false) {
     // Prefer patchright (stealth Chromium) — its fingerprint clears Cloudflare / light bot
     // checks that trip a vanilla Playwright + system Chrome. Fall back to system Chrome if
     // the stealth browser can't launch (e.g. its binary isn't installed).
-    try {
-      const pw = require(`${BK}/patchright`).chromium;
-      _pool[key] = await pw.launch({ headless: !headed, args: ['--no-sandbox'] });
+    const patch = tryRequire('patchright', `${BACKEND_NM}/patchright`);
+    if (patch) {
+      _pool[key] = await patch.chromium.launch({ headless: !headed, args: ['--no-sandbox'] });
       return _pool[key];
-    } catch { /* fall through to system Chrome */ }
-    const chromium = require(`${BK}/playwright`).chromium;
-    _pool[key] = await chromium.launch({ channel: 'chrome', headless: !headed, args: ['--no-sandbox'] });
+    }
+    const pw = tryRequire('playwright', `${BACKEND_NM}/playwright`);
+    if (!pw) throw new Error('no browser available — `npm i playwright` (or patchright) to enable the venue-direct fallback');
+    _pool[key] = await pw.chromium.launch({ channel: 'chrome', headless: !headed, args: ['--no-sandbox'] });
   }
   return _pool[key];
 }

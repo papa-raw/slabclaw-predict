@@ -1,14 +1,28 @@
-# SlabClaw Predict
+<p align="center">
+  <img src="docs/assets/logo.png" width="118" alt="SlabClaw Predict" />
+</p>
 
-**Prediction markets on real-world collectibles, settled on Sui — priced by a memory-backed, manipulation-resistant multi-agent oracle swarm.**
+<h1 align="center">SlabClaw Predict</h1>
 
-> *"Will PSA 10 Karen's Umbreon exceed $15,000 by October 1, 2026?"* — YES/NO, onchain, settled against real marketplace data from 13 source agents across 11 independent venue families.
+<p align="center">
+  Prediction markets on real-world collectibles, settled on Sui by a memory-backed,<br/>
+  manipulation-resistant oracle swarm whose memory lives on Walrus.
+</p>
 
-**Sui Overflow 2026 · Walrus track** — memory-backed agents / MemWal
+<p align="center">
+  <a href="https://slabclaw.com"><b>Live dapp</b></a> ·
+  <a href="https://youtu.be/JXZdWjfkybU"><b>Demo video</b></a> ·
+  <a href="https://www.deepsurge.xyz/projects/1989fce1-ddb4-4a78-992b-a98c4fc6286d">DeepSurge</a> ·
+  <a href="https://slabclaw.com/deck">Deck</a> ·
+  <a href="https://api.slabclaw.com/predict/consensus">Live feed</a> ·
+  <a href="https://api.slabclaw.com/predict/health">Health</a>
+</p>
 
-**Live:** [slabclaw.com](https://slabclaw.com) · [live consensus feed](https://api.slabclaw.com/predict/consensus) · [feed health](https://api.slabclaw.com/predict/health)
+<p align="center"><sub>Sui Overflow 2026 · Walrus Track</sub></p>
 
 ---
+
+> *"Will a PSA 10 Karen's Umbreon close above $15,000 by October 1, 2026?"* You trade YES or NO onchain. The market settles against a real price — the agreement of 13 source agents across 11 independent venue families.
 
 ## The one-liner
 
@@ -21,11 +35,11 @@ The prediction market is the showcase. **The agentic, memory-backed oracle is th
 The Walrus track asks for *AI agents / agentic workflows with long-term memory (MemWal), long-running workflows where agents track state over time, and artifact-driven workflows.* Our oracle is exactly that:
 
 - **Multi-agent (13 specialists, 11 independent venue families)** — one agent per marketplace source (eBay-origin feeds like PriceCharting and 130point collapse into a single voting family, so correlated tapes never inflate the count). Each agent knows its platform's data format, pricing patterns, and failure modes.
-- **Long-running + stateful** — agents continuously monitor prices and **remember**: per-card comp history, source reliability weights (evolving over rounds), and previously-detected manipulation patterns. Kill the process, restart — memory persists via MemWal.
+- **Long-running + stateful** — agents continuously monitor prices and **remember**: per-card comp history, source reliability weights (evolving over rounds), and previously-detected manipulation patterns. Kill the process and restart it; the memory persists via MemWal.
 - **Coordinated** — agents reconcile heterogeneous inputs (sold comps, active listings, auction results, tokenized FMV) into one consensus via **confidence-weighted median + MAD outlier rejection**, with circuit breakers that block proposals when sources disagree.
 - **Artifact-driven** — every consensus round emits an evidence bundle on **Walrus** containing all inputs, weights, rejections, and aggregation math. Disputes are nearly self-resolving: download the blob, re-run the computation, verify.
 
-This is durable, portable, multi-agent memory — applied to a real $2B+/yr market that has never had a trustworthy onchain price.
+It's durable, multi-agent memory applied to a real $2B+/yr market that's never had a trustworthy onchain price.
 
 ## Provably solvent — the settlement contract is formally verified
 
@@ -48,6 +62,12 @@ SlabClaw is an existing collectibles app, so to be clear about what predates the
 - **The full React prediction-market dapp** — browse, faucet, trade YES/NO, oracle-vs-strike charts, the registry ladder, and the dispute/resolution flow.
 
 ## Architecture
+
+<p align="center">
+  <img src="docs/assets/architecture.png" width="860" alt="Three tiers: source agents to a manipulation-resistant coordinator to Walrus and Sui" />
+</p>
+
+The same three tiers, with the coordinator's gates spelled out:
 
 ```
 TIER 1: Source Specialists (13 agents, parallel)
@@ -88,6 +108,10 @@ TIER 3: Bridge Keeper (conditional)
 6. **Claim** — undisputed → auto-finalize; winners claim from the pool.
 
 ## What's live
+
+<p align="center">
+  <img src="docs/assets/dapp.png" width="880" alt="The SlabClaw Predict dapp: four live markets with YES/NO odds and oracle prices, and a market in community-voting dispute" />
+</p>
 
 | Component | Status |
 |---|---|
@@ -225,8 +249,11 @@ node swarm.mjs                   # one-shot: all agents → consensus → Walrus
 #   SLABCLAW_API=<url>           # registry backend for the 6 registry-fed agents
 #                                # (defaults to http://localhost:3456; without it those
 #                                # agents fall back to the warm MemWal cache restored above)
-#   tinyfish CLI + credits       # the 7 venue-direct agents; without it they skip
-# With neither, the swarm still produces consensus from restored MemWal memory —
+#   tinyfish CLI + credits       # the 7 venue-direct agents (fast path)
+#   npm i patchright             # credit-free browser fallback for those agents
+#                                # (130point + direct venue scrapes); without either
+#                                # browser or tinyfish, the venue-direct agents skip
+# With none of these, the swarm still produces consensus from restored MemWal memory —
 # that degradation IS the memory thesis (see /predict/health for the live deployment).
 node swarm.mjs --verbose         # with per-agent detail
 node swarm.mjs --watch           # poll every 300s
@@ -295,6 +322,10 @@ docs/                            Problem statements + formal verification + orac
 ```
 
 ## Manipulation resistance
+
+<p align="center">
+  <img src="docs/assets/manipulation.png" width="820" alt="Thin markets are easy to spoof; SlabClaw makes it expensive and pointless" />
+</p>
 
 | Attack | Cost to attacker | Defense | Outcome |
 |---|---|---|---|

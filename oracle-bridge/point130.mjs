@@ -11,14 +11,22 @@
 
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const BK = '/Users/pat/Desktop/1_projects/slabclaw/slabclaw-app/backend/node_modules';
+// Resolve patchright/playwright portably: this package's node_modules first
+// (`npm i patchright`), the SlabClaw backend's install as a fallback, else the
+// agent simply skips (130point is a credit-free cross-check, not load-bearing).
+const BACKEND_NM = '/Users/pat/Desktop/1_projects/slabclaw/slabclaw-app/backend/node_modules';
+function tryRequire(...ids) {
+  for (const id of ids) { try { return require(id); } catch { /* next */ } }
+  return null;
+}
 
 let _browser = null;
 
 async function getBrowser() {
   if (_browser && _browser.isConnected()) return _browser;
-  const { chromium } = require(`${BK}/patchright`);
-  _browser = await chromium.launch({ headless: false, args: ['--no-sandbox'] });
+  const mod = tryRequire('patchright', `${BACKEND_NM}/patchright`, 'playwright', `${BACKEND_NM}/playwright`);
+  if (!mod) throw new Error('no browser available — `npm i patchright` to enable the 130point scraper');
+  _browser = await mod.chromium.launch({ headless: false, args: ['--no-sandbox'] });
   return _browser;
 }
 

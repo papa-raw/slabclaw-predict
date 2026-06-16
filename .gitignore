@@ -35,3 +35,11 @@ SUBMISSION-ANSWERS.html
 VIDEO-SCRIPT.html
 Walrus_Harbor_Workshop*.txt
 *.webloc
+
+# internal process docs (kept local, out of the public repo)
+BUILD-PLAN.md
+BUILD_PLAN.md
+DEBUG-LOG.md
+NEXT-SESSION.md
+TODO.md
+frontend/UX-AUDIT.md
