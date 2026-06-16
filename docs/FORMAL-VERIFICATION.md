@@ -5,7 +5,7 @@ and — for the functions that move money — **formal verification** with the S
 (Z3 + Boogie). This document is the audit trail.
 
 > **TL;DR** — Every finding from a 40-check security review is fixed and covered by tests
-> (30/30 passing). The two settlement functions are then *mathematically proven* solvent,
+> (31/31 passing). The two settlement functions are then *mathematically proven* solvent,
 > truncation-free, and overflow-safe — not merely tested. Reproduce in one command:
 > `cd contracts/slabclaw_predict_proofs && sui-prover`.
 

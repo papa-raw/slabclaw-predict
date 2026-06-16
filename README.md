@@ -50,14 +50,14 @@ The two settlement functions (`compute_payout` and `yes_price_bps`) are verified
 - **No truncation** — the `u128 → u64` payout narrowing is lossless.
 - **Bounded probability** — the YES price stays within `[0, 10000]` bps, with no arithmetic overflow.
 
-The contract also has a 40-item security review (all findings addressed), 30/30 Move tests, onchain version gating for upgrades, and governance-set economic parameters (dispute bond, dispute window, source floor). Write-up: [`docs/FORMAL-VERIFICATION.md`](docs/FORMAL-VERIFICATION.md). Reproduce: `cd contracts/slabclaw_predict_proofs && sui-prover`.
+The contract also has a 40-item security review (all findings addressed), 31/31 Move tests, onchain version gating for upgrades, and governance-set economic parameters (dispute bond, dispute window, source floor). Write-up: [`docs/FORMAL-VERIFICATION.md`](docs/FORMAL-VERIFICATION.md). Reproduce: `cd contracts/slabclaw_predict_proofs && sui-prover`.
 
 ## What's new for this hackathon
 
 SlabClaw is an existing collectibles app, so to be clear about what predates the May 7 – Jun 21 window: the only pre-existing pieces are the **product registry** (the 5,167-card catalog with cross-grader normalization) and a single-source **PriceCharting-average + eBay-fallback** price feed. Everything that makes this a Sui + Walrus project—and everything that makes the oracle an *oracle*—was built during the hackathon:
 
 - **The independent multi-source oracle swarm**—the 13 source-specialist agents, including 7 venue-direct agents we integrated this window (PSA APR, Goldin, Fanatics, ALT, Cardmarket, Yahoo Auctions JP, 130point), plus the coordinator's family-independence counting, MAD + anchor gates, thin_market settlement, cross-session memory, and reputation weighting. The old feed was one averaged source; the manipulation-resistant, memory-backed consensus is new.
-- **All Move contracts**—`market` (with the dispute/resolution flow), `oracle`, `registry`, `memory` (the onchain SwarmMemory anchor), `test_usd`, and the governance `ProtocolConfig`—plus **Sui Prover formal verification** of the settlement math and a 40-check security review (30/30 Move tests).
+- **All Move contracts**—`market` (with the dispute/resolution flow), `oracle`, `registry`, `memory` (the onchain SwarmMemory anchor), `test_usd`, and the governance `ProtocolConfig`—plus **Sui Prover formal verification** of the settlement math and a 40-check security review (31/31 Move tests).
 - **MemWal / Walrus Memory persistence**—per-agent card memory, the kill-and-restore memory loop, and the two-node production topology with **Walrus as the memory bus**.
 - **The Walrus evidence layer**—every consensus round uploaded as a verifiable, onchain-anchored blob.
 - **The full React prediction-market dapp**—browse, faucet, trade YES/NO, oracle-vs-strike charts, the registry ladder, and the dispute/resolution flow.
@@ -283,7 +283,7 @@ node e2e-lifecycle.mjs
 
 # Tests
 cd oracle-bridge && npm test                     # 62 JS tests (coordinator · walrus · wiring · attack · redact · learning loop)
-cd contracts/slabclaw_predict && sui move test   # 30 Move tests
+cd contracts/slabclaw_predict && sui move test   # 31 Move tests
 
 # Kill-and-restore proof — snapshot memory to Walrus, destroy it, rebuild from
 # the blob, prove consensus returns byte-identical (sandboxed; leaves tree clean)

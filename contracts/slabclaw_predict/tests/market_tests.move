@@ -306,6 +306,119 @@ module slabclaw_predict::market_tests {
     }
 
     #[test]
+    /// Regression: two winners on the SAME side must split the fixed settlement
+    /// pool, not the live (shrinking) pool. Pre-fix, the second claimer was
+    /// underpaid and the remainder was stranded. A=6 YES, B=4 YES, loser=10 NO →
+    /// pool 20; YES wins → A claims 12, B claims 8, pool fully distributed.
+    fun test_two_winners_split_fixed_pool() {
+        let mut scenario = ts::begin(ADMIN);
+        let (admin_cap, registry, config, oracle_cap) = setup_market_prereqs(&mut scenario);
+
+        {
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_000_000_000_000);
+            market::create_market(
+                &admin_cap, &registry,
+                b"BASE_CHARIZARD_4_PSA_10", 1500000,
+                1_100_000_000_000,
+                b"Charizard > $15K?",
+                &clock, ts::ctx(&mut scenario),
+            );
+            clock::destroy_for_testing(clock);
+        };
+
+        // Winner A buys 6 YES
+        ts::next_tx(&mut scenario, TRADER_A);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_050_000_000_000);
+            let payment = coin::mint_for_testing<TEST_USD>(6 * ONE_SUI, ts::ctx(&mut scenario));
+            market::buy_yes(&mut market, payment, &clock, ts::ctx(&mut scenario));
+            clock::destroy_for_testing(clock);
+            ts::return_shared(market);
+        };
+
+        // Winner B buys 4 YES
+        ts::next_tx(&mut scenario, TRADER_B);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_050_000_000_000);
+            let payment = coin::mint_for_testing<TEST_USD>(4 * ONE_SUI, ts::ctx(&mut scenario));
+            market::buy_yes(&mut market, payment, &clock, ts::ctx(&mut scenario));
+            clock::destroy_for_testing(clock);
+            ts::return_shared(market);
+        };
+
+        // Loser buys 10 NO (so the pool exceeds the winning side)
+        ts::next_tx(&mut scenario, DISPUTER);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_050_000_000_000);
+            let payment = coin::mint_for_testing<TEST_USD>(10 * ONE_SUI, ts::ctx(&mut scenario));
+            market::buy_no(&mut market, payment, &clock, ts::ctx(&mut scenario));
+            clock::destroy_for_testing(clock);
+            ts::return_shared(market);
+        };
+
+        // Oracle proposes $16,000 (YES wins)
+        ts::next_tx(&mut scenario, ORACLE_OP);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_100_000_000_001);
+            market::propose_resolution(
+                &oracle_cap, &mut market, &registry, &config,
+                1600000, 5,
+                b"dHWTDxbxXzGV_qwh9qeb52RH31SWssvST40GWj1mtS4",
+                &clock,
+            );
+            clock::destroy_for_testing(clock);
+            ts::return_shared(market);
+        };
+
+        // Finalize after the dispute window
+        ts::next_tx(&mut scenario, ADMIN);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            let mut clock = clock::create_for_testing(ts::ctx(&mut scenario));
+            clock::set_for_testing(&mut clock, 1_100_000_000_001 + 86_400_000 + 1);
+            market::finalize(&mut market, &clock);
+            assert!(market::is_settled(&market), 1);
+            ts::return_shared(market);
+            clock::destroy_for_testing(clock);
+        };
+
+        // A claims first → 6/10 × 20 = 12
+        ts::next_tx(&mut scenario, TRADER_A);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            market::claim(&mut market, ts::ctx(&mut scenario));
+            assert!(market::total_claimed(&market) == 12 * ONE_SUI, 2);
+            ts::return_shared(market);
+        };
+
+        // B claims SECOND → must be 4/10 × 20 = 8 (the FIXED pool), not 4/10 × 8.
+        // Total claimed = 20 (whole pool), nothing stranded.
+        ts::next_tx(&mut scenario, TRADER_B);
+        {
+            let mut market = ts::take_shared<Market>(&scenario);
+            market::claim(&mut market, ts::ctx(&mut scenario));
+            assert!(market::total_claimed(&market) == 20 * ONE_SUI, 3);
+            assert!(market::pool_value(&market) == 0, 4);
+            ts::return_shared(market);
+        };
+
+        oracle::destroy_oracle_cap_for_testing(oracle_cap);
+        registry::destroy_config_for_testing(config);
+        registry::destroy_registry_for_testing(registry);
+        registry::destroy_admin_cap_for_testing(admin_cap);
+        ts::end(scenario);
+    }
+
+    #[test]
     #[expected_failure(abort_code = market::ENoWinningPosition)]
     fun test_claim_loser_fails() {
         let mut scenario = ts::begin(ADMIN);

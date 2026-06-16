@@ -109,6 +109,10 @@ module slabclaw_predict::market {
         outcome: Option<bool>,
         /// Total tUSD claimed by winners (for accounting)
         total_claimed: u64,
+        /// Pool value snapshotted at settlement. Pro-rata `claim` divides by this
+        /// FIXED amount, not the live (shrinking) pool — otherwise each winner
+        /// after the first is underpaid and the remainder is stranded.
+        settled_pool: u64,
         /// Market creator
         creator: address,
     }
@@ -210,6 +214,7 @@ module slabclaw_predict::market {
             disputer: option::none(),
             outcome: option::none(),
             total_claimed: 0,
+            settled_pool: 0,
             creator: tx_context::sender(ctx),
         };
 
@@ -414,6 +419,8 @@ module slabclaw_predict::market {
         let outcome_yes = market.proposed_price > market.strike_usd_cents;
         market.outcome = option::some(outcome_yes);
         market.state = MarketState::Settled;
+        // Freeze the pool as the fixed dividend for pro-rata claims.
+        market.settled_pool = balance::value(&market.pool);
 
         event::emit(MarketSettled {
             market_id: object::uid_to_address(&market.id),
@@ -464,6 +471,9 @@ module slabclaw_predict::market {
             };
         };
 
+        // Snapshot AFTER any slashed bond joined the pool, so winners share it too.
+        market.settled_pool = balance::value(&market.pool);
+
         event::emit(MarketSettled {
             market_id: object::uid_to_address(&market.id),
             settlement_price: correct_price,
@@ -512,7 +522,11 @@ module slabclaw_predict::market {
         let total_winning = if (outcome_yes) { market.total_yes } else { market.total_no };
         assert!(total_winning > 0, ENoWinningSide);
 
-        let total_pool = balance::value(&market.pool);
+        // Divide by the FIXED settlement pool, not the live (shrinking) pool —
+        // otherwise the dividend drops with each claim and later winners are
+        // underpaid. settled_pool >= the live pool at every point during claims,
+        // so balance::split always has the funds (solvent: Σ payouts == settled_pool).
+        let total_pool = market.settled_pool;
 
         // Solvent + truncation-free by construction (see compute_payout's proof).
         let payout = compute_payout(winning_shares, total_winning, total_pool);
@@ -687,6 +701,7 @@ module slabclaw_predict::market {
             disputer: option::none(),
             outcome: option::none(),
             total_claimed: 0,
+            settled_pool: 0,
             creator: tx_context::sender(ctx),
         }
     }
@@ -715,6 +730,7 @@ module slabclaw_predict::market {
             disputer: _,
             outcome: _,
             total_claimed: _,
+            settled_pool: _,
             creator: _,
         } = market;
         balance::destroy_for_testing(pool);
