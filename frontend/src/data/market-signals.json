@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-16T08:55:57.614Z",
+  "generatedAt": "2026-06-14T10:28:02.074Z",
   "cards": {
     "neo1-1st-18": {
       "name": "Typhlosion",
@@ -23,15 +23,10 @@
     },
     "base5-1st-83": {
       "name": "Dark Raichu",
-      "settledPriceUsd": 4205,
-      "confidence": 0.52,
+      "settledPriceUsd": 7987,
+      "confidence": 0.72,
       "wideDispute": true,
       "flags": [
-        {
-          "code": "same_grade_disagreement",
-          "severity": "high",
-          "message": "The swarm settle ($4,205) and the grade-matched PSA 10 oracle ($7,987) disagree by 47% — the PSA-10 anchor itself is contested. Dispute window widened."
-        },
         {
           "code": "grade_inversion",
           "severity": "high",
