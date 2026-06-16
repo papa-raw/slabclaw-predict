@@ -14,6 +14,7 @@
   <a href="https://youtu.be/JXZdWjfkybU"><b>Demo video</b></a> ·
   <a href="https://www.deepsurge.xyz/projects/1989fce1-ddb4-4a78-992b-a98c4fc6286d">DeepSurge</a> ·
   <a href="https://slabclaw.com/deck">Deck</a> ·
+  <a href="docs/SlabClaw-Predict-Journey.pdf">The journey</a> ·
   <a href="https://api.slabclaw.com/predict/consensus">Live feed</a> ·
   <a href="https://api.slabclaw.com/predict/health">Health</a>
 </p>
@@ -60,6 +61,8 @@ SlabClaw is an existing collectibles app, so to be clear about what predates the
 - **MemWal / Walrus Memory persistence** — per-agent card memory, the kill-and-restore memory loop, and the two-node production topology with **Walrus as the memory bus**.
 - **The Walrus evidence layer** — every consensus round uploaded as a verifiable, onchain-anchored blob.
 - **The full React prediction-market dapp** — browse, faucet, trade YES/NO, oracle-vs-strike charts, the registry ladder, and the dispute/resolution flow.
+
+How this got from an autonomous agent swarm (*Anima Swarm*) to a DeepBook prediction market to the Walrus-track oracle it is now — and why every pivot kept the same core — is in **[the pivot journey](docs/SlabClaw-Predict-Journey.pdf)**.
 
 ## Architecture
 
